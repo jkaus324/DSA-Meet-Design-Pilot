@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { execFile, exec } = require('child_process');
+const { exec } = require('child_process');
 const os = require('os');
 const yaml = require('js-yaml');
 const { marked } = require('marked');
@@ -28,11 +28,25 @@ const PROGRESS_JSON  = path.join(REPO_ROOT, 'progress.json');
 const PATTERNS_DIR   = path.join(REPO_ROOT, 'patterns');
 const DIST_DIR       = path.join(__dirname, 'dist');
 
+// ─── g++ availability check ─────────────────────────────────────────────────
+
+let testRunnerAvailable = false;
+exec('g++ --version', (err) => {
+  if (err) {
+    console.warn('⚠️  g++ not found. Test runner / Submit will not work.');
+    console.warn('   Install: sudo apt install g++ (Linux) | xcode-select --install (Mac) | MinGW (Windows)');
+    testRunnerAvailable = false;
+  } else {
+    testRunnerAvailable = true;
+    console.log('✅ g++ found — test runner available.');
+  }
+});
+
 // ─── Data helpers ───────────────────────────────────────────────────────────
 
 function loadProblems() {
   if (!fs.existsSync(PROBLEMS_YML)) {
-    console.error('ERROR: Could not find docs/_data/problems.yml — make sure you\'re running from the repo root.');
+    console.error('ERROR: Could not find docs/_data/problems.yml');
     return [];
   }
   try {
@@ -50,10 +64,12 @@ function loadProgress() {
   }
   try {
     const raw = fs.readFileSync(PROGRESS_JSON, 'utf8');
-    return JSON.parse(raw);
+    let data = JSON.parse(raw);
+    data = migrateProgress(data);
+    return data;
   } catch (e) {
     const backupPath = PROGRESS_JSON + '.bak';
-    console.error(`progress.json was corrupted. Backed up to progress.json.bak and created a fresh one.`);
+    console.error(`progress.json was corrupted. Backed up to progress.json.bak.`);
     try { fs.copyFileSync(PROGRESS_JSON, backupPath); } catch (_) {}
     const fresh = createEmptyProgress();
     saveProgress(fresh);
@@ -63,12 +79,62 @@ function loadProgress() {
 
 function createEmptyProgress() {
   return {
-    version: 1,
+    version: 3,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     problems: {},
     primers_read: [],
   };
+}
+
+// ─── v2 → v3 migration ──────────────────────────────────────────────────────
+
+function migrateProgress(data) {
+  if ((data.version || 1) >= 3) return data;
+
+  console.log('Migrating progress.json from v2 to v3...');
+  const problems = loadProblems();
+
+  for (const [id, entry] of Object.entries(data.problems || {})) {
+    const problem = problems.find(p => p.id === id);
+    const partCount = (problem && problem.parts) ? problem.parts.length : 1;
+
+    // Build parts object from old status
+    const oldStatus = entry.status || 'unsolved';
+    const parts = {};
+
+    if (oldStatus === 'solved') {
+      // All parts passed
+      for (let i = 1; i <= partCount; i++) {
+        parts[String(i)] = {
+          status: 'passed',
+          passed_at: entry.completed_at || new Date().toISOString(),
+          carry_forward: true,
+        };
+      }
+    } else if (oldStatus === 'attempted') {
+      parts['1'] = { status: 'attempted', passed_at: null, carry_forward: null };
+      for (let i = 2; i <= partCount; i++) {
+        parts[String(i)] = { status: 'locked', passed_at: null, carry_forward: null };
+      }
+    } else {
+      // unsolved → part 1 active, rest locked
+      parts['1'] = { status: 'active', passed_at: null, carry_forward: null };
+      for (let i = 2; i <= partCount; i++) {
+        parts[String(i)] = { status: 'locked', passed_at: null, carry_forward: null };
+      }
+    }
+
+    delete entry.status;
+    delete entry.ext1;
+    delete entry.ext2;
+    entry.parts = parts;
+  }
+
+  data.version = 3;
+  saveProgress(data);
+  console.log('Migration complete.');
+  return data;
 }
 
 function saveProgress(data) {
@@ -123,18 +189,109 @@ function stripBeforeYouCode(rawMarkdown) {
   return kept.join('\n');
 }
 
+// ─── Split README by part markers ───────────────────────────────────────────
+
+function splitReadmeByParts(rawMarkdown, partDefs) {
+  if (!partDefs || partDefs.length === 0) return { scenario: rawMarkdown, sections: [rawMarkdown] };
+
+  const lines = rawMarkdown.split('\n');
+  const markerIndices = partDefs.map(p => {
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim().startsWith(p.description_marker)) return i;
+    }
+    return -1;
+  });
+
+  // Everything before the first found marker = scenario/context
+  const firstMarker = markerIndices.find(i => i !== -1);
+  const scenarioLines = firstMarker !== undefined && firstMarker > 0
+    ? lines.slice(0, firstMarker)
+    : lines;
+  const scenario = scenarioLines.join('\n').trim();
+
+  const sections = [];
+  for (let i = 0; i < markerIndices.length; i++) {
+    const start = markerIndices[i];
+    if (start === -1) {
+      sections.push(null);
+      continue;
+    }
+    const end = markerIndices[i + 1] !== undefined && markerIndices[i + 1] !== -1
+      ? markerIndices[i + 1]
+      : lines.length;
+    sections.push(lines.slice(start, end).join('\n'));
+  }
+
+  return { scenario, sections };
+}
+
+// ─── Derive problem status from parts ───────────────────────────────────────
+
+function deriveStatus(partsObj, totalParts) {
+  if (!partsObj || totalParts === 0) return 'unsolved';
+  const partsList = Object.values(partsObj);
+  const allPassed = partsList.length === totalParts && partsList.every(p => p.status === 'passed');
+  if (allPassed) return 'solved';
+  const anyActive = partsList.some(p => p.status === 'attempted' || p.status === 'passed');
+  if (anyActive) return 'attempted';
+  return 'unsolved';
+}
+
+function ensurePartsInitialized(entry, totalParts) {
+  if (!entry.parts) {
+    entry.parts = {};
+    entry.parts['1'] = { status: 'active', passed_at: null, carry_forward: null };
+    for (let i = 2; i <= totalParts; i++) {
+      entry.parts[String(i)] = { status: 'locked', passed_at: null, carry_forward: null };
+    }
+  }
+  return entry;
+}
+
 function mergeProblemWithProgress(problem, progress, primersRead) {
   const p = progress.problems[problem.id] || {};
+  const totalParts = (problem.parts || []).length || 1;
+  const partsProgress = p.parts || null;
+
+  ensurePartsInitialized(p, totalParts);
+  const status = deriveStatus(p.parts, totalParts);
+
+  // Compute parts_passed and current_part
+  let partsPassed = 0;
+  let currentPart = 1;
+  if (p.parts) {
+    for (let i = 1; i <= totalParts; i++) {
+      const ps = (p.parts[String(i)] || {}).status;
+      if (ps === 'passed') {
+        partsPassed++;
+      } else if (ps !== 'locked' && currentPart === 1) {
+        currentPart = i;
+      }
+    }
+    // If all passed, currentPart = totalParts (last)
+    if (partsPassed === totalParts) currentPart = totalParts;
+    else {
+      // Find first non-passed, non-locked
+      for (let i = 1; i <= totalParts; i++) {
+        const ps = (p.parts[String(i)] || {}).status;
+        if (ps !== 'passed' && ps !== 'locked') { currentPart = i; break; }
+        if (ps === 'locked') { currentPart = i - 1 || 1; break; }
+      }
+    }
+  }
+
   const primerName = problem.prerequisite_primer;
   return {
     ...problem,
-    status:       p.status       || 'unsolved',
-    started_at:   p.started_at   || null,
-    completed_at: p.completed_at || null,
-    notes:        p.notes        || '',
-    ext1:         p.ext1         || false,
-    ext2:         p.ext2         || false,
-    primer_read:  primerName ? (primersRead || []).includes(primerName) : null,
+    status,
+    difficulty_mode:  p.difficulty_mode || 'interview',
+    started_at:       p.started_at      || null,
+    completed_at:     p.completed_at    || null,
+    notes:            p.notes           || '',
+    total_parts:      totalParts,
+    parts_passed:     partsPassed,
+    current_part:     partsPassed === totalParts ? null : currentPart,
+    primer_read:      primerName ? (primersRead || []).includes(primerName) : null,
   };
 }
 
@@ -143,9 +300,7 @@ function buildSummary(mergedProblems) {
   const solved    = mergedProblems.filter(p => p.status === 'solved').length;
   const attempted = mergedProblems.filter(p => p.status === 'attempted').length;
   const unsolved  = total - solved - attempted;
-  const ext1_count = mergedProblems.filter(p => p.ext1).length;
-  const ext2_count = mergedProblems.filter(p => p.ext2).length;
-  return { total, solved, attempted, unsolved, ext1_count, ext2_count };
+  return { total, solved, attempted, unsolved };
 }
 
 function calculateStreak(progress) {
@@ -153,6 +308,11 @@ function calculateStreak(progress) {
   for (const p of Object.values(progress.problems)) {
     if (p.started_at)   dates.add(p.started_at.slice(0, 10));
     if (p.completed_at) dates.add(p.completed_at.slice(0, 10));
+    if (p.parts) {
+      for (const part of Object.values(p.parts)) {
+        if (part.passed_at) dates.add(part.passed_at.slice(0, 10));
+      }
+    }
   }
   if (dates.size === 0) return { current_days: 0, last_activity: null };
 
@@ -194,10 +354,11 @@ app.get('/api/problems', (req, res) => {
 });
 
 // ── POST /api/problems/:id/status ────────────────────────────────────────────
+// v3: only accepts notes and difficulty_mode (status is derived from parts)
 
 app.post('/api/problems/:id/status', (req, res) => {
   const { id } = req.params;
-  const { status, notes } = req.body;
+  const { notes, difficulty_mode } = req.body;
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
@@ -206,30 +367,15 @@ app.post('/api/problems/:id/status', (req, res) => {
   const progress = loadProgress();
   const entry    = progress.problems[id] || {};
 
-  if (status !== undefined) {
-    const prev = entry.status || 'unsolved';
-    entry.status = status;
-
-    if (status === 'attempted' && prev === 'unsolved' && !entry.started_at) {
-      entry.started_at = new Date().toISOString();
-    }
-    if (status === 'solved') {
-      if (!entry.started_at) entry.started_at = new Date().toISOString();
-      entry.completed_at = new Date().toISOString();
-    }
-    if (status === 'unsolved') {
-      entry.started_at   = null;
-      entry.completed_at = null;
-    }
-    if (status === 'attempted' && prev === 'solved') {
-      entry.completed_at = null;
-    }
+  if (difficulty_mode !== undefined && ['interview', 'guided', 'learning'].includes(difficulty_mode)) {
+    entry.difficulty_mode = difficulty_mode;
   }
-
   if (notes !== undefined) {
     entry.notes = notes;
   }
 
+  const totalParts = (problem.parts || []).length || 1;
+  ensurePartsInitialized(entry, totalParts);
   progress.problems[id] = entry;
   saveProgress(progress);
 
@@ -237,13 +383,367 @@ app.post('/api/problems/:id/status', (req, res) => {
   res.json(mergeProblemWithProgress(problem, progress, primersRead));
 });
 
-// ── POST /api/problems/:id/extension ─────────────────────────────────────────
+// ── GET /api/problems/:id/parts ← NEW ────────────────────────────────────────
 
-app.post('/api/problems/:id/extension', (req, res) => {
+app.get('/api/problems/:id/parts', (req, res) => {
   const { id } = req.params;
-  const { ext, completed } = req.body; // ext: 1 or 2, completed: boolean
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
 
-  if (ext !== 1 && ext !== 2) return res.status(400).json({ error: 'ext must be 1 or 2' });
+  const progress   = loadProgress();
+  const entry      = progress.problems[id] || {};
+  const partDefs   = problem.parts || [{ name: 'Complete', description_marker: '## Part 1', test_file: 'part1_test.cpp' }];
+  const totalParts = partDefs.length;
+
+  ensurePartsInitialized(entry, totalParts);
+  const partsProgress = entry.parts || {};
+
+  // Read README and split by markers
+  const readmePath = path.join(REPO_ROOT, problem.path, 'README.md');
+  let rawReadme = '';
+  if (fs.existsSync(readmePath)) {
+    rawReadme = fs.readFileSync(readmePath, 'utf8');
+    rawReadme = stripBeforeYouCode(rawReadme);
+  }
+  const { scenario, sections } = splitReadmeByParts(rawReadme, partDefs);
+
+  const parts = partDefs.map((def, i) => {
+    const partNum    = i + 1;
+    const partKey    = String(partNum);
+    const partProg   = partsProgress[partKey] || { status: 'locked', passed_at: null, carry_forward: null };
+    const isLocked   = partProg.status === 'locked';
+    const section    = sections[i];
+
+    // Count tests in test file
+    let testCount = 0;
+    if (!isLocked) {
+      const testPath = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', def.test_file);
+      if (fs.existsSync(testPath)) {
+        const testContent = fs.readFileSync(testPath, 'utf8');
+        const matches = testContent.match(/cout\s*<<\s*"(PASS|FAIL)\s/g);
+        testCount = matches ? matches.length / 2 : 0; // PASS + FAIL per test
+      }
+    }
+
+    return {
+      part:             partNum,
+      name:             def.name,
+      status:           partProg.status,
+      passed_at:        partProg.passed_at,
+      carry_forward:    partProg.carry_forward,
+      description_html: isLocked ? null : (section ? marked(section) : null),
+      test_count:       testCount,
+    };
+  });
+
+  res.json({
+    id,
+    total_parts: totalParts,
+    scenario_html: scenario ? marked(scenario) : null,
+    parts,
+    runner_available: testRunnerAvailable,
+  });
+});
+
+// ── GET /api/problems/:id/starter ────────────────────────────────────────────
+// Updated: accepts ?mode= and ?part= query params
+
+app.get('/api/problems/:id/starter', (req, res) => {
+  const { id } = req.params;
+  const mode = ['interview', 'guided', 'learning'].includes(req.query.mode)
+    ? req.query.mode : 'interview';
+  const part = parseInt(req.query.part, 10) || 1;
+
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const tryFile = (p, m) => path.join(REPO_ROOT, problem.path, 'boilerplate', 'cpp', `part${p}`, `${m}.cpp`);
+
+  let filePath = tryFile(part, mode);
+  let fallback = false;
+
+  if (!fs.existsSync(filePath)) {
+    filePath = tryFile(part, 'learning');
+    fallback = true;
+  }
+  if (!fs.existsSync(filePath)) {
+    filePath = tryFile(1, mode);
+    fallback = true;
+  }
+  if (!fs.existsSync(filePath)) {
+    filePath = tryFile(1, 'learning');
+    fallback = true;
+  }
+
+  const code = fs.existsSync(filePath)
+    ? fs.readFileSync(filePath, 'utf8')
+    : `// Starter file not found for mode: ${mode}, part: ${part}\n// Write your solution here.\n`;
+
+  res.json({ mode, part, code, fallback });
+});
+
+// ── GET /api/problems/:id/code ────────────────────────────────────────────────
+
+app.get('/api/problems/:id/code', (req, res) => {
+  const { id } = req.params;
+  const mode = ['interview', 'guided', 'learning'].includes(req.query.mode)
+    ? req.query.mode : 'interview';
+
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const progress  = loadProgress();
+  const entry     = progress.problems[id] || {};
+  const saved     = (entry.code || {})[mode] || '';
+
+  if (saved) {
+    return res.json({ mode, code: saved, is_starter: false });
+  }
+
+  // Fall back to part1 starter
+  const tryFile = (m) => path.join(REPO_ROOT, problem.path, 'boilerplate', 'cpp', 'part1', `${m}.cpp`);
+  let filePath = tryFile(mode);
+  if (!fs.existsSync(filePath)) filePath = tryFile('learning');
+
+  const code = fs.existsSync(filePath)
+    ? fs.readFileSync(filePath, 'utf8')
+    : `// Write your solution here.\n`;
+
+  res.json({ mode, code, is_starter: true });
+});
+
+// ── POST /api/problems/:id/code ───────────────────────────────────────────────
+
+app.post('/api/problems/:id/code', (req, res) => {
+  const { id } = req.params;
+  const { mode, code } = req.body;
+
+  if (!['interview', 'guided', 'learning'].includes(mode)) {
+    return res.status(400).json({ error: 'mode must be interview, guided, or learning' });
+  }
+  if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
+
+  const problems = loadProblems();
+  if (!problems.find(p => p.id === id)) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const progress = loadProgress();
+  if (!progress.problems[id]) progress.problems[id] = {};
+  if (!progress.problems[id].code) progress.problems[id].code = {};
+  progress.problems[id].code[mode] = code;
+  saveProgress(progress);
+
+  res.json({ saved: true, mode });
+});
+
+// ── POST /api/problems/:id/submit ← NEW ──────────────────────────────────────
+
+app.post('/api/problems/:id/submit', (req, res) => {
+  const { id } = req.params;
+  const { part, mode, code } = req.body;
+
+  if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
+  if (!Number.isInteger(part) || part < 1) return res.status(400).json({ error: 'part must be a positive integer' });
+
+  if (!testRunnerAvailable) {
+    return res.status(503).json({
+      error: 'g++ not available. Install g++ to use the test runner.',
+      runner_available: false,
+    });
+  }
+
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const partDefs   = problem.parts || [{ name: 'Complete', description_marker: '## Part 1', test_file: 'part1_test.cpp' }];
+  const totalParts = partDefs.length;
+
+  if (part > totalParts) {
+    return res.status(400).json({ error: `Part ${part} does not exist. Problem has ${totalParts} parts.` });
+  }
+
+  // Save code first
+  const progress = loadProgress();
+  if (!progress.problems[id]) progress.problems[id] = {};
+  const entry = progress.problems[id];
+  if (!entry.code) entry.code = {};
+  entry.code[mode || 'interview'] = code;
+  ensurePartsInitialized(entry, totalParts);
+
+  // Set started_at if not already set
+  if (!entry.started_at) {
+    entry.started_at = new Date().toISOString();
+  }
+  // Mark current part as attempted
+  if ((entry.parts[String(part)] || {}).status !== 'passed') {
+    entry.parts[String(part)] = { ...entry.parts[String(part)], status: 'attempted' };
+  }
+
+  saveProgress(progress);
+
+  // Create temp directory
+  const timestamp = Date.now();
+  const tmpDir    = path.join(os.tmpdir(), `dsa-md-${id}-${timestamp}`);
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  const solutionFile = path.join(tmpDir, 'solution.cpp');
+  fs.writeFileSync(solutionFile, code, 'utf8');
+
+  // Copy test files for Parts 1..part
+  const testFiles = [];
+  for (let i = 1; i <= part; i++) {
+    const testFile = partDefs[i - 1].test_file;
+    const src      = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', testFile);
+    if (fs.existsSync(src)) {
+      const dest = path.join(tmpDir, `part${i}_test.cpp`);
+      fs.copyFileSync(src, dest);
+      testFiles.push(`part${i}_test.cpp`);
+    }
+  }
+
+  // Generate main.cpp
+  const partNames = partDefs.slice(0, part).map((_, i) => `part${i + 1}_tests`);
+  const mainContent = `
+#include <iostream>
+using namespace std;
+
+${partNames.map(fn => `int ${fn}();`).join('\n')}
+
+int main() {
+  int total_failures = 0;
+  ${partNames.map(fn => `total_failures += ${fn}();`).join('\n  ')}
+  return total_failures > 0 ? 1 : 0;
+}
+`;
+  const mainFile = path.join(tmpDir, 'main.cpp');
+  fs.writeFileSync(mainFile, mainContent, 'utf8');
+
+  const outBin   = path.join(tmpDir, os.platform() === 'win32' ? 'runner.exe' : 'runner');
+  const allSrcs  = ['solution.cpp', ...testFiles, 'main.cpp'].map(f => `"${path.join(tmpDir, f)}"`).join(' ');
+  const compileCmd = `g++ -std=c++17 -o "${outBin}" ${allSrcs} 2>&1`;
+
+  const startTime = Date.now();
+
+  exec(compileCmd, { timeout: 15000, cwd: tmpDir }, (compileErr, compileOut) => {
+    if (compileErr) {
+      cleanup(tmpDir);
+      return res.json({
+        success: false,
+        submitted_part: part,
+        compilation: { success: false, errors: compileOut || compileErr.message },
+        parts: [],
+        time_ms: Date.now() - startTime,
+        runner_available: true,
+      });
+    }
+
+    exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout, stderr) => {
+      cleanup(tmpDir);
+
+      const output = stdout || '';
+      const parsedParts = parseTestOutput(output, partDefs.slice(0, part));
+
+      const allPassed = parsedParts.every(p => p.all_passed);
+      const timedOut  = runErr && runErr.killed;
+
+      // Update progress based on results
+      const freshProgress = loadProgress();
+      const freshEntry    = freshProgress.problems[id] || {};
+      ensurePartsInitialized(freshEntry, totalParts);
+
+      if (allPassed && !timedOut) {
+        freshEntry.parts[String(part)] = {
+          status:        'passed',
+          passed_at:     new Date().toISOString(),
+          carry_forward: freshEntry.parts[String(part)]?.carry_forward ?? null,
+        };
+        // Unlock next part
+        if (part < totalParts) {
+          const nextKey = String(part + 1);
+          if ((freshEntry.parts[nextKey] || {}).status === 'locked') {
+            freshEntry.parts[nextKey] = { status: 'active', passed_at: null, carry_forward: null };
+          }
+        }
+        // If last part, set completed_at
+        if (part === totalParts) {
+          freshEntry.completed_at = new Date().toISOString();
+        }
+      }
+
+      freshProgress.problems[id] = freshEntry;
+      saveProgress(freshProgress);
+
+      res.json({
+        success:         allPassed && !timedOut,
+        submitted_part:  part,
+        compilation:     { success: true, errors: null },
+        parts:           parsedParts,
+        unlocked_next_part: allPassed && !timedOut && part < totalParts,
+        timed_out:       timedOut || false,
+        time_ms:         Date.now() - startTime,
+        runner_available: true,
+      });
+    });
+  });
+});
+
+function cleanup(dir) {
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch (_) {}
+}
+
+function parseTestOutput(stdout, partDefs) {
+  const lines = stdout.split('\n').map(l => l.trim()).filter(Boolean);
+  const results = [];
+
+  for (let i = 0; i < partDefs.length; i++) {
+    const partNum  = i + 1;
+    const tests    = [];
+    let passed     = 0;
+    let total      = 0;
+    let summaryParsed = false;
+
+    for (const line of lines) {
+      if (line.startsWith(`PART${partNum}_SUMMARY`)) {
+        const match = line.match(/(\d+)\/(\d+)/);
+        if (match) {
+          passed = parseInt(match[1], 10);
+          total  = parseInt(match[2], 10);
+          summaryParsed = true;
+        }
+      } else if (line.startsWith('PASS ') || line.startsWith('FAIL ')) {
+        const isPassed = line.startsWith('PASS ');
+        const name     = line.slice(5).trim();
+        tests.push({ name, passed: isPassed });
+      }
+    }
+
+    if (!summaryParsed) {
+      passed = tests.filter(t => t.passed).length;
+      total  = tests.length;
+    }
+
+    results.push({
+      part:       partNum,
+      name:       partDefs[i].name,
+      passed,
+      total,
+      all_passed: total > 0 && passed === total,
+      tests,
+    });
+  }
+
+  return results;
+}
+
+// ── POST /api/problems/:id/parts/:part/carry-forward ← NEW ───────────────────
+
+app.post('/api/problems/:id/parts/:part/carry-forward', (req, res) => {
+  const { id, part } = req.params;
+  const { carry_forward } = req.body;
+  const partNum = parseInt(part, 10);
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
@@ -251,12 +751,61 @@ app.post('/api/problems/:id/extension', (req, res) => {
 
   const progress = loadProgress();
   const entry    = progress.problems[id] || {};
-  entry[`ext${ext}`] = !!completed;
+  const totalParts = (problem.parts || []).length || 1;
+  ensurePartsInitialized(entry, totalParts);
+
+  if (!entry.parts[String(partNum)]) {
+    return res.status(400).json({ error: `Part ${partNum} not found` });
+  }
+
+  entry.parts[String(partNum)].carry_forward = !!carry_forward;
   progress.problems[id] = entry;
   saveProgress(progress);
 
-  const primersRead = progress.primers_read || [];
-  res.json(mergeProblemWithProgress(problem, progress, primersRead));
+  res.json({ part: partNum, carry_forward: !!carry_forward });
+});
+
+// ── POST /api/problems/:id/parts/:part/skip ← NEW ────────────────────────────
+
+app.post('/api/problems/:id/parts/:part/skip', (req, res) => {
+  if (testRunnerAvailable) {
+    return res.status(403).json({ error: 'Skip is only available when g++ is not installed.' });
+  }
+
+  const { id, part } = req.params;
+  const partNum = parseInt(part, 10);
+
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const progress = loadProgress();
+  const entry    = progress.problems[id] || {};
+  const totalParts = (problem.parts || []).length || 1;
+  ensurePartsInitialized(entry, totalParts);
+
+  entry.parts[String(partNum)] = {
+    status:       'passed',
+    passed_at:    new Date().toISOString(),
+    carry_forward: entry.parts[String(partNum)]?.carry_forward ?? null,
+  };
+
+  if (partNum < totalParts) {
+    entry.parts[String(partNum + 1)] = { status: 'active', passed_at: null, carry_forward: null };
+  } else {
+    entry.completed_at = new Date().toISOString();
+  }
+
+  if (!entry.started_at) entry.started_at = new Date().toISOString();
+
+  progress.problems[id] = entry;
+  saveProgress(progress);
+
+  res.json({
+    skipped:            true,
+    part:               partNum,
+    next_part_unlocked: partNum < totalParts ? partNum + 1 : null,
+  });
 });
 
 // ── GET /api/problems/:id/readme ─────────────────────────────────────────────
@@ -365,6 +914,8 @@ app.get('/api/stats', (req, res) => {
   overall.percent_complete = overall.total > 0
     ? Math.round((overall.solved / overall.total) * 100)
     : 0;
+  overall.attempted = merged.filter(p => p.status === 'attempted').length;
+  overall.unsolved  = overall.total - overall.solved - overall.attempted;
 
   // by_tier
   const by_tier = { 1: null, 2: null, 3: null };
@@ -379,123 +930,61 @@ app.get('/api/stats', (req, res) => {
     for (const pattern of (p.patterns || [])) {
       if (!by_pattern[pattern]) by_pattern[pattern] = { solved: 0, attempted: 0, total: 0 };
       by_pattern[pattern].total++;
-      if (p.status === 'solved')   by_pattern[pattern].solved++;
+      if (p.status === 'solved')    by_pattern[pattern].solved++;
       if (p.status === 'attempted') by_pattern[pattern].attempted++;
     }
   }
 
+  // by_difficulty_mode
+  const by_difficulty_mode = {
+    interview: { solved: 0, attempted: 0 },
+    guided:    { solved: 0, attempted: 0 },
+    learning:  { solved: 0, attempted: 0 },
+  };
+  for (const p of merged) {
+    const m = p.difficulty_mode || 'interview';
+    if (by_difficulty_mode[m]) {
+      if (p.status === 'solved')    by_difficulty_mode[m].solved++;
+      if (p.status === 'attempted') by_difficulty_mode[m].attempted++;
+    }
+  }
+
+  // parts_stats
+  let totalPartsAcrossAll = 0;
+  let partsPassed         = 0;
+  let fullyCompleted      = 0;
+  let partiallyCompleted  = 0;
+
+  for (const p of merged) {
+    totalPartsAcrossAll += p.total_parts;
+    partsPassed         += p.parts_passed;
+    if (p.status === 'solved')    fullyCompleted++;
+    if (p.status === 'attempted') partiallyCompleted++;
+  }
+
+  const parts_stats = {
+    total_parts_across_all_problems: totalPartsAcrossAll,
+    parts_passed:                    partsPassed,
+    avg_parts_per_solve:             fullyCompleted > 0 ? Math.round((partsPassed / fullyCompleted) * 10) / 10 : 0,
+    problems_fully_completed:        fullyCompleted,
+    problems_partially_completed:    partiallyCompleted,
+  };
+
   // primers
-  const primers = loadPrimers();
+  const primers  = loadPrimers();
   const readSet  = new Set(progress.primers_read || []);
   const primersStats = { total: primers.length, read: [...readSet].length };
 
   // streak
   const streak = calculateStreak(progress);
 
-  res.json({ overall, by_tier, by_pattern, primers: primersStats, streak });
+  res.json({ overall, by_tier, by_pattern, by_difficulty_mode, parts_stats, primers: primersStats, streak });
 });
 
-// ── GET /api/problems/:id/solution ───────────────────────────────────────────
+// ── GET /api/runner-status ────────────────────────────────────────────────────
 
-const DEFAULT_SOLUTION = `#include <iostream>
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <unordered_map>
-using namespace std;
-
-// TODO: Implement your solution here
-
-int main() {
-    // Test your implementation
-    cout << "Hello, DSA + Design!" << endl;
-    return 0;
-}
-`;
-
-app.get('/api/problems/:id/solution', (req, res) => {
-  const { id } = req.params;
-  const problems = loadProblems();
-  const problem  = problems.find(p => p.id === id);
-  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
-
-  const filePath = path.join(REPO_ROOT, problem.path, 'solution.cpp');
-  const code = fs.existsSync(filePath)
-    ? fs.readFileSync(filePath, 'utf8')
-    : DEFAULT_SOLUTION;
-
-  res.json({ code, language: 'cpp', exists: fs.existsSync(filePath) });
-});
-
-// ── POST /api/problems/:id/solution ──────────────────────────────────────────
-
-app.post('/api/problems/:id/solution', (req, res) => {
-  const { id } = req.params;
-  const { code } = req.body;
-  if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
-
-  const problems = loadProblems();
-  const problem  = problems.find(p => p.id === id);
-  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
-
-  const filePath = path.join(REPO_ROOT, problem.path, 'solution.cpp');
-  fs.writeFileSync(filePath, code, 'utf8');
-  res.json({ saved: true });
-});
-
-// ── POST /api/problems/:id/run ────────────────────────────────────────────────
-
-app.post('/api/problems/:id/run', (req, res) => {
-  const { id } = req.params;
-  const { code } = req.body;
-  if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
-
-  // Write code to a temp file
-  const tmpDir    = os.tmpdir();
-  const srcFile   = path.join(tmpDir, `dsa_solution_${id}.cpp`);
-  const binFile   = path.join(tmpDir, `dsa_solution_${id}${os.platform() === 'win32' ? '.exe' : ''}`);
-  const startTime = Date.now();
-
-  fs.writeFileSync(srcFile, code, 'utf8');
-
-  // Step 1: Compile
-  const compileCmd = `g++ -std=c++17 -Wall -o "${binFile}" "${srcFile}" 2>&1`;
-  exec(compileCmd, { timeout: 15000 }, (compileErr, compileOut) => {
-    if (compileErr) {
-      return res.json({
-        success: false,
-        stage: 'compile',
-        output: '',
-        error: compileOut || compileErr.message,
-        time_ms: Date.now() - startTime,
-      });
-    }
-
-    // Step 2: Run
-    exec(`"${binFile}"`, { timeout: 10000 }, (runErr, stdout, stderr) => {
-      // Clean up
-      try { fs.unlinkSync(srcFile); } catch (_) {}
-      try { fs.unlinkSync(binFile); } catch (_) {}
-
-      if (runErr && runErr.killed) {
-        return res.json({
-          success: false,
-          stage: 'run',
-          output: stdout || '',
-          error: 'Execution timed out (10s limit)',
-          time_ms: Date.now() - startTime,
-        });
-      }
-
-      res.json({
-        success: !runErr,
-        stage: 'run',
-        output: stdout || '',
-        error: stderr || (runErr ? runErr.message : ''),
-        time_ms: Date.now() - startTime,
-      });
-    });
-  });
+app.get('/api/runner-status', (req, res) => {
+  res.json({ available: testRunnerAvailable });
 });
 
 // ── Static frontend ───────────────────────────────────────────────────────────
@@ -518,12 +1007,9 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 function startServer(port) {
   const server = app.listen(port, () => {
     console.log(`Dashboard running at http://localhost:${port}`);
-    // Auto-open browser (open is ESM-only, use dynamic import)
     import('open').then(({ default: open }) => {
       open(`http://localhost:${port}`);
-    }).catch(() => {
-      // open is optional — don't fail if it can't load
-    });
+    }).catch(() => {});
   });
 
   server.on('error', (err) => {

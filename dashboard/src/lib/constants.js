@@ -31,6 +31,30 @@ export const STATUS_LABELS = {
 
 export const TOPMATE_URL = 'https://topmate.io/jatin_kaushal24';
 
+export const DIFFICULTY_MODES = {
+  interview: {
+    label: 'Interview',
+    icon: '🔴',
+    color: '#dc2626',
+    bg: '#fef2f2',
+    description: 'Blank slate — design everything from scratch',
+  },
+  guided: {
+    label: 'Guided',
+    icon: '🟡',
+    color: '#f59e0b',
+    bg: '#fffbeb',
+    description: 'Structural hints — you name and connect the pieces',
+  },
+  learning: {
+    label: 'Learning',
+    icon: '🟢',
+    color: '#16a34a',
+    bg: '#ecfdf5',
+    description: 'Full scaffolding — implement the method bodies',
+  },
+};
+
 // Reading time estimate per primer (words / 200 wpm)
 export const PRIMER_READ_TIME = {
   strategy:  8,

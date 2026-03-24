@@ -7,13 +7,9 @@
 
 ## Problem Statement
 
-Model a vending machine that goes through the following states:
-- **Idle**: Waiting for coin insertion
-- **HasCoin**: Coin inserted, waiting for item selection
-- **Dispensing**: Item selected, dispensing in progress
-- **OutOfStock**: No items available
+Model a vending machine that transitions through distinct states based on user actions. The machine holds inventory, accepts money, dispenses items, and handles cancellations — all with correct state-based behavior.
 
-The machine must handle invalid operations gracefully (e.g., selecting an item when no coin has been inserted) and transition correctly between states.
+**The key design question:** Where do the transitions live? If you use `if (state == IDLE) { ... }` inside every method, adding a new state means touching every method. The State pattern gives each state its own class, so new states are added without modifying existing ones.
 
 ---
 
@@ -23,7 +19,7 @@ The machine must handle invalid operations gracefully (e.g., selecting an item w
 
 **Naive approach:** One big class with `if (state == IDLE) { ... } else if (state == HAS_COIN) { ... }` in every method. What happens when you add a "maintenance mode" state? You touch every method.
 
-**State pattern approach:** Each state is its own class. `IdleState::insertCoin()` transitions to `HasCoinState`. `HasCoinState::insertCoin()` says "coin already inserted." The machine just delegates to whatever state is current.
+**State pattern approach:** Each state is its own class. `IdleState::insertMoney()` transitions to `PaymentPendingState`. `PaymentPendingState::insertMoney()` accumulates more money. The machine just delegates to whatever state is current.
 
 ---
 
@@ -31,64 +27,86 @@ The machine must handle invalid operations gracefully (e.g., selecting an item w
 
 ```cpp
 struct Item {
-    std::string name;
+    string name;
     double price;
     int quantity;
 };
-```
 
-The machine holds inventory as `unordered_map<string, Item>` — O(1) lookup by item code.
+// Machine holds inventory as: unordered_map<string, Item>
+// O(1) lookup by item name
+```
 
 ---
 
-## What to Implement
+## Part 1
 
+**Base requirement — State transitions**
+
+Implement a vending machine with these states:
+
+| State | Description |
+|-------|-------------|
+| `Idle` | Waiting for item selection |
+| `PaymentPending` | Item selected, waiting for enough money |
+| `Dispensing` | Money sufficient, dispense item |
+
+**Transition rules:**
+- `Idle` + `selectItem(name)` → `PaymentPending` (if item exists and has stock)
+- `PaymentPending` + `insertMoney(amount)` → `Dispensing` (if total ≥ price)
+- `PaymentPending` + `cancel()` → `Idle` (refund inserted money)
+- `Dispensing` + `dispense()` → `Idle` (decrement stock, return change)
+- Any invalid action (e.g., `dispense()` in `Idle`) prints a warning and does nothing
+
+**Entry points (tests will call these):**
 ```cpp
-class VendingMachine; // forward declare
+void selectItem(const string& itemName);
+void insertMoney(double amount);
+void dispense();
+void cancel();
+string getState();
+void reset();  // reset machine to initial Idle state for tests
+```
 
-class State {
+**What to implement:**
+```cpp
+class VendingMachineState {
 public:
-    virtual void insertCoin(VendingMachine& vm, double amount) = 0;
-    virtual void selectItem(VendingMachine& vm, const std::string& code) = 0;
-    virtual void cancel(VendingMachine& vm) = 0;
-    virtual std::string stateName() const = 0;
-    virtual ~State() = default;
+    virtual void selectItem(const string& item) = 0;
+    virtual void insertMoney(double amount) = 0;
+    virtual void dispense() = 0;
+    virtual void cancel() = 0;
+    virtual string getName() = 0;
 };
 
-// States to implement:
-class IdleState      : public State { ... };
-class HasCoinState   : public State { ... };
-class DispensingState: public State { ... };
-class OutOfStockState: public State { ... };
+class IdleState          : public VendingMachineState { ... };
+class PaymentPendingState: public VendingMachineState { ... };
+class DispensingState    : public VendingMachineState { ... };
 
-class VendingMachine {
-public:
-    VendingMachine();
-    void addItem(const std::string& code, const Item& item);
-    void insertCoin(double amount);
-    void selectItem(const std::string& code);
-    void cancel();
-    std::string getCurrentState() const;
-    double getCurrentBalance() const;
-
-    // State transition helpers (called by State objects)
-    void setState(State* newState);
-    void addBalance(double amount);
-    void resetBalance();
-    Item* getItem(const std::string& code);
-    void decrementItem(const std::string& code);
-};
+class VendingMachine { ... };  // delegates all actions to currentState
 ```
 
 ---
 
-## Extensions
+## Part 2
 
-1. **Extension 1:** Add a `MaintenanceState` that the machine enters when `addItem()` is called. In maintenance, coin insertion is disabled. Maintenance exits when `exitMaintenance()` is called.
+**Extension 1 — Maintenance mode**
 
-2. **Extension 2:** Add refund handling. If the user inserts $2 for an item costing $1.50, dispense the item AND return $0.50 change.
+The operations team needs a **Maintenance state** for restocking and price adjustments:
 
-3. **Extension 3:** Track a transaction log — a `vector<Transaction>` where each entry records what happened (coin inserted, item dispensed, cancelled). Expose a `getHistory()` method.
+- Operator enters maintenance with a PIN: `enterMaintenance("1234")`
+- In maintenance: user-facing operations (`selectItem`, `insertMoney`, `dispense`) are blocked
+- Operator can restock: `restock("Cola", 10)` — only works in Maintenance state
+- Operator exits maintenance with PIN: `exitMaintenance("1234")`
+- Wrong PIN → stays in current state, prints error
+
+**New entry points:**
+```cpp
+void enterMaintenance(const string& operatorPin);
+void exitMaintenance(const string& operatorPin);
+void restock(const string& itemName, int quantity);
+```
+
+**Design challenge:** Does `MaintenanceState` fit naturally into your existing State hierarchy? You should be able to add it without modifying `IdleState`, `PaymentPendingState`, or `DispensingState`.
 
 ---
 

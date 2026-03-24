@@ -44,39 +44,99 @@ struct PaymentMethod {
 
 ---
 
-## What to Implement
+## Part 1
 
+**Base requirement — Rank by a single criterion**
+
+Implement a `PaymentRanker` that accepts any ranking strategy at construction time and uses it to sort a list of payment methods.
+
+You must support these three strategies:
+
+| Strategy | Rule |
+|----------|------|
+| Rewards Maximizer | Highest `cashbackRate` first |
+| Low-Fee Seeker | Lowest `transactionFee` first |
+| Trust-Based Ranker | Highest `usageCount` first |
+
+**Design goal:** Adding a 4th strategy must require **zero changes** to `PaymentRanker` itself.
+
+**Entry points (tests will call these):**
 ```cpp
-// Strategy interface
+vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod> methods);
+vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod> methods);
+vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods);
+```
+
+**What to implement:**
+```cpp
 class RankingStrategy {
 public:
     virtual bool compare(const PaymentMethod& a, const PaymentMethod& b) = 0;
     virtual ~RankingStrategy() = default;
 };
 
-// Concrete strategies — you implement these:
 class RewardsMaximizer : public RankingStrategy { ... };
 class LowFeeSeeker    : public RankingStrategy { ... };
 class TrustBased      : public RankingStrategy { ... };
 
-// The ranker — takes any strategy
 class PaymentRanker {
 public:
     PaymentRanker(RankingStrategy* strategy);
     void setStrategy(RankingStrategy* strategy);
-    std::vector<PaymentMethod> rank(std::vector<PaymentMethod> methods);
+    vector<PaymentMethod> rank(vector<PaymentMethod> methods);
 };
 ```
 
 ---
 
-## Extensions (attempt these after the base implementation)
+## Part 2
 
-1. **Extension 1:** Add a `CompositeStrategy` that ranks by primary criterion first, breaks ties by secondary criterion (e.g., highest cashback, then lowest fee for ties).
+**Extension 1 — Composite ranking**
 
-2. **Extension 2:** The user has a "preferred" payment method. Add a `PreferredFirstStrategy` that always puts the preferred method at the top, then ranks the rest by rewards.
+The product team now wants **composite ranking**: rank by cashback first, and use transaction fee as a tiebreaker when two methods have equal cashback.
 
-3. **Extension 3:** Add a `WeightedStrategy` that scores each payment method: `score = (cashbackRate * w1) - (transactionFee * w2) + (usageCount * w3)` where w1, w2, w3 are configurable weights.
+> Example: Card A (10% cashback, Rs. 8 fee) vs Card B (10% cashback, Rs. 3 fee) → Card B wins because tiebreaker is lower fee.
+
+**Design challenge:** How do you chain ranking criteria **without modifying** `RewardsMaximizer`, `LowFeeSeeker`, or `PaymentRanker`?
+
+**New entry point:**
+```cpp
+vector<PaymentMethod> rank_composite(vector<PaymentMethod> methods,
+                                     vector<RankingStrategy*> criteria);
+```
+
+The function accepts an ordered list of criteria. The first criterion is the primary sort key; subsequent criteria break ties.
+
+**Hint:** A `CompositeStrategy` holds a list of strategies. It tries the first; if tied, tries the second; and so on.
+
+---
+
+## Part 3
+
+**Extension 2 — Easy-refund eligibility**
+
+The compliance team has added a new field to `PaymentMethod`:
+
+```cpp
+struct PaymentMethod {
+    // ... existing fields ...
+    bool easyRefundEligible;  // NEW
+};
+```
+
+Some payment methods don't support easy refunds. When the user has enabled "prefer easy refund" in settings, those methods should rank lower — regardless of cashback or fees.
+
+**New entry point:**
+```cpp
+vector<PaymentMethod> rank_with_refund_filter(vector<PaymentMethod> methods,
+                                              bool preferEasyRefund);
+```
+
+When `preferEasyRefund = true`: methods with `easyRefundEligible = true` always rank above those without it. Among methods with the same refund eligibility, rank by cashback as tiebreaker.
+
+When `preferEasyRefund = false`: refund eligibility is ignored; rank only by cashback.
+
+**Design challenge:** Is this a new strategy, a filter, or both? Can your existing `CompositeStrategy` handle it?
 
 ---
 
@@ -85,5 +145,3 @@ public:
 ```bash
 ./run-tests.sh 001-payment-ranker cpp
 ```
-
-Tests are in `tests/test_payment_ranker.cpp`.

@@ -5,14 +5,41 @@ import TierBadge from './TierBadge.jsx';
 import { STATUS_ICONS } from '../lib/constants.js';
 
 const COLUMNS = [
-  { key: 'status',    label: '',         width: 'w-10',  sortable: false },
-  { key: 'id',        label: '#',        width: 'w-12',  sortable: true },
-  { key: 'name',      label: 'Problem',  width: '',      sortable: true },
-  { key: 'patterns',  label: 'Pattern',  width: 'w-40',  sortable: false },
-  { key: 'tier',      label: 'Tier',     width: 'w-12',  sortable: true },
-  { key: 'companies', label: 'Company',  width: 'w-24',  sortable: false },
-  { key: 'time_minutes', label: 'Time',  width: 'w-12',  sortable: true },
+  { key: 'status',       label: '',         width: 'w-10', sortable: false },
+  { key: 'id',           label: '#',        width: 'w-12', sortable: true },
+  { key: 'name',         label: 'Problem',  width: '',     sortable: true },
+  { key: 'progress',     label: 'Parts',    width: 'w-20', sortable: false },
+  { key: 'patterns',     label: 'Pattern',  width: 'w-40', sortable: false },
+  { key: 'tier',         label: 'Tier',     width: 'w-12', sortable: true },
+  { key: 'difficulty_mode', label: 'Mode',  width: 'w-10', sortable: false },
+  { key: 'companies',    label: 'Company',  width: 'w-24', sortable: false },
+  { key: 'time_minutes', label: 'Time',     width: 'w-12', sortable: true },
 ];
+
+const MODE_DOT = {
+  interview: { icon: '🔴', title: 'Interview mode' },
+  guided:    { icon: '🟡', title: 'Guided mode' },
+  learning:  { icon: '🟢', title: 'Learning mode' },
+};
+
+function PartDots({ totalParts, partsPassed, currentPart }) {
+  if (!totalParts || totalParts <= 1) return null;
+
+  const dots = [];
+  for (let i = 1; i <= totalParts; i++) {
+    let color;
+    if (i <= partsPassed)    color = '#01b328'; // passed
+    else if (i === currentPart) color = '#1a90ff'; // current
+    else                     color = '#d1d5db'; // locked
+    dots.push(<span key={i} style={{ width: 7, height: 7, borderRadius: '50%', background: color, display: 'inline-block', margin: '0 1px' }} />);
+  }
+
+  return (
+    <span title={`${partsPassed} of ${totalParts} parts completed`}>
+      {dots}
+    </span>
+  );
+}
 
 function sortProblems(problems, { col, dir }) {
   if (!col) return problems;
@@ -72,6 +99,9 @@ export default function ProblemTable({ problems }) {
           {sorted.map(problem => {
             const { icon, color } = STATUS_ICONS[problem.status] || STATUS_ICONS.unsolved;
             const num = problem.id.split('-')[0];
+            const totalParts  = problem.total_parts  || 1;
+            const partsPassed = problem.parts_passed || 0;
+            const currentPart = problem.current_part || 1;
             return (
               <tr
                 key={problem.id}
@@ -90,6 +120,18 @@ export default function ProblemTable({ problems }) {
                 <td className="px-3 py-2.5 font-medium text-text-primary truncate">
                   {problem.name}
                 </td>
+                {/* Parts progress */}
+                <td className="w-20 px-3 py-2.5">
+                  {totalParts > 1 ? (
+                    <PartDots
+                      totalParts={totalParts}
+                      partsPassed={partsPassed}
+                      currentPart={currentPart}
+                    />
+                  ) : (
+                    <span className="text-xs text-text-tertiary">—</span>
+                  )}
+                </td>
                 {/* Patterns */}
                 <td className="w-40 px-3 py-2.5">
                   <div className="flex flex-wrap gap-1">
@@ -101,6 +143,14 @@ export default function ProblemTable({ problems }) {
                 {/* Tier */}
                 <td className="w-12 px-3 py-2.5">
                   <TierBadge tier={problem.tier} />
+                </td>
+                {/* Mode */}
+                <td className="w-10 px-3 py-2.5 text-center" title={(MODE_DOT[problem.difficulty_mode] || MODE_DOT.interview).title}>
+                  <span className="text-sm">
+                    {problem.status === 'unsolved'
+                      ? <span className="w-2 h-2 inline-block rounded-full bg-border" />
+                      : (MODE_DOT[problem.difficulty_mode] || MODE_DOT.interview).icon}
+                  </span>
                 </td>
                 {/* Company */}
                 <td className="w-24 px-3 py-2.5 text-text-secondary truncate">

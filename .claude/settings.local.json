@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(timeout 5 node server.js)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\); const j=JSON.parse\\(d\\); const nl=j.dependencies; console.log\\(JSON.stringify\\(nl, null, 2\\)\\);\" node -e \"const pkg=require\\(''''./node_modules/marked/package.json''''\\); console.log\\(''''marked version:'''', pkg.version\\);\" node -e \"const pkg=require\\(''''./node_modules/marked-highlight/package.json''''\\); console.log\\(''''marked-highlight version:'''', pkg.version\\);\")",
+      "Bash(taskkill /F /PID 30360 2)",
+      "Bash(1 sleep:*)",
+      "Bash(taskkill //F //PID 30360)",
+      "Bash(netstat -ano)",
+      "Bash(node -e \"const pkg=require\\(''./c:/Users/jkaus/OneDrive/Documents/GitHub/DSA-Meet-Design-Pilot/dashboard/node_modules/@monaco-editor/react/package.json''\\); console.log\\(''@monaco-editor/react version:'', pkg.version\\);\")",
+      "WebFetch(domain:p.superdesign.dev)"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jkaus\\\\OneDrive\\\\Documents\\\\GitHub\\\\DSA-Meet-Design-Pilot\\\\problems\\\\tier1-foundation\\\\001-payment-ranker\\\\boilerplate\\\\cpp\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jkaus\\\\OneDrive\\\\Documents\\\\GitHub\\\\DSA-Meet-Design-Pilot\\\\problems\\\\tier1-foundation\\\\003-notification-system\\\\boilerplate\\\\cpp\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jkaus\\\\OneDrive\\\\Documents\\\\GitHub\\\\DSA-Meet-Design-Pilot\\\\problems\\\\tier1-foundation\\\\004-vending-machine\\\\boilerplate\\\\cpp\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jkaus\\\\OneDrive\\\\Documents\\\\GitHub\\\\DSA-Meet-Design-Pilot\\\\problems\\\\tier2-intermediate\\\\010-ride-surge-pricing\\\\boilerplate\\\\cpp\")"
+    ]
+  }
+}

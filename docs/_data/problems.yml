@@ -8,6 +8,16 @@
   languages: ["cpp"]
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/001-payment-ranker"
+  parts:
+    - name: "Base — Rank by criteria"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Composite ranking"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — Easy-refund eligibility"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
 
 - id: "003-notification-system"
   name: "Notification System"
@@ -19,6 +29,13 @@
   languages: ["cpp"]
   prerequisite_primer: "observer"
   path: "problems/tier1-foundation/003-notification-system"
+  parts:
+    - name: "Base — Multi-channel notifications"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Priority filtering"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
 
 - id: "004-vending-machine"
   name: "Vending Machine"
@@ -30,6 +47,139 @@
   languages: ["cpp"]
   prerequisite_primer: "state"
   path: "problems/tier1-foundation/004-vending-machine"
+  parts:
+    - name: "Base — State transitions"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Maintenance mode"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+
+- id: "005-issue-resolver"
+  name: "Customer Issue Resolution System"
+  tier: 1
+  patterns: ["Strategy", "Observer"]
+  dsa: "HashMap + Priority Queue"
+  companies: ["PhonePe", "Flipkart"]
+  time_minutes: 45
+  languages: ["cpp"]
+  prerequisite_primer: "strategy"
+  path: "problems/tier1-foundation/005-issue-resolver"
+  parts:
+    - name: "Base — Round-robin agent assignment"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Multiple assignment strategies"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — Issue state tracking + priority"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
+
+- id: "006-discount-engine"
+  name: "Billing & Discount Engine"
+  tier: 1
+  patterns: ["Strategy", "Decorator"]
+  dsa: "HashMap"
+  companies: ["Flipkart", "Amazon", "Meesho"]
+  time_minutes: 45
+  languages: ["cpp"]
+  prerequisite_primer: "strategy"
+  path: "problems/tier1-foundation/006-discount-engine"
+  parts:
+    - name: "Base — Apply single discount type"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Stack multiple discounts"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — Discount eligibility rules"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
+
+- id: "007-order-management"
+  name: "Order Management System"
+  tier: 1
+  patterns: ["State"]
+  dsa: "HashMap"
+  companies: ["Meesho", "PhonePe", "Amazon"]
+  time_minutes: 45
+  languages: ["cpp"]
+  prerequisite_primer: "state"
+  path: "problems/tier1-foundation/007-order-management"
+  parts:
+    - name: "Base — Order lifecycle with state transitions"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Cancellation + inventory release"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — Transition history tracking"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
+
+- id: "008-file-search"
+  name: "File Search System"
+  tier: 1
+  patterns: ["Strategy", "Composite"]
+  dsa: "Tree (DFS/BFS)"
+  companies: ["Amazon", "Microsoft"]
+  time_minutes: 45
+  languages: ["cpp"]
+  prerequisite_primer: "strategy"
+  path: "problems/tier1-foundation/008-file-search"
+  parts:
+    - name: "Base — Search by single criterion"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Combine criteria with AND/OR"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — Sort results independently"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
+
+- id: "011-rate-limiter"
+  name: "API Rate Limiter"
+  tier: 1
+  patterns: ["Strategy", "Factory"]
+  dsa: "Queue + HashMap"
+  companies: ["Amazon", "Razorpay", "Uber"]
+  time_minutes: 45
+  languages: ["cpp"]
+  prerequisite_primer: "strategy"
+  path: "problems/tier1-foundation/011-rate-limiter"
+  parts:
+    - name: "Base — Fixed-window rate limiting"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Multiple algorithms per endpoint"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — User tier-based rate limits"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
+
+- id: "009-meeting-scheduler"
+  name: "Meeting Room Scheduler"
+  tier: 2
+  patterns: ["Strategy", "Observer"]
+  dsa: "Interval Checking + HashMap + Priority Queue"
+  companies: ["Flipkart", "Razorpay", "Groww", "Microsoft"]
+  time_minutes: 60
+  languages: ["cpp"]
+  prerequisite_primer: "strategy"
+  path: "problems/tier2-intermediate/009-meeting-scheduler"
+  parts:
+    - name: "Base — Room booking with conflict detection"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Multiple allocation strategies"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"
+    - name: "Extension 2 — Attendee notifications"
+      description_marker: "## Part 3"
+      test_file: "part3_test.cpp"
 
 - id: "010-ride-surge-pricing"
   name: "Ride Surge Pricing Engine"
@@ -41,3 +191,10 @@
   languages: ["cpp"]
   prerequisite_primer: "strategy"
   path: "problems/tier2-intermediate/010-ride-surge-pricing"
+  parts:
+    - name: "Base — Surge calculation"
+      description_marker: "## Part 1"
+      test_file: "part1_test.cpp"
+    - name: "Extension 1 — Surge notifications"
+      description_marker: "## Part 2"
+      test_file: "part2_test.cpp"

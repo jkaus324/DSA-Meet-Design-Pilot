@@ -17,10 +17,11 @@ export const api = {
     return request(`${BASE}/problems`);
   },
 
-  updateStatus(id, { status, notes }) {
+  // v3: only notes and difficulty_mode accepted (status is derived from parts)
+  updateStatus(id, body) {
     return request(`${BASE}/problems/${id}/status`, {
       method: 'POST',
-      body: JSON.stringify({ status, notes }),
+      body: JSON.stringify(body),
     });
   },
 
@@ -34,6 +35,11 @@ export const api = {
 
   getProblemAiPrompt(id) {
     return request(`${BASE}/problems/${id}/ai-prompt`);
+  },
+
+  // v3: get per-part descriptions and progress
+  getProblemParts(id) {
+    return request(`${BASE}/problems/${id}/parts`);
   },
 
   getPrimers() {
@@ -52,28 +58,43 @@ export const api = {
     return request(`${BASE}/stats`);
   },
 
-  getSolution(id) {
-    return request(`${BASE}/problems/${id}/solution`);
+  getStarter(id, mode, part = 1) {
+    return request(`${BASE}/problems/${id}/starter?mode=${mode}&part=${part}`);
   },
 
-  saveSolution(id, code) {
-    return request(`${BASE}/problems/${id}/solution`, {
+  getCode(id, mode) {
+    return request(`${BASE}/problems/${id}/code?mode=${mode}`);
+  },
+
+  saveCode(id, mode, code) {
+    return request(`${BASE}/problems/${id}/code`, {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ mode, code }),
     });
   },
 
-  runSolution(id, code) {
-    return request(`${BASE}/problems/${id}/run`, {
+  // v3: submit code for test-validated part progression
+  submitPart(id, part, mode, code) {
+    return request(`${BASE}/problems/${id}/submit`, {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ part, mode, code }),
     });
   },
 
-  markExtension(id, ext, completed) {
-    return request(`${BASE}/problems/${id}/extension`, {
+  // v3: record carry-forward choice when new part unlocks
+  setCarryForward(id, part, carryForward) {
+    return request(`${BASE}/problems/${id}/parts/${part}/carry-forward`, {
       method: 'POST',
-      body: JSON.stringify({ ext, completed }),
+      body: JSON.stringify({ carry_forward: carryForward }),
     });
+  },
+
+  // v3: skip part (only when g++ unavailable)
+  skipPart(id, part) {
+    return request(`${BASE}/problems/${id}/parts/${part}/skip`, { method: 'POST' });
+  },
+
+  runnerStatus() {
+    return request(`${BASE}/runner-status`);
   },
 };

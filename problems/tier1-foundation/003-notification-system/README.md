@@ -33,59 +33,86 @@ New notification channels should be addable **without changing the event publish
 ## Data Structures
 
 ```cpp
-enum class OrderEvent {
-    ORDER_PLACED,
-    ORDER_SHIPPED,
-    ORDER_DELIVERED,
-    ORDER_CANCELLED
+struct Notification {
+    string userId;
+    string message;
+    string channel;  // "email", "sms", "push"
 };
 
-struct OrderInfo {
-    std::string orderId;
-    std::string customerId;
-    std::string customerEmail;
-    std::string customerPhone;
-    double amount;
-    OrderEvent event;
+struct User {
+    string id;
+    string email;
+    string phone;
+    vector<string> subscribedChannels;
 };
 ```
 
 ---
 
-## What to Implement
+## Part 1
 
+**Base requirement — Multi-channel notifications**
+
+Implement a notification system where:
+- Users subscribe to one or more channels: `"email"`, `"sms"`, `"push"`
+- When `notify(event, users)` is called, each user receives a notification on each of their subscribed channels
+- Adding a new channel (e.g., WhatsApp) requires **zero changes** to existing channel classes
+
+**Entry point (tests will call this):**
+```cpp
+void notify(const string& event, const vector<User>& users);
+```
+
+**What to implement:**
 ```cpp
 // Observer interface
-class NotificationHandler {
+class NotificationObserver {
 public:
-    virtual void onEvent(const OrderInfo& order) = 0;
-    virtual ~NotificationHandler() = default;
+    virtual void update(const string& event, const User& user) = 0;
+    virtual string getChannel() = 0;
+    virtual ~NotificationObserver() = default;
 };
 
-// Concrete handlers — you implement these:
-class EmailNotifier      : public NotificationHandler { ... };
-class SMSNotifier        : public NotificationHandler { ... };
-class PushNotifier       : public NotificationHandler { ... };
-class InAppNotifier      : public NotificationHandler { ... };
+// Concrete observers
+class EmailObserver  : public NotificationObserver { ... };
+class SMSObserver    : public NotificationObserver { ... };
+class PushObserver   : public NotificationObserver { ... };
 
-// Subject (event bus)
-class OrderEventBus {
+// Subject (notification manager)
+class NotificationManager {
 public:
-    void subscribe(OrderEvent event, NotificationHandler* handler);
-    void unsubscribe(OrderEvent event, NotificationHandler* handler);
-    void publish(const OrderInfo& order);
+    void subscribe(NotificationObserver* obs);
+    void notifyAll(const string& event, const vector<User>& users);
 };
 ```
 
+Each observer checks if the user has subscribed to its channel before sending.
+
 ---
 
-## Extensions
+## Part 2
 
-1. **Extension 1:** Not all handlers need all events. `SMSNotifier` only cares about `ORDER_PLACED` and `ORDER_DELIVERED`. Modify the bus so handlers subscribe to *specific* events, not all events.
+**Extension 1 — Priority filtering**
 
-2. **Extension 2:** Add a `QueuedEventBus` that doesn't call handlers immediately. Instead it pushes events to an internal queue and processes them in order with a `processNext()` method. (This simulates async processing.)
+The product team now wants **notification priorities**. Each event has a priority level: `"promotional"`, `"info"`, or `"critical"` (in increasing importance).
 
-3. **Extension 3:** Add a `FilteredNotifier` that wraps another notifier and only forwards events where `order.amount > threshold`. (Decorator + Observer.)
+Users can set a **minimum priority per channel**. For example:
+- SMS: only receive `"critical"` events
+- Email: receive `"info"` and above
+- Push: receive everything
+
+**Updated entry point:**
+```cpp
+void notify(const string& event,
+            const string& priority,
+            const vector<User>& users,
+            const unordered_map<string, string>& userMinPriority);
+// userMinPriority: maps userId (or "*" for global) to minimum priority
+```
+
+**Design challenge:** Where does priority filtering belong — in the observer, the subject, or a wrapper? How do you add filtering without modifying `EmailObserver` or `SMSObserver`?
+
+**Hint:** A `PriorityFilteredObserver` wraps any observer and skips the `update()` call if the event priority is below the user's minimum threshold. This is the Decorator pattern applied to an Observer.
 
 ---
 

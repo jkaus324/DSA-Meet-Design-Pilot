@@ -70,7 +70,7 @@ export default function Stats() {
   if (loading) return <div className="text-center py-16 text-text-tertiary text-sm">Loading...</div>;
   if (error)   return <div className="text-center py-16 text-red-500 text-sm">{error}</div>;
 
-  const { overall, by_tier, by_pattern, streak } = stats;
+  const { overall, by_tier, by_pattern, by_difficulty_mode, parts_stats, streak } = stats;
 
   const patternEntries = Object.entries(by_pattern || {})
     .sort((a, b) => b[1].solved - a[1].solved);
@@ -152,6 +152,85 @@ export default function Stats() {
           {patternEntries.map(([pattern, data], i) => (
             <PatternRow key={pattern} rank={i + 1} pattern={pattern} data={data} />
           ))}
+        </div>
+      )}
+
+      {/* ── Difficulty mode distribution ─────────────────────────────── */}
+      {by_difficulty_mode && (
+        <div className="bg-surface border border-border rounded-xl p-5 mb-4">
+          <h2 className="text-sm font-semibold text-text-primary mb-1">Difficulty mode</h2>
+          <p className="text-xs text-text-tertiary mb-3">How you solved problems by mode</p>
+          <div className="space-y-3">
+            {[
+              { id: 'interview', label: '🔴 Interview', color: '#dc2626' },
+              { id: 'guided',    label: '🟡 Guided',    color: '#f59e0b' },
+              { id: 'learning',  label: '🟢 Learning',  color: '#16a34a' },
+            ].map(({ id, label, color }) => {
+              const d = (by_difficulty_mode || {})[id] || { solved: 0, attempted: 0 };
+              return (
+                <div key={id} className="flex items-center gap-3">
+                  <span className="text-xs text-text-secondary w-28 flex-shrink-0">{label}</span>
+                  <div className="flex-1 flex items-center gap-2">
+                    <div className="flex-1 h-2 rounded-full bg-surface-tertiary overflow-hidden flex">
+                      <div className="h-full rounded-full" style={{ width: d.solved > 0 ? `${(d.solved / Math.max(overall.total, 1)) * 100}%` : '0%', background: color, transition: 'width 0.5s ease' }} />
+                    </div>
+                    <span className="text-xs text-text-secondary w-16 flex-shrink-0">
+                      {d.solved} solved{d.attempted > 0 ? `, ${d.attempted} att.` : ''}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Parts completion ──────────────────────────────────────────── */}
+      {parts_stats && parts_stats.total_parts_across_all_problems > 0 && (
+        <div className="bg-surface border border-border rounded-xl p-5 mb-4">
+          <h2 className="text-sm font-semibold text-text-primary mb-1">Parts progress</h2>
+          <p className="text-xs text-text-tertiary mb-3">
+            How far you've progressed through each problem's parts
+          </p>
+          <div className="h-2.5 rounded-full bg-surface-tertiary overflow-hidden mb-3">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.round((parts_stats.parts_passed / parts_stats.total_parts_across_all_problems) * 100)}%`,
+                background: '#1a90ff',
+                transition: 'width 0.5s ease',
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-2xl font-bold text-text-primary">
+                {parts_stats.parts_passed}
+                <span className="text-sm font-normal text-text-tertiary ml-1">
+                  / {parts_stats.total_parts_across_all_problems}
+                </span>
+              </div>
+              <div className="text-xs text-text-secondary mt-0.5">parts passed</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-text-primary">
+                {parts_stats.problems_fully_completed}
+              </div>
+              <div className="text-xs text-text-secondary mt-0.5">fully completed</div>
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-text-primary">
+                {parts_stats.problems_partially_completed}
+              </div>
+              <div className="text-xs text-text-secondary mt-0.5">in progress</div>
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-text-primary">
+                {parts_stats.avg_parts_per_solve > 0 ? parts_stats.avg_parts_per_solve : '—'}
+              </div>
+              <div className="text-xs text-text-secondary mt-0.5">avg parts / solve</div>
+            </div>
+          </div>
         </div>
       )}
 
