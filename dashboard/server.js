@@ -30,10 +30,23 @@ const DIST_DIR       = path.join(__dirname, 'dist');
 
 // ─── g++ availability check ─────────────────────────────────────────────────
 
-// Add MinGW to PATH if it exists (Windows/Chocolatey installs)
-const mingwPath = 'C:\\ProgramData\\mingw64\\mingw64\\bin';
-if (fs.existsSync(path.join(mingwPath, 'g++.exe'))) {
-  process.env.PATH = mingwPath + path.delimiter + (process.env.PATH || '');
+// Auto-detect MinGW on Windows — check common install locations
+if (os.platform() === 'win32') {
+  const mingwCandidates = [
+    'C:\\ProgramData\\mingw64\\mingw64\\bin',
+    'C:\\msys64\\mingw64\\bin',
+    'C:\\msys64\\ucrt64\\bin',
+    'C:\\mingw64\\bin',
+    'C:\\MinGW\\bin',
+    'C:\\TDM-GCC-64\\bin',
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'mingw64', 'bin'),
+  ];
+  for (const candidate of mingwCandidates) {
+    if (fs.existsSync(path.join(candidate, 'g++.exe'))) {
+      process.env.PATH = candidate + path.delimiter + (process.env.PATH || '');
+      break;
+    }
+  }
 }
 
 let testRunnerAvailable = false;
