@@ -89,7 +89,9 @@ void notify(const string& event, const string& priority,
     // TODO: Build manager with PriorityFilteredObserver wrappers
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Priority filtering — implement TODOs above." << endl;
     return 0;
 }
+#endif

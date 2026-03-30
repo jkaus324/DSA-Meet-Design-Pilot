@@ -97,7 +97,9 @@ vector<PaymentMethod> rank_with_refund_filter(vector<PaymentMethod> methods, boo
     return methods;
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: Easy-refund filter — implement the TODOs above." << endl;
     return 0;
 }
+#endif

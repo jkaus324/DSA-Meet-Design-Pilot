@@ -75,7 +75,9 @@ bool is_available(const string& roomId, int startTime, int endTime) {
     return scheduler.isAvailable(roomId, startTime, endTime);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Meeting Scheduler — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

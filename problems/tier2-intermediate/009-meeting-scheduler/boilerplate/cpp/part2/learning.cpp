@@ -158,7 +158,9 @@ string book_with_strategy(const string& meetingId, const string& title,
     return scheduler.bookWithStrategy(meetingId, title, startTime, endTime, attendeeCount);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Allocation strategies — implement the TODOs above." << endl;
     return 0;
 }
+#endif

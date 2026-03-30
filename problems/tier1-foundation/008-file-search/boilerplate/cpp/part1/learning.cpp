@@ -88,7 +88,9 @@ vector<FileNode*> search_by_name(FileNode* root, const string& substring) {
     return FileSearchEngine().search(root, criteria);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "File Search System — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

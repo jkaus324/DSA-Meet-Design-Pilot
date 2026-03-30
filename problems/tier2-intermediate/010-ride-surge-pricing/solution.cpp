@@ -1,117 +1,159 @@
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <string>
+#include <algorithm>
+#include <cmath>
 using namespace std;
 
-// ─── Strategy Interface ───────────────────────────────────────────────────────
+// ─── Data Models ─────────────────────────────────────────────────────────────
+
+struct RideRequest {
+    string userId;
+    string pickup;
+    string dropoff;
+    string rideType;
+};
+
+struct PricingContext {
+    double baseFare;
+    int    availableDrivers;
+    int    activeRideRequests;
+    string timeOfDay;   // "morning", "evening", "night"
+    string weather;     // "clear", "rain", "storm"
+};
+
+// ─── Strategy Interface ──────────────────────────────────────────────────────
 
 class SurgeStrategy {
 public:
-    virtual double calculate(int demand, int supply) = 0;
-    virtual string name() const = 0;
+    virtual double multiplier(const PricingContext& ctx) = 0;
     virtual ~SurgeStrategy() = default;
 };
 
-// ─── TODO: Implement Surge Strategies ────────────────────────────────────────
+// ─── Concrete Strategies ─────────────────────────────────────────────────────
 
-class LinearSurge : public SurgeStrategy {
-    double factor;
+class DemandSurge : public SurgeStrategy {
 public:
-    LinearSurge(double f = 0.5) : factor(f) {}
-    double calculate(int demand, int supply) override {
-        if (supply == 0) return 3.0;
-        double ratio = (double)demand / supply;
-        return max(1.0, 1.0 + (ratio - 1.0) * factor);
+    double multiplier(const PricingContext& ctx) override {
+        if (ctx.availableDrivers == 0) return 2.5;
+        double ratio = (double)ctx.activeRideRequests / ctx.availableDrivers;
+        if (ratio > 3.0) return 2.0;
+        if (ratio > 2.0) return 1.5;
+        if (ratio > 1.5) return 1.25;
+        return 1.0;
     }
-    string name() const override { return "Linear"; }
 };
 
-class StepSurge : public SurgeStrategy {
+class WeatherSurge : public SurgeStrategy {
 public:
-    double calculate(int demand, int supply) override {
-        if (supply == 0) return 2.5;
-        double ratio = (double)demand / supply;
-        if (ratio < 1.0) return 1.0;
-        if (ratio < 1.5) return 1.5;
-        if (ratio < 2.0) return 2.0;
-        return 2.5;
+    double multiplier(const PricingContext& ctx) override {
+        if (ctx.weather == "storm") return 1.8;
+        if (ctx.weather == "rain")  return 1.3;
+        return 1.0;
     }
-    string name() const override { return "Step"; }
 };
 
-// ─── Observer Interface ───────────────────────────────────────────────────────
+class TimeSurge : public SurgeStrategy {
+public:
+    double multiplier(const PricingContext& ctx) override {
+        if (ctx.timeOfDay == "evening") return 1.5;
+        if (ctx.timeOfDay == "morning") return 1.2;
+        return 1.0;
+    }
+};
+
+// ─── Observer Interface (3-arg for Part 2) ───────────────────────────────────
 
 class SurgeObserver {
 public:
-    virtual void onSurgeChange(double oldMultiplier, double newMultiplier) = 0;
+    virtual void onSurgeChange(double oldMultiplier, double newMultiplier,
+                               const string& rideType) = 0;
     virtual ~SurgeObserver() = default;
 };
 
-// ─── Concrete Observers ───────────────────────────────────────────────────────
+// ─── Pricing Engine ──────────────────────────────────────────────────────────
 
-class PricingDisplay : public SurgeObserver {
-public:
-    void onSurgeChange(double old_, double new_) override {
-        cout << "[PricingDisplay] Multiplier updated: " << old_ << "x -> " << new_ << "x\n";
-    }
-};
-
-class DriverIncentives : public SurgeObserver {
-public:
-    void onSurgeChange(double old_, double new_) override {
-        if (new_ > old_)
-            cout << "[DriverIncentives] Sending surge alerts to nearby drivers (" << new_ << "x)\n";
-    }
-};
-
-// ─── TODO: Implement SurgePricingEngine ──────────────────────────────────────
-
-class SurgePricingEngine {
-    SurgeStrategy*           strategy;
-    vector<SurgeObserver*>   observers;
-    double                   currentMultiplier = 1.0;
+class PricingEngine {
+    vector<SurgeStrategy*> strategies;
+    vector<SurgeObserver*> observers;
+    double lastSurge = 1.0;
+    static constexpr double CHANGE_THRESHOLD = 0.5;
 
 public:
-    SurgePricingEngine(SurgeStrategy* s) : strategy(s) {}
+    void addStrategy(SurgeStrategy* s) { strategies.push_back(s); }
+    void addObserver(SurgeObserver* o)  { observers.push_back(o); }
+    void clearObservers()               { observers.clear(); }
 
-    void setStrategy(SurgeStrategy* s) { strategy = s; }
-    void addObserver(SurgeObserver* obs) { observers.push_back(obs); }
-
-    void updateMetrics(int demand, int supply) {
-        double newMultiplier = strategy->calculate(demand, supply);
-        if (abs(newMultiplier - currentMultiplier) > 0.001) {
-            double old = currentMultiplier;
-            currentMultiplier = newMultiplier;
-            for (auto* obs : observers) obs->onSurgeChange(old, newMultiplier);
+    double calculateSurge(const PricingContext& ctx,
+                          const string& rideType = "all") {
+        // Combine strategies by taking the max multiplier
+        double mult = 1.0;
+        for (auto* s : strategies) {
+            mult = max(mult, s->multiplier(ctx));
         }
+        // Cap at 3.0x
+        mult = min(mult, 3.0);
+
+        // Notify observers if change exceeds threshold
+        if (fabs(mult - lastSurge) > CHANGE_THRESHOLD) {
+            for (auto* o : observers) {
+                o->onSurgeChange(lastSurge, mult, rideType);
+            }
+        }
+        lastSurge = mult;
+        return mult;
     }
 
-    double getCurrentMultiplier() const { return currentMultiplier; }
+    double calculateFare(const PricingContext& ctx,
+                         const string& rideType = "all") {
+        return ctx.baseFare * calculateSurge(ctx, rideType);
+    }
 };
+
+// ─── Global Engine & Free Functions ──────────────────────────────────────────
+
+static DemandSurge  g_demandSurge;
+static WeatherSurge g_weatherSurge;
+static TimeSurge    g_timeSurge;
+
+static PricingEngine& getGlobalEngine() {
+    static PricingEngine engine;
+    static bool initialized = false;
+    if (!initialized) {
+        engine.addStrategy(&g_demandSurge);
+        engine.addStrategy(&g_weatherSurge);
+        engine.addStrategy(&g_timeSurge);
+        initialized = true;
+    }
+    return engine;
+}
+
+double calculateSurge(const PricingContext& ctx) {
+    return getGlobalEngine().calculateSurge(ctx);
+}
+
+double calculateFare(const RideRequest& req, const PricingContext& ctx) {
+    return getGlobalEngine().calculateFare(ctx, req.rideType);
+}
+
+void registerSurgeObserver(SurgeObserver* obs) {
+    getGlobalEngine().clearObservers();
+    getGlobalEngine().addObserver(obs);
+}
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
+#ifndef RUNNING_TESTS
 int main() {
-    LinearSurge    linearStrategy;
-    StepSurge      stepStrategy;
-    PricingDisplay display;
-    DriverIncentives incentives;
+    PricingContext ctx = {100.0, 5, 15, "evening", "storm"};
+    RideRequest req = {"user1", "Downtown", "Airport", "economy"};
 
-    SurgePricingEngine engine(&linearStrategy);
-    engine.addObserver(&display);
-    engine.addObserver(&incentives);
+    double surge = calculateSurge(ctx);
+    double fare  = calculateFare(req, ctx);
 
-    cout << "=== Linear Surge ===\n";
-    engine.updateMetrics(10, 10);  // ratio 1.0 → no surge
-    engine.updateMetrics(15, 10);  // ratio 1.5 → surge
-    engine.updateMetrics(20, 10);  // ratio 2.0 → higher surge
-    engine.updateMetrics(10, 10);  // back to normal
-
-    cout << "\n=== Switching to Step Surge ===\n";
-    engine.setStrategy(&stepStrategy);
-    engine.updateMetrics(15, 10);  // ratio 1.5 → 1.5x step
-    engine.updateMetrics(25, 10);  // ratio 2.5 → 2.5x step
+    cout << "Surge multiplier: " << surge << "x" << endl;
+    cout << "Fare: $" << fare << endl;
 
     return 0;
 }
+#endif

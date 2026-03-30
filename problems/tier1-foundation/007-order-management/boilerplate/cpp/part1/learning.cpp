@@ -90,7 +90,9 @@ void reset_manager() {
     manager = OrderManager();
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Order Management — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

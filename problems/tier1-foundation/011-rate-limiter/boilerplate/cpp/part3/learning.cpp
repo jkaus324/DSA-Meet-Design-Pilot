@@ -130,7 +130,9 @@ bool allow_request_for_tier(UserTier tier, const Request& req) {
     return false;
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: Tier-based rate limits — implement the TODO above, then run tests." << endl;
     return 0;
 }
+#endif

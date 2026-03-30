@@ -5,98 +5,202 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+// ─── Data Model ─────────────────────────────────────────────────────────────
 
-enum class OrderEvent { ORDER_PLACED, ORDER_SHIPPED, ORDER_DELIVERED, ORDER_CANCELLED };
-
-struct OrderInfo {
-    string orderId;
-    string customerId;
-    string customerEmail;
-    string customerPhone;
-    double amount;
-    OrderEvent event;
+struct User {
+    string id;
+    string email;
+    string phone;
+    vector<string> subscribedChannels;
 };
 
-string eventName(OrderEvent e) {
-    switch (e) {
-        case OrderEvent::ORDER_PLACED:    return "ORDER_PLACED";
-        case OrderEvent::ORDER_SHIPPED:   return "ORDER_SHIPPED";
-        case OrderEvent::ORDER_DELIVERED: return "ORDER_DELIVERED";
-        case OrderEvent::ORDER_CANCELLED: return "ORDER_CANCELLED";
-    }
-    return "UNKNOWN";
+// ─── Priority Helpers ───────────────────────────────────────────────────────
+
+const vector<string> PRIORITY_ORDER = {"promotional", "info", "critical"};
+
+int priorityLevel(const string& p) {
+    for (int i = 0; i < (int)PRIORITY_ORDER.size(); i++)
+        if (PRIORITY_ORDER[i] == p) return i;
+    return 0;
 }
 
-// ─── Observer Interface ───────────────────────────────────────────────────────
+// ─── Observer Interface ─────────────────────────────────────────────────────
 
-class NotificationHandler {
+class NotificationObserver {
 public:
-    virtual void onEvent(const OrderInfo& order) = 0;
-    virtual ~NotificationHandler() = default;
+    virtual void send(const string& userId, const string& message) = 0;
+    virtual void update(const string& event, const string& priority,
+                        const User& user) = 0;
+    virtual string channelName() const = 0;
+    virtual ~NotificationObserver() = default;
 };
 
-// ─── TODO: Implement Concrete Handlers ───────────────────────────────────────
+// ─── Concrete Observers ─────────────────────────────────────────────────────
 
-class EmailNotifier : public NotificationHandler {
+class EmailNotifier : public NotificationObserver {
 public:
-    void onEvent(const OrderInfo& order) override {
-        // TODO: simulate sending email
-        cout << "[Email] Sent to " << order.customerEmail
-             << " for event: " << eventName(order.event) << "\n";
+    string channelName() const override { return "email"; }
+
+    void send(const string& userId, const string& message) override {
+        cout << "[EMAIL] To: " << userId << " — " << message << endl;
+    }
+
+    void update(const string& event, const string& priority,
+                const User& user) override {
+        cout << "[EMAIL] " << user.email << ": " << event
+             << " [" << priority << "]" << endl;
     }
 };
 
-class SMSNotifier : public NotificationHandler {
+class SMSNotifier : public NotificationObserver {
 public:
-    void onEvent(const OrderInfo& order) override {
-        // TODO: simulate sending SMS (only for PLACED and DELIVERED)
-        cout << "[SMS] Sent to " << order.customerPhone
-             << " for event: " << eventName(order.event) << "\n";
+    string channelName() const override { return "sms"; }
+
+    void send(const string& userId, const string& message) override {
+        cout << "[SMS] To: " << userId << " — " << message << endl;
+    }
+
+    void update(const string& event, const string& priority,
+                const User& user) override {
+        cout << "[SMS] " << user.phone << ": " << event
+             << " [" << priority << "]" << endl;
     }
 };
 
-// ─── TODO: Implement OrderEventBus ───────────────────────────────────────────
-
-class OrderEventBus {
-    // TODO: store subscribers per event type
-    unordered_map<int, vector<NotificationHandler*>> subscribers;
-
+class PushNotifier : public NotificationObserver {
 public:
-    void subscribe(OrderEvent event, NotificationHandler* handler) {
-        // TODO
-        subscribers[static_cast<int>(event)].push_back(handler);
+    string channelName() const override { return "push"; }
+
+    void send(const string& userId, const string& message) override {
+        cout << "[PUSH] To: " << userId << " — " << message << endl;
     }
 
-    void publish(const OrderInfo& order) {
-        // TODO: notify all handlers subscribed to this event
-        auto it = subscribers.find(static_cast<int>(order.event));
-        if (it != subscribers.end()) {
-            for (auto* h : it->second) h->onEvent(order);
+    void update(const string& event, const string& priority,
+                const User& user) override {
+        cout << "[PUSH] " << user.id << ": " << event
+             << " [" << priority << "]" << endl;
+    }
+};
+
+// ─── Priority Filter Decorator (Part 2) ─────────────────────────────────────
+
+class PriorityFilteredObserver : public NotificationObserver {
+private:
+    NotificationObserver* inner;
+    string minPriority;
+public:
+    PriorityFilteredObserver(NotificationObserver* obs, const string& minP)
+        : inner(obs), minPriority(minP) {}
+
+    string channelName() const override { return inner->channelName(); }
+
+    void send(const string& userId, const string& message) override {
+        inner->send(userId, message);
+    }
+
+    void update(const string& event, const string& priority,
+                const User& user) override {
+        if (priorityLevel(priority) >= priorityLevel(minPriority)) {
+            inner->update(event, priority, user);
         }
     }
 };
 
-// ─── Main ────────────────────────────────────────────────────────────────────
+// ─── Notification Manager ───────────────────────────────────────────────────
 
-int main() {
-    OrderEventBus bus;
+class NotificationManager {
+private:
+    vector<NotificationObserver*> observers;
+public:
+    void subscribe(NotificationObserver* obs) {
+        observers.push_back(obs);
+    }
+
+    void unsubscribe(const string& channel) {
+        observers.erase(
+            remove_if(observers.begin(), observers.end(),
+                [&](NotificationObserver* obs) {
+                    return obs->channelName() == channel;
+                }),
+            observers.end());
+    }
+
+    // Part 1: simple notify — sends message to each user's subscribed channels
+    void notify(const string& event, const vector<User>& users) {
+        for (auto& user : users) {
+            for (auto* obs : observers) {
+                auto& ch = user.subscribedChannels;
+                if (find(ch.begin(), ch.end(), obs->channelName()) != ch.end()) {
+                    obs->send(user.id, event);
+                }
+            }
+        }
+    }
+
+    // Part 2: priority-aware notify
+    void notifyAll(const string& event, const string& priority,
+                   const vector<User>& users) {
+        for (auto& user : users) {
+            for (auto* obs : observers) {
+                auto& ch = user.subscribedChannels;
+                if (find(ch.begin(), ch.end(), obs->channelName()) != ch.end()) {
+                    obs->update(event, priority, user);
+                }
+            }
+        }
+    }
+};
+
+// ─── Free Function: Part 1 (2-arg) ─────────────────────────────────────────
+
+void notify(const string& event, const vector<User>& users) {
+    NotificationManager mgr;
+    mgr.subscribe(new EmailNotifier());
+    mgr.subscribe(new SMSNotifier());
+    mgr.subscribe(new PushNotifier());
+    mgr.notify(event, users);
+}
+
+// ─── Free Function: Part 2 (4-arg with priority filtering) ──────────────────
+
+void notify(const string& event, const string& priority,
+            const vector<User>& users,
+            const unordered_map<string, string>& userMinPriority) {
+    string minP = userMinPriority.count("*") ? userMinPriority.at("*") : "promotional";
+
     EmailNotifier email;
-    SMSNotifier   sms;
+    SMSNotifier sms;
+    PushNotifier push;
 
-    bus.subscribe(OrderEvent::ORDER_PLACED,    &email);
-    bus.subscribe(OrderEvent::ORDER_PLACED,    &sms);
-    bus.subscribe(OrderEvent::ORDER_DELIVERED, &email);
-    bus.subscribe(OrderEvent::ORDER_DELIVERED, &sms);
-    bus.subscribe(OrderEvent::ORDER_SHIPPED,   &email);
+    PriorityFilteredObserver fe(&email, minP);
+    PriorityFilteredObserver fs(&sms, minP);
+    PriorityFilteredObserver fp(&push, minP);
 
-    OrderInfo order1{"ORD001", "USR1", "user@example.com", "+91-9999999999", 499.0, OrderEvent::ORDER_PLACED};
-    OrderInfo order2{"ORD001", "USR1", "user@example.com", "+91-9999999999", 499.0, OrderEvent::ORDER_SHIPPED};
+    NotificationManager mgr;
+    mgr.subscribe(&fe);
+    mgr.subscribe(&fs);
+    mgr.subscribe(&fp);
+    mgr.notifyAll(event, priority, users);
+}
 
-    cout << "=== Order Placed ===\n";
-    bus.publish(order1);
-    cout << "\n=== Order Shipped ===\n";
-    bus.publish(order2);
+// ─── Main ───────────────────────────────────────────────────────────────────
+
+#ifndef RUNNING_TESTS
+int main() {
+    // Part 1 demo
+    User u1 = {"user1", "user1@example.com", "+91-9000000001", {"email", "sms"}};
+    User u2 = {"user2", "user2@example.com", "+91-9000000002", {"push"}};
+    cout << "=== Part 1: Basic Notification ===" << endl;
+    notify("Order shipped", {u1, u2});
+
+    // Part 2 demo
+    cout << "\n=== Part 2: Priority Filtering ===" << endl;
+    unordered_map<string, string> prefs = {{"*", "info"}};
+    notify("System update available", "info", {u1, u2}, prefs);
+
+    cout << "\n=== Part 2: Promotional (filtered by info+ pref) ===" << endl;
+    notify("50% off sale!", "promotional", {u1, u2}, prefs);
 
     return 0;
 }
+#endif

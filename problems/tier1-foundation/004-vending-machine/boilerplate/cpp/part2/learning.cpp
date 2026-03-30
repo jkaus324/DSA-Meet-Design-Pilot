@@ -125,7 +125,9 @@ void DispensingState::dispense() {
     m->insertedMoney = 0; m->selectedItem = ""; m->setState(&m->idle);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Maintenance mode — full scaffolding provided." << endl;
     return 0;
 }
+#endif

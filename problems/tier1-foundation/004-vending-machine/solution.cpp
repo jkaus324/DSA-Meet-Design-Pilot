@@ -3,7 +3,7 @@
 #include <unordered_map>
 using namespace std;
 
-// ─── Item ────────────────────────────────────────────────────────────────────
+// ─── Data Model ─────────────────────────────────────────────────────────────
 
 struct Item {
     string name;
@@ -11,180 +11,237 @@ struct Item {
     int    quantity;
 };
 
-// ─── Forward declare VendingMachine ──────────────────────────────────────────
+// ─── Forward Declarations ───────────────────────────────────────────────────
 
 class VendingMachine;
 
-// ─── State Interface ──────────────────────────────────────────────────────────
+// ─── State Interface ────────────────────────────────────────────────────────
 
-class State {
+class VMState {
 public:
-    virtual void insertCoin(VendingMachine& vm, double amount) = 0;
-    virtual void selectItem(VendingMachine& vm, const string& code) = 0;
+    virtual void selectItem(VendingMachine& vm, const string& item) = 0;
+    virtual void insertMoney(VendingMachine& vm, double amount) = 0;
+    virtual void dispense(VendingMachine& vm) = 0;
     virtual void cancel(VendingMachine& vm) = 0;
     virtual string name() const = 0;
-    virtual ~State() = default;
+    virtual ~VMState() = default;
 };
 
-// ─── Concrete States (forward declare, implement after VendingMachine) ────────
+// ─── Concrete State Declarations ────────────────────────────────────────────
 
-class IdleState;
-class HasCoinState;
-class DispensingState;
-class OutOfStockState;
-
-// ─── VendingMachine ───────────────────────────────────────────────────────────
-
-class VendingMachine {
-    State*  currentState;
-    double  balance = 0.0;
-    unordered_map<string, Item> inventory;
-
-    // Pre-allocated states (no new/delete on each transition)
-    IdleState*       idleState;
-    HasCoinState*    hasCoinState;
-    DispensingState* dispensingState;
-    OutOfStockState* outOfStockState;
-
+class IdleState : public VMState {
+    VendingMachine* m;
 public:
-    VendingMachine();
-    ~VendingMachine();
-
-    void addItem(const string& code, const Item& item) { inventory[code] = item; }
-    void insertCoin(double amount)       { currentState->insertCoin(*this, amount); }
-    void selectItem(const string& code)  { currentState->selectItem(*this, code); }
-    void cancel()                        { currentState->cancel(*this); }
-    string getCurrentState() const;
-    double getBalance() const            { return balance; }
-
-    // Called by State objects to transition
-    void setState(State* s)      { currentState = s; }
-    void addBalance(double amt)  { balance += amt; }
-    void resetBalance()          { balance = 0.0; }
-    Item* getItem(const string& code) {
-        auto it = inventory.find(code);
-        return it != inventory.end() ? &it->second : nullptr;
+    IdleState(VendingMachine* machine) : m(machine) {}
+    void selectItem(VendingMachine& vm, const string& item) override;
+    void insertMoney(VendingMachine& vm, double amount) override {
+        cout << "[Error] Select an item first." << endl;
     }
-    void decrementItem(const string& code) {
-        if (inventory.count(code)) inventory[code].quantity--;
-    }
-    bool hasStock() const {
-        for (const auto& [code, item] : inventory)
-            if (item.quantity > 0) return true;
-        return false;
-    }
-
-    // State accessors
-    State* getIdleState();
-    State* getHasCoinState();
-    State* getDispensingState();
-    State* getOutOfStockState();
-};
-
-// ─── TODO: Implement States ───────────────────────────────────────────────────
-
-class IdleState : public State {
-public:
-    void insertCoin(VendingMachine& vm, double amount) override {
-        // TODO: add to balance, transition to HasCoinState
-        vm.addBalance(amount);
-        cout << "Coin inserted: Rs." << amount << ". Balance: Rs." << vm.getBalance() << "\n";
-        vm.setState(vm.getHasCoinState());
-    }
-    void selectItem(VendingMachine& vm, const string& code) override {
-        cout << "Please insert coin first.\n";
+    void dispense(VendingMachine& vm) override {
+        cout << "[Error] No item selected." << endl;
     }
     void cancel(VendingMachine& vm) override {
-        cout << "Nothing to cancel.\n";
+        cout << "[Info] Nothing to cancel." << endl;
     }
     string name() const override { return "Idle"; }
 };
 
-class HasCoinState : public State {
+class PaymentPendingState : public VMState {
+    VendingMachine* m;
 public:
-    void insertCoin(VendingMachine& vm, double amount) override {
-        cout << "Coin already inserted.\n";
+    PaymentPendingState(VendingMachine* machine) : m(machine) {}
+    void selectItem(VendingMachine& vm, const string& item) override {
+        cout << "[Info] Item already selected. Cancel first." << endl;
     }
-    void selectItem(VendingMachine& vm, const string& code) override {
-        // TODO: validate item exists, has stock, check balance
-        Item* item = vm.getItem(code);
-        if (!item || item->quantity == 0) { cout << "Item not available.\n"; return; }
-        if (vm.getBalance() < item->price) {
-            cout << "Insufficient balance. Need Rs." << item->price << ", have Rs." << vm.getBalance() << "\n";
-            return;
-        }
-        cout << "Dispensing: " << item->name << "\n";
-        double change = vm.getBalance() - item->price;
-        if (change > 0) cout << "Change: Rs." << change << "\n";
-        vm.decrementItem(code);
-        vm.resetBalance();
-        vm.setState(vm.hasStock() ? vm.getIdleState() : vm.getOutOfStockState());
+    void insertMoney(VendingMachine& vm, double amount) override;
+    void dispense(VendingMachine& vm) override {
+        cout << "[Error] Insert payment first." << endl;
     }
-    void cancel(VendingMachine& vm) override {
-        cout << "Returning Rs." << vm.getBalance() << "\n";
-        vm.resetBalance();
-        vm.setState(vm.getIdleState());
-    }
-    string name() const override { return "HasCoin"; }
+    void cancel(VendingMachine& vm) override;
+    string name() const override { return "PaymentPending"; }
 };
 
-class DispensingState : public State {
+class DispensingState : public VMState {
+    VendingMachine* m;
 public:
-    void insertCoin(VendingMachine& vm, double amount) override { cout << "Please wait, dispensing.\n"; }
-    void selectItem(VendingMachine& vm, const string& code) override { cout << "Please wait, dispensing.\n"; }
-    void cancel(VendingMachine& vm) override { cout << "Cannot cancel while dispensing.\n"; }
+    DispensingState(VendingMachine* machine) : m(machine) {}
+    void selectItem(VendingMachine& vm, const string& item) override {
+        cout << "[Error] Dispensing in progress." << endl;
+    }
+    void insertMoney(VendingMachine& vm, double amount) override {
+        cout << "[Error] Dispensing in progress." << endl;
+    }
+    void dispense(VendingMachine& vm) override;
+    void cancel(VendingMachine& vm) override {
+        cout << "[Error] Cannot cancel during dispensing." << endl;
+    }
     string name() const override { return "Dispensing"; }
 };
 
-class OutOfStockState : public State {
+class MaintenanceState : public VMState {
+    VendingMachine* m;
 public:
-    void insertCoin(VendingMachine& vm, double amount) override { cout << "Machine is out of stock.\n"; }
-    void selectItem(VendingMachine& vm, const string& code) override { cout << "Machine is out of stock.\n"; }
-    void cancel(VendingMachine& vm) override { cout << "Machine is out of stock.\n"; }
-    string name() const override { return "OutOfStock"; }
+    MaintenanceState(VendingMachine* machine) : m(machine) {}
+    void selectItem(VendingMachine& vm, const string& item) override {
+        cout << "[Info] Machine in maintenance." << endl;
+    }
+    void insertMoney(VendingMachine& vm, double amount) override {
+        cout << "[Info] Machine in maintenance." << endl;
+    }
+    void dispense(VendingMachine& vm) override {
+        cout << "[Info] Machine in maintenance." << endl;
+    }
+    void cancel(VendingMachine& vm) override {
+        cout << "[Info] Machine in maintenance." << endl;
+    }
+    string name() const override { return "Maintenance"; }
 };
 
-// ─── VendingMachine implementation ───────────────────────────────────────────
+// ─── Vending Machine Context ────────────────────────────────────────────────
 
-VendingMachine::VendingMachine() {
-    idleState       = new IdleState();
-    hasCoinState    = new HasCoinState();
-    dispensingState = new DispensingState();
-    outOfStockState = new OutOfStockState();
-    currentState    = idleState;
+class VendingMachine {
+public:
+    VMState* currentState;
+    string   selectedItem;
+    double   insertedMoney = 0;
+    unordered_map<string, Item> inventory;
+    string   operatorPin = "1234";
+
+    IdleState            idle{this};
+    PaymentPendingState  paymentPending{this};
+    DispensingState      dispensing{this};
+    MaintenanceState     maintenance{this};
+
+    VendingMachine() : currentState(&idle) {
+        inventory["Cola"]  = {"Cola",  25.0, 5};
+        inventory["Chips"] = {"Chips", 15.0, 3};
+    }
+
+    void setState(VMState* s)               { currentState = s; }
+    void selectItem(const string& item)     { currentState->selectItem(*this, item); }
+    void insertMoney(double amt)            { currentState->insertMoney(*this, amt); }
+    void dispense()                         { currentState->dispense(*this); }
+    void cancel()                           { currentState->cancel(*this); }
+    string getState() const                 { return currentState->name(); }
+
+    void resetMachine() {
+        insertedMoney = 0;
+        selectedItem  = "";
+        currentState  = &idle;
+        inventory["Cola"]  = {"Cola",  25.0, 5};
+        inventory["Chips"] = {"Chips", 15.0, 3};
+    }
+
+    void enterMaintenance(const string& pin) {
+        if (pin == operatorPin) {
+            setState(&maintenance);
+            cout << "Entered maintenance mode." << endl;
+        } else {
+            cout << "Invalid PIN." << endl;
+        }
+    }
+
+    void exitMaintenance(const string& pin) {
+        if (pin == operatorPin && getState() == "Maintenance") {
+            setState(&idle);
+            cout << "Exited maintenance mode." << endl;
+        } else {
+            cout << "Invalid PIN or not in maintenance." << endl;
+        }
+    }
+
+    void restock(const string& itemName, int qty) {
+        if (getState() != "Maintenance") {
+            cout << "Must be in maintenance to restock." << endl;
+            return;
+        }
+        inventory[itemName].quantity += qty;
+        cout << "Restocked " << itemName << " by " << qty << endl;
+    }
+};
+
+// ─── State Method Implementations ───────────────────────────────────────────
+
+void IdleState::selectItem(VendingMachine& vm, const string& item) {
+    if (vm.inventory.count(item) && vm.inventory[item].quantity > 0) {
+        vm.selectedItem = item;
+        vm.setState(&vm.paymentPending);
+        cout << "Selected: " << item << ". Insert Rs." << vm.inventory[item].price << endl;
+    } else {
+        cout << "Item unavailable." << endl;
+    }
 }
-VendingMachine::~VendingMachine() {
-    delete idleState; delete hasCoinState;
-    delete dispensingState; delete outOfStockState;
+
+void PaymentPendingState::insertMoney(VendingMachine& vm, double amt) {
+    vm.insertedMoney += amt;
+    double price = vm.inventory[vm.selectedItem].price;
+    if (vm.insertedMoney >= price) {
+        vm.setState(&vm.dispensing);
+        cout << "Payment accepted." << endl;
+    } else {
+        cout << "Need Rs." << (price - vm.insertedMoney) << " more." << endl;
+    }
 }
-string VendingMachine::getCurrentState() const { return currentState->name(); }
-State* VendingMachine::getIdleState()       { return idleState; }
-State* VendingMachine::getHasCoinState()    { return hasCoinState; }
-State* VendingMachine::getDispensingState() { return dispensingState; }
-State* VendingMachine::getOutOfStockState() { return outOfStockState; }
 
-// ─── Main ────────────────────────────────────────────────────────────────────
+void PaymentPendingState::cancel(VendingMachine& vm) {
+    cout << "Refunding Rs." << vm.insertedMoney << endl;
+    vm.insertedMoney = 0;
+    vm.selectedItem  = "";
+    vm.setState(&vm.idle);
+}
 
+void DispensingState::dispense(VendingMachine& vm) {
+    vm.inventory[vm.selectedItem].quantity--;
+    double change = vm.insertedMoney - vm.inventory[vm.selectedItem].price;
+    cout << "Dispensed: " << vm.selectedItem << endl;
+    if (change > 0) {
+        cout << "Change: Rs." << change << endl;
+    }
+    vm.insertedMoney = 0;
+    vm.selectedItem  = "";
+    vm.setState(&vm.idle);
+}
+
+// ─── Global Instance & Free Function Wrappers ───────────────────────────────
+
+static VendingMachine g_vm;
+
+string getState()                              { return g_vm.getState(); }
+void   reset()                                 { g_vm.resetMachine(); }
+void   selectItem(const string& item)          { g_vm.selectItem(item); }
+void   insertMoney(double amount)              { g_vm.insertMoney(amount); }
+void   dispense()                              { g_vm.dispense(); }
+void   cancel()                                { g_vm.cancel(); }
+void   enterMaintenance(const string& pin)     { g_vm.enterMaintenance(pin); }
+void   exitMaintenance(const string& pin)      { g_vm.exitMaintenance(pin); }
+void   restock(const string& item, int qty)    { g_vm.restock(item, qty); }
+
+// ─── Main ───────────────────────────────────────────────────────────────────
+
+#ifndef RUNNING_TESTS
 int main() {
-    VendingMachine vm;
-    vm.addItem("A1", {"Chips",   10.0, 5});
-    vm.addItem("A2", {"Water",    5.0, 2});
-    vm.addItem("A3", {"Juice",   20.0, 1});
+    cout << "=== Vending Machine — State Pattern Reference Solution ===" << endl;
+    cout << "State: " << getState() << endl;
 
-    cout << "State: " << vm.getCurrentState() << "\n\n";
+    cout << "\n--- Normal purchase ---" << endl;
+    selectItem("Cola");
+    insertMoney(25.0);
+    dispense();
+    cout << "State: " << getState() << endl;
 
-    cout << "=== Test 1: Normal purchase ===\n";
-    vm.insertCoin(10.0);
-    vm.selectItem("A2");
-    cout << "State: " << vm.getCurrentState() << "\n\n";
+    cout << "\n--- Cancel mid-payment ---" << endl;
+    selectItem("Chips");
+    insertMoney(5.0);
+    cancel();
+    cout << "State: " << getState() << endl;
 
-    cout << "=== Test 2: Cancel ===\n";
-    vm.insertCoin(20.0);
-    vm.cancel();
-    cout << "State: " << vm.getCurrentState() << "\n\n";
-
-    cout << "=== Test 3: Select without coin ===\n";
-    vm.selectItem("A1");
+    cout << "\n--- Maintenance mode ---" << endl;
+    enterMaintenance("1234");
+    cout << "State: " << getState() << endl;
+    restock("Cola", 10);
+    exitMaintenance("1234");
+    cout << "State: " << getState() << endl;
 
     return 0;
 }
+#endif

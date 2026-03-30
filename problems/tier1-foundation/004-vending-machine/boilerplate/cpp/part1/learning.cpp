@@ -103,7 +103,9 @@ public:
     }
 };
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Vending Machine — implement the TODO methods in each state." << endl;
     return 0;
 }
+#endif

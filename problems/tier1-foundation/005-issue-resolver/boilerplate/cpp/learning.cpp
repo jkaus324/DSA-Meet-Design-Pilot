@@ -82,7 +82,9 @@ vector<Issue> get_agent_issues(const vector<Issue>& issues, int agentId) {
     return globalResolver.getAgentIssues(issues, agentId);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Issue Resolver — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

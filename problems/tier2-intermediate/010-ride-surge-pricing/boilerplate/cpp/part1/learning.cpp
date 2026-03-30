@@ -118,7 +118,9 @@ double calculateFare(double baseFare, const PricingContext& ctx) {
     return engine.calculateFare(c);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Ride Surge Pricing — implement the TODO methods above." << endl;
     return 0;
 }
+#endif

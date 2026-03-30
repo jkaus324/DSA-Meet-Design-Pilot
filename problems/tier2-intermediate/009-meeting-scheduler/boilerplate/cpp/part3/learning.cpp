@@ -245,7 +245,9 @@ bool reschedule_meeting(const string& meetingId, int newStart, int newEnd) {
     return scheduler.rescheduleMeeting(meetingId, newStart, newEnd);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: Observer notifications — implement the TODOs above." << endl;
     return 0;
 }
+#endif

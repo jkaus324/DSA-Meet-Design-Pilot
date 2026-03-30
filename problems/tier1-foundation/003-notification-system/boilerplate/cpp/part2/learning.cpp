@@ -91,7 +91,9 @@ void notify(const string& event, const string& priority,
     mgr.notifyAll(event, priority, users);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Priority filtering — full scaffolding provided." << endl;
     return 0;
 }
+#endif

@@ -202,7 +202,9 @@ Issue assign_next_priority(vector<Agent>& agents, vector<Issue>& issues) {
     return resolver.assignNextPriority(agents, issues);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: State tracking + priority — full scaffolding provided." << endl;
     return 0;
 }
+#endif

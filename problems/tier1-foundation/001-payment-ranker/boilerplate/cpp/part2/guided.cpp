@@ -101,7 +101,9 @@ vector<PaymentMethod> rank_composite(vector<PaymentMethod> methods, vector<Ranki
     return PaymentRanker(&s).rank(methods);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Composite ranking — implement the TODOs above." << endl;
     return 0;
 }
+#endif

@@ -73,7 +73,9 @@ int get_request_count(const string& clientId) {
     return g_limiter->getRequestCount(clientId);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Rate Limiter — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

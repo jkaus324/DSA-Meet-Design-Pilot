@@ -189,7 +189,11 @@ public:
                       const MeetingScheduler& scheduler,
                       int startTime, int endTime,
                       int attendeeCount) override {
-        // TODO: pick first room (by ID order) that fits and is available
+        for (auto& room : rooms) {
+            if (room.capacity >= attendeeCount &&
+                scheduler.isAvailable(room.id, startTime, endTime))
+                return room.id;
+        }
         return "";
     }
 };
@@ -200,8 +204,18 @@ public:
                       const MeetingScheduler& scheduler,
                       int startTime, int endTime,
                       int attendeeCount) override {
-        // TODO: pick smallest room (by capacity) that fits and is available
-        return "";
+        string bestId = "";
+        int bestCapacity = INT_MAX;
+        for (auto& room : rooms) {
+            if (room.capacity >= attendeeCount &&
+                scheduler.isAvailable(room.id, startTime, endTime)) {
+                if (room.capacity < bestCapacity) {
+                    bestCapacity = room.capacity;
+                    bestId = room.id;
+                }
+            }
+        }
+        return bestId;
     }
 };
 
@@ -211,8 +225,25 @@ public:
                       const MeetingScheduler& scheduler,
                       int startTime, int endTime,
                       int attendeeCount) override {
-        // TODO: prefer rooms with AV; among those, pick smallest that fits
-        return "";
+        string bestAV = "", bestNonAV = "";
+        int bestAVCap = INT_MAX, bestNonAVCap = INT_MAX;
+        for (auto& room : rooms) {
+            if (room.capacity >= attendeeCount &&
+                scheduler.isAvailable(room.id, startTime, endTime)) {
+                if (room.hasAV) {
+                    if (room.capacity < bestAVCap) {
+                        bestAVCap = room.capacity;
+                        bestAV = room.id;
+                    }
+                } else {
+                    if (room.capacity < bestNonAVCap) {
+                        bestNonAVCap = room.capacity;
+                        bestNonAV = room.id;
+                    }
+                }
+            }
+        }
+        return bestAV.empty() ? bestNonAV : bestAV;
     }
 };
 
@@ -251,6 +282,7 @@ bool reschedule_meeting(const string& meetingId, int newStart, int newEnd) {
 
 // ─── Main (test your implementation) ────────────────────────────────────────
 
+#ifndef RUNNING_TESTS
 int main() {
     scheduler.addRoom({"R1", "Small Room", 4, false});
     scheduler.addRoom({"R2", "Large Room", 20, true});
@@ -261,3 +293,4 @@ int main() {
 
     return 0;
 }
+#endif

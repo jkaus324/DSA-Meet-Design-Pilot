@@ -9,13 +9,13 @@
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/001-payment-ranker"
   parts:
-    - name: "Base â€” Rank by criteria"
+    - name: "Base — Rank by criteria"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Composite ranking"
+    - name: "Extension 1 — Composite ranking"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” Easy-refund eligibility"
+    - name: "Extension 2 — Easy-refund eligibility"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
@@ -30,10 +30,10 @@
   prerequisite_primer: "observer"
   path: "problems/tier1-foundation/003-notification-system"
   parts:
-    - name: "Base â€” Multi-channel notifications"
+    - name: "Base — Multi-channel notifications"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Priority filtering"
+    - name: "Extension 1 — Priority filtering"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
 
@@ -48,10 +48,10 @@
   prerequisite_primer: "state"
   path: "problems/tier1-foundation/004-vending-machine"
   parts:
-    - name: "Base â€” State transitions"
+    - name: "Base — State transitions"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Maintenance mode"
+    - name: "Extension 1 — Maintenance mode"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
 
@@ -66,13 +66,13 @@
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/005-issue-resolver"
   parts:
-    - name: "Base â€” Round-robin agent assignment"
+    - name: "Base — Round-robin agent assignment"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Multiple assignment strategies"
+    - name: "Extension 1 — Multiple assignment strategies"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” Issue state tracking + priority"
+    - name: "Extension 2 — Issue state tracking + priority"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
@@ -87,13 +87,13 @@
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/006-discount-engine"
   parts:
-    - name: "Base â€” Apply single discount type"
+    - name: "Base — Apply single discount type"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Stack multiple discounts"
+    - name: "Extension 1 — Stack multiple discounts"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” Discount eligibility rules"
+    - name: "Extension 2 — Discount eligibility rules"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
@@ -108,13 +108,13 @@
   prerequisite_primer: "state"
   path: "problems/tier1-foundation/007-order-management"
   parts:
-    - name: "Base â€” Order lifecycle with state transitions"
+    - name: "Base — Order lifecycle with state transitions"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Cancellation + inventory release"
+    - name: "Extension 1 — Cancellation + inventory release"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” Transition history tracking"
+    - name: "Extension 2 — Transition history tracking"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
@@ -129,13 +129,13 @@
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/008-file-search"
   parts:
-    - name: "Base â€” Search by single criterion"
+    - name: "Base — Search by single criterion"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Combine criteria with AND/OR"
+    - name: "Extension 1 — Combine criteria with AND/OR"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” Sort results independently"
+    - name: "Extension 2 — Sort results independently"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
@@ -150,13 +150,13 @@
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/011-rate-limiter"
   parts:
-    - name: "Base â€” Fixed-window rate limiting"
+    - name: "Base — Fixed-window rate limiting"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Multiple algorithms per endpoint"
+    - name: "Extension 1 — Multiple algorithms per endpoint"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” User tier-based rate limits"
+    - name: "Extension 2 — User tier-based rate limits"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
@@ -171,31 +171,229 @@
   prerequisite_primer: "strategy"
   path: "problems/tier2-intermediate/009-meeting-scheduler"
   parts:
-    - name: "Base â€” Room booking with conflict detection"
+    - name: "Base — Room booking with conflict detection"
       description_marker: "## Part 1"
       test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Multiple allocation strategies"
+    - name: "Extension 1 — Multiple allocation strategies"
       description_marker: "## Part 2"
       test_file: "part2_test.cpp"
-    - name: "Extension 2 â€” Attendee notifications"
+    - name: "Extension 2 — Attendee notifications"
       description_marker: "## Part 3"
       test_file: "part3_test.cpp"
 
-- id: "010-ride-surge-pricing"
-  name: "Ride Surge Pricing Engine"
+- id: 010-ride-surge-pricing
+  name: Ride Surge Pricing Engine
   tier: 2
-  patterns: ["Strategy", "Observer"]
-  dsa: "Priority Queue"
-  companies: ["Uber", "Ola"]
+  patterns: [Strategy, Observer]
+  dsa: Priority Queue
+  companies: [Uber, Ola]
   time_minutes: 60
-  languages: ["cpp"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier2-intermediate/010-ride-surge-pricing"
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/010-ride-surge-pricing
   parts:
-    - name: "Base â€” Surge calculation"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 â€” Surge notifications"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
+    - name: Base — Surge calculation
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Surge notifications
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+
+- id: 012-elevator-system
+  name: Elevator System
+  tier: 2
+  patterns: [State, Strategy, Observer]
+  dsa: Priority Queue + State Machine
+  companies: [Amazon, Microsoft, Flipkart]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: state
+  path: problems/tier2-intermediate/012-elevator-system
+  parts:
+    - name: Base — Single elevator with request queue
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Multiple elevators with scheduling
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+
+- id: 013-parking-lot
+  name: Parking Lot System
+  tier: 2
+  patterns: [Strategy, Factory]
+  dsa: HashMap + Heap
+  companies: [Amazon, Flipkart, Walmart]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/013-parking-lot
+  parts:
+    - name: Base — Park and unpark vehicles
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Multiple vehicle types and spot allocation
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+
+- id: 014-splitwise
+  name: Splitwise Expense Sharing
+  tier: 2
+  patterns: [Strategy, Observer]
+  dsa: Graph + HashMap
+  companies: [Flipkart, PhonePe, Razorpay]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/014-splitwise
+  parts:
+    - name: Base — Equal split expenses
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Percentage and exact splits
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+    - name: Extension 2 — Debt simplification
+      description_marker: ## Part 3
+      test_file: part3_test.cpp
+
+- id: 015-bookmyshow
+  name: BookMyShow Ticket Booking
+  tier: 2
+  patterns: [Strategy, Observer, State]
+  dsa: HashMap + Concurrency
+  companies: [BookMyShow, Flipkart, Amazon]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/015-bookmyshow
+  parts:
+    - name: Base — Browse and book seats
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Seat locking and timeout
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+    - name: Extension 2 — Discount and pricing tiers
+      description_marker: ## Part 3
+      test_file: part3_test.cpp
+
+- id: 016-amazon-locker
+  name: Amazon Locker System
+  tier: 2
+  patterns: [Strategy, State]
+  dsa: HashMap + Queue
+  companies: [Amazon]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/016-amazon-locker
+  parts:
+    - name: Base — Assign locker and retrieve package
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Size-based allocation and expiry
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+
+- id: 017-lru-cache
+  name: LRU Cache
+  tier: 2
+  patterns: [Strategy]
+  dsa: HashMap + Doubly Linked List
+  companies: [Amazon, Google, Microsoft, Flipkart]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/017-lru-cache
+  parts:
+    - name: Base — Fixed-size cache with LRU eviction
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — TTL-based expiration
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+    - name: Extension 2 — Multiple eviction policies
+      description_marker: ## Part 3
+      test_file: part3_test.cpp
+
+- id: 018-twitter
+  name: Twitter/X Feed System
+  tier: 2
+  patterns: [Observer, Strategy]
+  dsa: HashMap + Heap (Merge K Sorted)
+  companies: [Twitter, Amazon, Flipkart]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: observer
+  path: problems/tier2-intermediate/018-twitter
+  parts:
+    - name: Base — Post tweets and follow users
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — News feed generation
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+
+- id: 019-auction-system
+  name: Online Auction System
+  tier: 2
+  patterns: [Observer, Strategy, State]
+  dsa: Priority Queue + HashMap
+  companies: [Flipkart, Amazon, eBay]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: observer
+  path: problems/tier2-intermediate/019-auction-system
+  parts:
+    - name: Base — Create auction and place bids
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Auto-bidding and bid notifications
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+    - name: Extension 2 — Auction closing strategies
+      description_marker: ## Part 3
+      test_file: part3_test.cpp
+
+- id: 020-logger-system
+  name: Logging Framework
+  tier: 2
+  patterns: [Strategy, Observer, Singleton]
+  dsa: HashMap + Queue
+  companies: [Amazon, Microsoft, Razorpay]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/020-logger-system
+  parts:
+    - name: Base — Log to console with levels
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Multiple sinks (file, DB)
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+    - name: Extension 2 — Log filtering and formatting
+      description_marker: ## Part 3
+      test_file: part3_test.cpp
+
+- id: 021-ride-sharing
+  name: Ride Sharing Service
+  tier: 2
+  patterns: [Strategy, Observer, State]
+  dsa: HashMap + Priority Queue + Graph
+  companies: [Uber, Ola, Lyft]
+  time_minutes: 60
+  languages: [cpp]
+  prerequisite_primer: strategy
+  path: problems/tier2-intermediate/021-ride-sharing
+  parts:
+    - name: Base — Request ride and match driver
+      description_marker: ## Part 1
+      test_file: part1_test.cpp
+    - name: Extension 1 — Ride pricing strategies
+      description_marker: ## Part 2
+      test_file: part2_test.cpp
+    - name: Extension 2 — Ride pooling and shared rides
+      description_marker: ## Part 3
+      test_file: part3_test.cpp
 

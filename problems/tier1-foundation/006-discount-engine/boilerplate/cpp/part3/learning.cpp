@@ -118,7 +118,9 @@ double apply_with_eligibility(vector<CartItem> cart,
     return discount->apply(cart);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: Eligibility rules — full scaffolding provided." << endl;
     return 0;
 }
+#endif

@@ -64,7 +64,9 @@ void registerSurgeObserver(SurgeObserver* obs) {
     // TODO: register with the global engine
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Surge notifications — implement TODOs above." << endl;
     return 0;
 }
+#endif

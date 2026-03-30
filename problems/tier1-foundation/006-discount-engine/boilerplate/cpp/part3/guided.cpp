@@ -100,7 +100,9 @@ double apply_with_eligibility(vector<CartItem> cart,
     return 0;
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: Eligibility rules — implement the TODOs above." << endl;
     return 0;
 }
+#endif

@@ -175,7 +175,9 @@ void reset_manager() {
     manager = OrderManager();
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: History + Observer — implement the TODOs above." << endl;
     return 0;
 }
+#endif

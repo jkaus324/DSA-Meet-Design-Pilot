@@ -102,7 +102,9 @@ void registerSurgeObserver(SurgeObserver* obs) {
     globalEngine.addObserver(obs);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Surge notifications — full scaffolding provided." << endl;
     return 0;
 }
+#endif

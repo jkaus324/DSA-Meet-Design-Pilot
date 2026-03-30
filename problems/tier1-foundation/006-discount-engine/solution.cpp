@@ -29,8 +29,9 @@ class PercentageDiscount : public Discount {
 public:
     PercentageDiscount(double percentage) : pct(percentage) {}
     double apply(const vector<CartItem>& cart) override {
-        // TODO: compute total, then reduce by pct%
-        return 0;
+        double total = 0;
+        for (auto& item : cart) total += item.price * item.quantity;
+        return total * (1.0 - pct / 100.0);
     }
 };
 
@@ -39,8 +40,9 @@ class FlatDiscount : public Discount {
 public:
     FlatDiscount(double amt) : amount(amt) {}
     double apply(const vector<CartItem>& cart) override {
-        // TODO: compute total, then subtract flat amount (min 0)
-        return 0;
+        double total = 0;
+        for (auto& item : cart) total += item.price * item.quantity;
+        return max(0.0, total - amount);
     }
 };
 
@@ -49,8 +51,15 @@ class BuyXGetYDiscount : public Discount {
 public:
     BuyXGetYDiscount(int buy, int free) : buyCount(buy), freeCount(free) {}
     double apply(const vector<CartItem>& cart) override {
-        // TODO: for each item, compute paid items using buy/free ratio
-        return 0;
+        double total = 0;
+        int groupSize = buyCount + freeCount;
+        for (auto& item : cart) {
+            int groups = item.quantity / groupSize;
+            int remainder = item.quantity % groupSize;
+            int paidItems = groups * buyCount + min(remainder, buyCount);
+            total += paidItems * item.price;
+        }
+        return total;
     }
 };
 
@@ -63,8 +72,7 @@ public:
     void setDiscount(Discount* d) { discount = d; }
 
     double computeTotal(const vector<CartItem>& cart) {
-        // TODO: use discount->apply to compute final total
-        return 0;
+        return discount->apply(cart);
     }
 };
 
@@ -76,8 +84,13 @@ public:
     StackedDiscount(vector<Discount*> d) : discounts(d) {}
 
     double apply(const vector<CartItem>& cart) override {
-        // TODO: apply each discount sequentially to the running total
-        return 0;
+        double current = 0;
+        for (auto& item : cart) current += item.price * item.quantity;
+        for (auto* d : discounts) {
+            vector<CartItem> temp = {{"subtotal", current, 1, ""}};
+            current = d->apply(temp);
+        }
+        return current;
     }
 };
 
@@ -115,12 +128,35 @@ double apply_with_eligibility(vector<CartItem> cart,
                               bool requireFirstTimeUser,
                               UserContext user,
                               string eligibleCategory) {
-    // TODO: check eligibility rules, then apply discount
-    return 0;
+    double rawTotal = 0;
+    for (auto& item : cart) rawTotal += item.price * item.quantity;
+
+    // Rule 1: minimum cart value check
+    if (rawTotal < minCartValue) return rawTotal;
+
+    // Rule 2: first-time user check
+    if (requireFirstTimeUser && !user.isFirstTimeUser) return rawTotal;
+
+    // Rule 3: category-specific discount
+    if (!eligibleCategory.empty()) {
+        vector<CartItem> eligible;
+        double nonEligibleTotal = 0;
+        for (auto& item : cart) {
+            if (item.category == eligibleCategory) {
+                eligible.push_back(item);
+            } else {
+                nonEligibleTotal += item.price * item.quantity;
+            }
+        }
+        return discount->apply(eligible) + nonEligibleTotal;
+    }
+
+    return discount->apply(cart);
 }
 
 // ─── Main (test your implementation) ─────────────────────────────────────────
 
+#ifndef RUNNING_TESTS
 int main() {
     vector<CartItem> cart = {
         {"Laptop",     50000.0, 1, "electronics"},
@@ -134,3 +170,4 @@ int main() {
 
     return 0;
 }
+#endif

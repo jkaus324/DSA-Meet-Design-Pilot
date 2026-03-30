@@ -85,7 +85,9 @@ vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods) {
     return PaymentRanker(&s).rank(methods);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Payment Ranker — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

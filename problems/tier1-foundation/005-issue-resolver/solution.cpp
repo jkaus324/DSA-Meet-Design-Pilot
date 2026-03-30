@@ -227,6 +227,7 @@ Issue assign_next_priority(vector<Agent>& agents, vector<Issue>& issues) {
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
+#ifndef RUNNING_TESTS
 int main() {
     vector<Agent> agents = {
         {0, "Alice", 0, {Category::BILLING}},
@@ -243,3 +244,4 @@ int main() {
 
     return 0;
 }
+#endif

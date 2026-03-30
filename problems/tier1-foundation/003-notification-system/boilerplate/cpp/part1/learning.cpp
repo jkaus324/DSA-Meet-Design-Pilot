@@ -80,7 +80,9 @@ void notify(const string& event, const vector<User>& users) {
     mgr.notify(event, users);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Notification System — implement the TODO methods above." << endl;
     return 0;
 }
+#endif

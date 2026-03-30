@@ -124,7 +124,9 @@ vector<FileNode*> search_composite(FileNode* root, const vector<SearchCriteria*>
     }
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Composite filters — implement AndFilter and OrFilter TODOs." << endl;
     return 0;
 }
+#endif

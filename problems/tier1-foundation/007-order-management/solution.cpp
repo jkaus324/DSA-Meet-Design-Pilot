@@ -183,6 +183,7 @@ void reset_manager() {
 
 // ─── Main (test your implementation) ────────────────────────────────────────
 
+#ifndef RUNNING_TESTS
 int main() {
     auto id = create_order({{"PROD-1", 2}}, 500.0);
     cout << "Created order: " << id << endl;
@@ -198,3 +199,4 @@ int main() {
 
     return 0;
 }
+#endif

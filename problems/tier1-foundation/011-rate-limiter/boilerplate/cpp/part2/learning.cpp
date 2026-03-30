@@ -130,7 +130,9 @@ bool allow_request_with_strategy(const string& algorithm, const Request& req) {
     return g_strategyLimiters[algorithm]->allowRequest(req);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Multiple algorithms — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

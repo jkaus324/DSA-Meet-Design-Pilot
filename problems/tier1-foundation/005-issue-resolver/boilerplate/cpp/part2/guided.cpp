@@ -113,7 +113,9 @@ Issue assign_by_specialist(vector<Agent>& agents, vector<Issue>& issues, Issue i
     return resolver.assign(agents, issues, issue);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Multiple strategies — implement the TODOs above." << endl;
     return 0;
 }
+#endif

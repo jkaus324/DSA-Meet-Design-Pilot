@@ -30,6 +30,12 @@ const DIST_DIR       = path.join(__dirname, 'dist');
 
 // ─── g++ availability check ─────────────────────────────────────────────────
 
+// Add MinGW to PATH if it exists (Windows/Chocolatey installs)
+const mingwPath = 'C:\\ProgramData\\mingw64\\mingw64\\bin';
+if (fs.existsSync(path.join(mingwPath, 'g++.exe'))) {
+  process.env.PATH = mingwPath + path.delimiter + (process.env.PATH || '');
+}
+
 let testRunnerAvailable = false;
 exec('g++ --version', (err) => {
   if (err) {
@@ -648,38 +654,35 @@ app.post('/api/problems/:id/submit', (req, res) => {
   const solutionFile = path.join(tmpDir, 'solution.cpp');
   fs.writeFileSync(solutionFile, code, 'utf8');
 
-  // Copy test files for Parts 1..part
-  const testFiles = [];
+  // Build a single combined .cpp to avoid multi-TU duplicate symbol issues.
+  // Tests #include "solution.cpp", so we include it once, then inline all test
+  // code (with their #include stripped) and a main() driver.
+  let combined = '#include "solution.cpp"\n\n';
   for (let i = 1; i <= part; i++) {
     const testFile = partDefs[i - 1].test_file;
     const src      = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', testFile);
     if (fs.existsSync(src)) {
-      const dest = path.join(tmpDir, `part${i}_test.cpp`);
-      fs.copyFileSync(src, dest);
-      testFiles.push(`part${i}_test.cpp`);
+      let content = fs.readFileSync(src, 'utf8');
+      content = content.replace(/^\s*#include\s+"solution\.cpp"\s*$/m, '// (included above)');
+      combined += `// --- ${testFile} ---\n${content}\n\n`;
     }
   }
 
-  // Generate main.cpp
+  // Append main() driver
   const partNames = partDefs.slice(0, part).map((_, i) => `part${i + 1}_tests`);
-  const mainContent = `
-#include <iostream>
-using namespace std;
-
-${partNames.map(fn => `int ${fn}();`).join('\n')}
-
+  combined += `
+// --- generated main ---
 int main() {
   int total_failures = 0;
   ${partNames.map(fn => `total_failures += ${fn}();`).join('\n  ')}
   return total_failures > 0 ? 1 : 0;
 }
 `;
-  const mainFile = path.join(tmpDir, 'main.cpp');
-  fs.writeFileSync(mainFile, mainContent, 'utf8');
+  const combinedFile = path.join(tmpDir, 'combined.cpp');
+  fs.writeFileSync(combinedFile, combined, 'utf8');
 
   const outBin   = path.join(tmpDir, os.platform() === 'win32' ? 'runner.exe' : 'runner');
-  const allSrcs  = ['solution.cpp', ...testFiles, 'main.cpp'].map(f => `"${path.join(tmpDir, f)}"`).join(' ');
-  const compileCmd = `g++ -std=c++17 -o "${outBin}" ${allSrcs} 2>&1`;
+  const compileCmd = `g++ -std=c++17 -DRUNNING_TESTS -o "${outBin}" "${combinedFile}" 2>&1`;
 
   const startTime = Date.now();
 

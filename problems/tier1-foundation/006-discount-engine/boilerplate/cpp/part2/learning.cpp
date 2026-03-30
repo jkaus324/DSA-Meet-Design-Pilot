@@ -124,7 +124,9 @@ double apply_stacked_discounts(vector<CartItem> cart, vector<Discount*> discount
     return DiscountEngine(&d).computeTotal(cart);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 2: Stacked discounts — full scaffolding provided." << endl;
     return 0;
 }
+#endif

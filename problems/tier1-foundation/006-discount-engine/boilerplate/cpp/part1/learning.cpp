@@ -89,7 +89,9 @@ double apply_bogo(vector<CartItem> cart, int buyCount, int freeCount) {
     return DiscountEngine(&d).computeTotal(cart);
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Discount Engine — implement the TODO methods above, then run tests." << endl;
     return 0;
 }
+#endif

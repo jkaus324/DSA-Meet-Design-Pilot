@@ -164,7 +164,9 @@ vector<FileNode*> search_and_sort(FileNode* root, const SearchCriteria& criteria
     return results;
 }
 
+#ifndef RUNNING_TESTS
 int main() {
     cout << "Part 3: Sort strategies — implement the SortBy TODOs, then sort in search_and_sort." << endl;
     return 0;
 }
+#endif
