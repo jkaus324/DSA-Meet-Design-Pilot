@@ -2,12 +2,13 @@ import React, { useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-export default function CodeEditor({ value, onChange, language = 'cpp', onSave, onSubmit }) {
+export default function CodeEditor({ value, onChange, language = 'cpp', onSave, onSubmit, onMount }) {
   const { dark } = useTheme();
   const editorRef = useRef(null);
 
   const handleMount = (editor) => {
     editorRef.current = editor;
+    onMount?.(editor);
 
     // Register Ctrl+S keybinding in Monaco
     editor.addCommand(

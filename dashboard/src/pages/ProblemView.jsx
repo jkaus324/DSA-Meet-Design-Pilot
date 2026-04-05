@@ -195,6 +195,7 @@ export default function ProblemView({ onProgressChange }) {
 
   // ── Resizable test output panel ────────────────────────────────────────────
   const [executionPanelHeight, setExecutionPanelHeight] = useState(240);
+  const [showExecutionPanel, setShowExecutionPanel] = useState(true);
   const testDragging = useRef(false);
   const testDragStartY = useRef(0);
   const testDragStartH = useRef(240);
@@ -203,6 +204,7 @@ export default function ProblemView({ onProgressChange }) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const containerRef = useRef(null);
+  const editorRef = useRef(null);
   const [leftWidth, setLeftWidth] = useState(42);
   const dragging = useRef(false);
 
@@ -342,6 +344,13 @@ export default function ProblemView({ onProgressChange }) {
     clearTimeout(notesTimer.current);
     notesTimer.current = setTimeout(() => saveNotes(val), 1500);
   };
+
+  const handleFormat = useCallback(() => {
+    if (editorRef.current) {
+      editorRef.current.getAction('editor.action.formatDocument').run();
+      toast.success('Code formatted');
+    }
+  }, [toast]);
 
   const handleCodeChange = (val) => { setCode(val); setIsDirty(true); };
 
@@ -851,8 +860,8 @@ export default function ProblemView({ onProgressChange }) {
               {/* Save + Reset buttons (right side) */}
               {rightTab === 'Code' && (
                 <div className="ml-auto flex items-center gap-2 pr-2">
-                  {/* Reset Code button -- subtle, not prominent */}
-                  <button
+                   {/* Reset Code button -- subtle, not prominent */}
+                   <button
                     onClick={() => setShowResetConfirm(true)}
                     className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium transition-all"
                     style={{
@@ -876,6 +885,31 @@ export default function ProblemView({ onProgressChange }) {
                     Reset
                   </button>
 
+                  {/* Format button */}
+                  <button
+                    onClick={handleFormat}
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium transition-all"
+                    style={{
+                      color: 'var(--color-text-tertiary)',
+                      background: 'transparent',
+                      border: '1px solid transparent',
+                      fontSize: 11,
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.color = 'var(--color-accent)';
+                      e.currentTarget.style.background = 'var(--color-accent-light)';
+                      e.currentTarget.style.borderColor = 'var(--color-accent)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'transparent';
+                    }}
+                    title="Format code (Shift+Alt+F)"
+                  >
+                    Format
+                  </button>
+
                   {/* Save button */}
                   <button
                     onClick={handleSaveCode}
@@ -896,15 +930,40 @@ export default function ProblemView({ onProgressChange }) {
             {rightTab === 'Code' && (
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {/* Editor area */}
-                <div className="flex-1 min-h-0" style={{ background: 'var(--color-surface)' }}>
-                  <CodeEditor value={code} onChange={handleCodeChange} language="cpp" onSave={handleSaveCode} onSubmit={handleSubmit} />
+                <div className="flex-1 min-h-0 relative" style={{ background: 'var(--color-surface)' }}>
+                  <CodeEditor 
+                    value={code} 
+                    onChange={handleCodeChange} 
+                    language="cpp" 
+                    onSave={handleSaveCode} 
+                    onSubmit={handleSubmit} 
+                    onMount={(editor) => { editorRef.current = editor; }}
+                  />
+                  
+                  {/* Floating Show Console button (only when hidden) */}
+                  {!showExecutionPanel && (
+                    <button
+                      onClick={() => setShowExecutionPanel(true)}
+                      className="absolute shadow-lg flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border font-semibold transition-all hover:border-accent hover:text-accent"
+                      style={{
+                        bottom: 12,
+                        right: 12,
+                        background: 'var(--color-surface-secondary)',
+                        color: 'var(--color-text-tertiary)',
+                        fontSize: 11,
+                        zIndex: 20,
+                      }}
+                    >
+                      <span>▲</span> Show Console
+                    </button>
+                  )}
                 </div>
 
                 {/* Line/Char count footer */}
                 <div
-                  className="flex-shrink-0 flex items-center px-3"
+                  className="flex-shrink-0 flex items-center justify-between px-3"
                   style={{
-                    height: 22,
+                    height: 24,
                     background: 'var(--color-surface)',
                     borderTop: '1px solid var(--color-border)',
                   }}
@@ -921,93 +980,114 @@ export default function ProblemView({ onProgressChange }) {
                   </span>
                 </div>
 
-                {/* Test output drag handle (horizontal) - now at the top of the region */}
-                <div
-                  onMouseDown={onTestDragStart}
-                  className="flex-shrink-0"
-                  style={{
-                    height: 6,
-                    cursor: 'row-resize',
-                    background: 'var(--color-border)',
-                    borderTop: '1px solid var(--color-border)',
-                    zIndex: 10,
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-border)'; }}
-                />
+                {showExecutionPanel && (
+                  <>
+                    {/* Test output drag handle (horizontal) - now at the top of the region */}
+                    <div
+                      onMouseDown={onTestDragStart}
+                      className="flex-shrink-0"
+                      style={{
+                        height: 6,
+                        cursor: 'row-resize',
+                        background: 'var(--color-border)',
+                        borderTop: '1px solid var(--color-border)',
+                        zIndex: 10,
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-border)'; }}
+                    />
 
-                {/* Resizable Execution Region (Submit button bar + Test output + Run locally command) */}
-                <div
-                  className="flex-shrink-0 flex flex-col overflow-hidden"
-                  style={{ height: executionPanelHeight, background: 'var(--color-surface)' }}
-                >
-                  {/* Submit button bar */}
-                  <div
-                    className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5"
-                    style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
-                  >
-                    {allPartsPassed ? (
+                    {/* Resizable Execution Region (Submit button bar + Test output + Run locally command) */}
+                    <div
+                      className="flex-shrink-0 flex flex-col overflow-hidden"
+                      style={{ height: executionPanelHeight, background: 'var(--color-surface)' }}
+                    >
+                      {/* Submit button bar */}
                       <div
-                        className="flex-1 py-2 text-sm font-semibold text-center rounded-xl"
-                        style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e' }}
+                        className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5"
+                        style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
                       >
-                        All Parts Complete
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          onClick={handleSubmit}
-                          disabled={submitting || !runnerAvail}
-                          title={!runnerAvail ? 'g++ required \u2014 install g++ or use Skip' : ''}
-                          className="flex-1 py-2.5 text-sm font-semibold rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          style={{
-                            background: submitting
-                              ? 'var(--color-border)'
-                              : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                            boxShadow: submitting ? 'none' : '0 2px 8px rgba(99,102,241,0.35)',
-                          }}
-                        >
-                          {submitting ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              {submitStatus || 'Submitting\u2026'}
-                            </span>
-                          ) : (
-                            <span className="flex items-center justify-center gap-2">
-                              {`\u25B6 Submit Part ${currentPartNum}`}
-                              <span style={{ ...KBD_STYLE, background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.2)', marginLeft: 0 }}>Ctrl+Enter</span>
-                            </span>
-                          )}
-                        </button>
-                        {!runnerAvail && (
-                          <button
-                            onClick={handleSkipPart}
-                            className="text-xs text-text-tertiary hover:text-text-secondary underline flex-shrink-0 transition-colors"
-                            title="Manually unlock next part (g++ not available)"
+                        {allPartsPassed ? (
+                          <div
+                            className="flex-1 py-2 text-sm font-semibold text-center rounded-xl"
+                            style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e' }}
                           >
-                            Skip {'\u2192'}
-                          </button>
+                            All Parts Complete
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              onClick={handleSubmit}
+                              disabled={submitting || !runnerAvail}
+                              title={!runnerAvail ? 'g++ required \u2014 install g++ or use Skip' : ''}
+                              className="flex-1 py-2.5 text-sm font-semibold rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={{
+                                background: submitting
+                                  ? 'var(--color-border)'
+                                  : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                boxShadow: submitting ? 'none' : '0 2px 8px rgba(99,102,241,0.35)',
+                              }}
+                            >
+                              {submitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                  {submitStatus || 'Submitting\u2026'}
+                                </span>
+                              ) : (
+                                <span className="flex items-center justify-center gap-2">
+                                  {`\u25B6 Submit Part ${currentPartNum}`}
+                                  <span style={{ ...KBD_STYLE, background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.2)', marginLeft: 0 }}>Ctrl+Enter</span>
+                                </span>
+                              )}
+                            </button>
+                            {!runnerAvail && (
+                              <button
+                                onClick={handleSkipPart}
+                                className="text-xs text-text-tertiary hover:text-text-secondary underline flex-shrink-0 transition-colors"
+                                title="Manually unlock next part (g++ not available)"
+                              >
+                                Skip {'\u2192'}
+                              </button>
+                            )}
+                          </>
                         )}
-                      </>
-                    )}
-                  </div>
 
-                  {/* Test output (stretches to fill space) */}
-                  <div
-                    className="flex-1 overflow-y-auto"
-                    style={{ background: 'var(--color-surface-secondary)' }}
-                  >
-                    <TestOutput result={submitResult} running={submitting} submitStatus={submitStatus} />
-                  </div>
+                        <button
+                          onClick={() => setShowExecutionPanel(false)}
+                          className="ml-auto flex items-center justify-center p-1 hover:text-text-primary transition-colors"
+                          style={{
+                            color: 'var(--color-text-tertiary)',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            marginLeft: 'auto',
+                          }}
+                          title="Hide console"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 1l12 12M13 1L1 13" />
+                          </svg>
+                        </button>
+                      </div>
 
-                  {/* Run locally command */}
-                  <div
-                    className="flex-shrink-0 border-t border-border px-3 py-2"
-                    style={{ background: 'var(--color-surface)' }}
-                  >
-                    <CopyCommand command={command} />
-                  </div>
-                </div>
+                      {/* Test output (stretches to fill space) */}
+                      <div
+                        className="flex-1 overflow-y-auto"
+                        style={{ background: 'var(--color-surface-secondary)' }}
+                      >
+                        <TestOutput result={submitResult} running={submitting} submitStatus={submitStatus} />
+                      </div>
+
+                      {/* Run locally command */}
+                      <div
+                        className="flex-shrink-0 border-t border-border px-3 py-2"
+                        style={{ background: 'var(--color-surface)' }}
+                      >
+                        <CopyCommand command={command} />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
