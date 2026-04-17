@@ -5,7 +5,7 @@
   dsa: "Sorting"
   companies: ["Amazon", "Flipkart"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/001-payment-ranker"
   parts:
@@ -26,7 +26,7 @@
   dsa: "Queue"
   companies: ["Flipkart", "Swiggy"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "observer"
   path: "problems/tier1-foundation/003-notification-system"
   parts:
@@ -44,7 +44,7 @@
   dsa: "HashMap"
   companies: ["Amazon", "Flipkart"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "state"
   path: "problems/tier1-foundation/004-vending-machine"
   parts:
@@ -62,7 +62,7 @@
   dsa: "HashMap + Priority Queue"
   companies: ["PhonePe", "Flipkart"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/005-issue-resolver"
   parts:
@@ -83,7 +83,7 @@
   dsa: "HashMap"
   companies: ["Flipkart", "Amazon", "Meesho"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/006-discount-engine"
   parts:
@@ -104,7 +104,7 @@
   dsa: "HashMap"
   companies: ["Meesho", "PhonePe", "Amazon"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "state"
   path: "problems/tier1-foundation/007-order-management"
   parts:
@@ -125,7 +125,7 @@
   dsa: "Tree (DFS/BFS)"
   companies: ["Amazon", "Microsoft"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/008-file-search"
   parts:
@@ -146,7 +146,7 @@
   dsa: "Queue + HashMap"
   companies: ["Amazon", "Razorpay", "Uber"]
   time_minutes: 45
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "strategy"
   path: "problems/tier1-foundation/011-rate-limiter"
   parts:
@@ -167,7 +167,7 @@
   dsa: "Interval Checking + HashMap + Priority Queue"
   companies: ["Flipkart", "Razorpay", "Groww", "Microsoft"]
   time_minutes: 60
-  languages: ["cpp"]
+  languages: ["cpp", "go"]
   prerequisite_primer: "strategy"
   path: "problems/tier2-intermediate/009-meeting-scheduler"
   parts:
@@ -188,7 +188,7 @@
   dsa: Priority Queue
   companies: [Uber, Ola]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/010-ride-surge-pricing
   parts:
@@ -206,7 +206,7 @@
   dsa: Priority Queue + State Machine
   companies: [Amazon, Microsoft, Flipkart]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: state
   path: problems/tier2-intermediate/012-elevator-system
   parts:
@@ -224,7 +224,7 @@
   dsa: HashMap + Heap
   companies: [Amazon, Flipkart, Walmart]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/013-parking-lot
   parts:
@@ -242,7 +242,7 @@
   dsa: Graph + HashMap
   companies: [Flipkart, PhonePe, Razorpay]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/014-splitwise
   parts:
@@ -263,7 +263,7 @@
   dsa: HashMap + Concurrency
   companies: [BookMyShow, Flipkart, Amazon]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/015-bookmyshow
   parts:
@@ -284,7 +284,7 @@
   dsa: HashMap + Queue
   companies: [Amazon]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/016-amazon-locker
   parts:
@@ -302,7 +302,7 @@
   dsa: HashMap + Doubly Linked List
   companies: [Amazon, Google, Microsoft, Flipkart]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/017-lru-cache
   parts:
@@ -323,7 +323,7 @@
   dsa: HashMap + Heap (Merge K Sorted)
   companies: [Twitter, Amazon, Flipkart]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: observer
   path: problems/tier2-intermediate/018-twitter
   parts:
@@ -341,7 +341,7 @@
   dsa: Priority Queue + HashMap
   companies: [Flipkart, Amazon, eBay]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: observer
   path: problems/tier2-intermediate/019-auction-system
   parts:
@@ -362,7 +362,7 @@
   dsa: HashMap + Queue
   companies: [Amazon, Microsoft, Razorpay]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/020-logger-system
   parts:
@@ -383,7 +383,7 @@
   dsa: HashMap + Priority Queue + Graph
   companies: [Uber, Ola, Lyft]
   time_minutes: 60
-  languages: [cpp]
+  languages: [cpp, go]
   prerequisite_primer: strategy
   path: problems/tier2-intermediate/021-ride-sharing
   parts:

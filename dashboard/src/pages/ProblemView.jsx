@@ -178,6 +178,7 @@ export default function ProblemView({ onProgressChange }) {
   const [submitStatus, setSubmitStatus] = useState('');
 
   const [mode, setMode] = useState('interview');
+  const [lang, setLang] = useState('cpp');
 
   const [leftTab,  setLeftTab]  = useState('Description');
   const [rightTab, setRightTab] = useState('Code');
@@ -303,20 +304,31 @@ export default function ProblemView({ onProgressChange }) {
         setRunnerAvail(partsData.runner_available !== false);
         const initialMode = p.difficulty_mode || 'interview';
         setMode(initialMode);
-        return api.getCode(id, initialMode);
+        // Reset lang when navigating to a new problem
+        setLang('cpp');
+        return api.getCode(id, initialMode, 'cpp');
       })
       .then(codeData => { setCode(codeData.code); setLoading(false); })
       .catch(err => { setError(err.message); setLoading(false); });
   }, [id]);
 
+  const handleLangChange = (newLang) => {
+    if (newLang === lang) return;
+    if (isDirty) api.saveCode(id, mode, code, lang).catch(console.error);
+    setLang(newLang);
+    setSubmitResult(null);
+    setIsDirty(false);
+    api.getCode(id, mode, newLang).then(d => setCode(d.code)).catch(console.error);
+  };
+
   const handleModeChange = (newMode) => {
     const doSwitch = () => {
-      if (isDirty) api.saveCode(id, mode, code).catch(console.error);
+      if (isDirty) api.saveCode(id, mode, code, lang).catch(console.error);
       api.updateStatus(id, { difficulty_mode: newMode }).then(() => onProgressChange?.()).catch(console.error);
       setMode(newMode);
       setIsDirty(false);
       setSubmitResult(null);
-      api.getCode(id, newMode).then(d => setCode(d.code)).catch(console.error);
+      api.getCode(id, newMode, lang).then(d => setCode(d.code)).catch(console.error);
     };
 
     const hasPartsProgress = parts.some(p => p.status === 'passed' || p.status === 'attempted');
@@ -355,7 +367,7 @@ export default function ProblemView({ onProgressChange }) {
   const handleCodeChange = (val) => { setCode(val); setIsDirty(true); };
 
   const handleSaveCode = useCallback(() => {
-    api.saveCode(id, mode, code)
+    api.saveCode(id, mode, code, lang)
       .then(() => {
         setCodeSaved(true);
         setIsDirty(false);
@@ -366,16 +378,16 @@ export default function ProblemView({ onProgressChange }) {
         console.error(err);
         toast.error('Failed to save code');
       });
-  }, [id, mode, code, toast]);
+  }, [id, mode, code, lang, toast]);
 
   const handleSubmit = useCallback(async () => {
     const currentPart = getCurrentPart(parts);
     setSubmitting(true);
     setSubmitResult(null);
-    setSubmitStatus('Compiling...');
-    api.saveCode(id, mode, code).catch(console.error);
+    setSubmitStatus(lang === 'go' ? 'Building...' : 'Compiling...');
+    api.saveCode(id, mode, code, lang).catch(console.error);
     try {
-      const result = await api.submitPart(id, currentPart, mode, code);
+      const result = await api.submitPart(id, currentPart, mode, code, lang);
       setSubmitResult(result);
       setSubmitting(false);
       setSubmitStatus('');
@@ -406,7 +418,7 @@ export default function ProblemView({ onProgressChange }) {
       setSubmitStatus('');
       toast.error('Submission failed');
     }
-  }, [parts, id, mode, code, toast, refreshParts, onProgressChange, runnerAvail]);
+  }, [parts, id, mode, code, lang, toast, refreshParts, onProgressChange, runnerAvail]);
 
   const handleSkipPart = async () => {
     const currentPart = getCurrentPart(parts);
@@ -432,7 +444,7 @@ export default function ProblemView({ onProgressChange }) {
   const handleCarryFresh = async () => {
     await api.setCarryForward(id, carryDialog.partNum, false).catch(console.error);
     try {
-      const starter = await api.getStarter(id, mode, carryDialog.partNum);
+      const starter = await api.getStarter(id, mode, carryDialog.partNum, lang);
       setCode(starter.code);
       setIsDirty(false);
     } catch (err) { console.error('Failed to load starter:', err); }
@@ -444,7 +456,7 @@ export default function ProblemView({ onProgressChange }) {
   const handleResetCode = useCallback(async () => {
     const currentPart = getCurrentPart(parts);
     try {
-      const starter = await api.getStarter(id, mode, currentPart);
+      const starter = await api.getStarter(id, mode, currentPart, lang);
       setCode(starter.code);
       setIsDirty(false);
       setShowResetConfirm(false);
@@ -725,6 +737,42 @@ export default function ProblemView({ onProgressChange }) {
           <div className="flex-shrink-0">
             <DifficultyModeSelector mode={mode} onChange={handleModeChange} compact />
           </div>
+
+          <span style={{ width: 1, height: 16, background: 'var(--color-border)', flexShrink: 0 }} />
+
+          {/* Language selector */}
+          <div
+            className="flex items-center flex-shrink-0"
+            style={{
+              background: 'var(--color-surface-tertiary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 8,
+              padding: '2px',
+              gap: 2,
+            }}
+          >
+            {['cpp', 'go'].map(l => (
+              <button
+                key={l}
+                onClick={() => handleLangChange(l)}
+                title={l === 'cpp' ? 'C++17' : 'Go 1.21+'}
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  fontFamily: "'Fira Code', monospace",
+                  cursor: 'pointer',
+                  border: 'none',
+                  transition: 'all 0.15s',
+                  background: lang === l ? 'var(--color-accent)' : 'transparent',
+                  color: lang === l ? '#fff' : 'var(--color-text-tertiary)',
+                }}
+              >
+                {l === 'cpp' ? 'C++' : 'Go'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── SPLIT PANELS ────────────────────────────────────────────────── */}
@@ -931,15 +979,15 @@ export default function ProblemView({ onProgressChange }) {
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {/* Editor area */}
                 <div className="flex-1 min-h-0 relative" style={{ background: 'var(--color-surface)' }}>
-                  <CodeEditor 
-                    value={code} 
-                    onChange={handleCodeChange} 
-                    language="cpp" 
-                    onSave={handleSaveCode} 
-                    onSubmit={handleSubmit} 
+                  <CodeEditor
+                    value={code}
+                    onChange={handleCodeChange}
+                    language={lang === 'go' ? 'go' : 'cpp'}
+                    onSave={handleSaveCode}
+                    onSubmit={handleSubmit}
                     onMount={(editor) => { editorRef.current = editor; }}
                   />
-                  
+
                   {/* Floating Show Console button (only when hidden) */}
                   {!showExecutionPanel && (
                     <button
@@ -1019,7 +1067,7 @@ export default function ProblemView({ onProgressChange }) {
                             <button
                               onClick={handleSubmit}
                               disabled={submitting || !runnerAvail}
-                              title={!runnerAvail ? 'g++ required \u2014 install g++ or use Skip' : ''}
+                              title={!runnerAvail ? (lang === 'go' ? 'go required \u2014 install Go or use Skip' : 'g++ required \u2014 install g++ or use Skip') : ''}
                               className="flex-1 py-2.5 text-sm font-semibold rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               style={{
                                 background: submitting

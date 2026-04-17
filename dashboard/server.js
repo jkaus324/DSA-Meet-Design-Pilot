@@ -52,12 +52,24 @@ if (os.platform() === 'win32') {
 let testRunnerAvailable = false;
 exec('g++ --version', (err) => {
   if (err) {
-    console.warn('⚠️  g++ not found. Test runner / Submit will not work.');
+    console.warn('⚠️  g++ not found. C++ test runner / Submit will not work.');
     console.warn('   Install: sudo apt install g++ (Linux) | xcode-select --install (Mac) | MinGW (Windows)');
     testRunnerAvailable = false;
   } else {
     testRunnerAvailable = true;
-    console.log('✅ g++ found — test runner available.');
+    console.log('✅ g++ found — C++ test runner available.');
+  }
+});
+
+let goRunnerAvailable = false;
+exec('go version', (err) => {
+  if (err) {
+    console.warn('⚠️  go not found. Go test runner will not work.');
+    console.warn('   Install: https://go.dev/doc/install');
+    goRunnerAvailable = false;
+  } else {
+    goRunnerAvailable = true;
+    console.log('✅ go found — Go test runner available.');
   }
 });
 
@@ -521,19 +533,21 @@ app.get('/api/problems/:id/parts', (req, res) => {
 });
 
 // ── GET /api/problems/:id/starter ────────────────────────────────────────────
-// Updated: accepts ?mode= and ?part= query params
+// Updated: accepts ?mode= and ?part= and ?lang= query params
 
 app.get('/api/problems/:id/starter', (req, res) => {
   const { id } = req.params;
   const mode = ['interview', 'guided', 'learning'].includes(req.query.mode)
     ? req.query.mode : 'interview';
   const part = parseInt(req.query.part, 10) || 1;
+  const lang = ['cpp', 'go'].includes(req.query.lang) ? req.query.lang : 'cpp';
+  const ext  = lang === 'go' ? 'go' : 'cpp';
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
   if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
 
-  const tryFile = (p, m) => path.join(REPO_ROOT, problem.path, 'boilerplate', 'cpp', `part${p}`, `${m}.cpp`);
+  const tryFile = (p, m) => path.join(REPO_ROOT, problem.path, 'boilerplate', lang, `part${p}`, `${m}.${ext}`);
 
   let filePath = tryFile(part, mode);
   let fallback = false;
@@ -551,11 +565,15 @@ app.get('/api/problems/:id/starter', (req, res) => {
     fallback = true;
   }
 
-  const code = fs.existsSync(filePath)
-    ? fs.readFileSync(filePath, 'utf8')
+  const defaultStarter = lang === 'go'
+    ? `package main\n\n// Write your solution here.\n`
     : `// Starter file not found for mode: ${mode}, part: ${part}\n// Write your solution here.\n`;
 
-  res.json({ mode, part, code, fallback });
+  const code = fs.existsSync(filePath)
+    ? fs.readFileSync(filePath, 'utf8')
+    : defaultStarter;
+
+  res.json({ mode, part, lang, code, fallback });
 });
 
 // ── GET /api/problems/:id/code ────────────────────────────────────────────────
@@ -564,6 +582,8 @@ app.get('/api/problems/:id/code', (req, res) => {
   const { id } = req.params;
   const mode = ['interview', 'guided', 'learning'].includes(req.query.mode)
     ? req.query.mode : 'interview';
+  const lang    = ['cpp', 'go'].includes(req.query.lang) ? req.query.lang : 'cpp';
+  const codeKey = lang === 'go' ? `go_${mode}` : mode;
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
@@ -571,60 +591,76 @@ app.get('/api/problems/:id/code', (req, res) => {
 
   const progress  = loadProgress();
   const entry     = progress.problems[id] || {};
-  const saved     = (entry.code || {})[mode] || '';
+  const saved     = (entry.code || {})[codeKey] || '';
 
   if (saved) {
-    return res.json({ mode, code: saved, is_starter: false });
+    return res.json({ mode, lang, code: saved, is_starter: false });
   }
 
   // Fall back to part1 starter
-  const tryFile = (m) => path.join(REPO_ROOT, problem.path, 'boilerplate', 'cpp', 'part1', `${m}.cpp`);
+  const ext = lang === 'go' ? 'go' : 'cpp';
+  const tryFile = (m) => path.join(REPO_ROOT, problem.path, 'boilerplate', lang, 'part1', `${m}.${ext}`);
   let filePath = tryFile(mode);
   if (!fs.existsSync(filePath)) filePath = tryFile('learning');
 
+  const defaultCode = lang === 'go'
+    ? `package main\n\n// Write your solution here.\n`
+    : `// Write your solution here.\n`;
   const code = fs.existsSync(filePath)
     ? fs.readFileSync(filePath, 'utf8')
-    : `// Write your solution here.\n`;
+    : defaultCode;
 
-  res.json({ mode, code, is_starter: true });
+  res.json({ mode, lang, code, is_starter: true });
 });
 
 // ── POST /api/problems/:id/code ───────────────────────────────────────────────
 
 app.post('/api/problems/:id/code', (req, res) => {
   const { id } = req.params;
-  const { mode, code } = req.body;
+  const { mode, code, lang = 'cpp' } = req.body;
 
   if (!['interview', 'guided', 'learning'].includes(mode)) {
     return res.status(400).json({ error: 'mode must be interview, guided, or learning' });
   }
   if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
+  if (!['cpp', 'go'].includes(lang)) {
+    return res.status(400).json({ error: 'lang must be cpp or go' });
+  }
 
   const problems = loadProblems();
   if (!problems.find(p => p.id === id)) return res.status(404).json({ error: `Problem ${id} not found` });
 
+  const codeKey = lang === 'go' ? `go_${mode}` : mode;
   const progress = loadProgress();
   if (!progress.problems[id]) progress.problems[id] = {};
   if (!progress.problems[id].code) progress.problems[id].code = {};
-  progress.problems[id].code[mode] = code;
+  progress.problems[id].code[codeKey] = code;
   logActivity(progress, 'saved_code');
   saveProgress(progress);
 
-  res.json({ saved: true, mode });
+  res.json({ saved: true, mode, lang });
 });
 
-// ── POST /api/problems/:id/submit ← NEW ──────────────────────────────────────
+// ── POST /api/problems/:id/submit ────────────────────────────────────────────
 
 app.post('/api/problems/:id/submit', (req, res) => {
   const { id } = req.params;
-  const { part, mode, code } = req.body;
+  const { part, mode, code, lang = 'cpp' } = req.body;
 
   if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
   if (!Number.isInteger(part) || part < 1) return res.status(400).json({ error: 'part must be a positive integer' });
+  if (!['cpp', 'go'].includes(lang)) return res.status(400).json({ error: 'lang must be cpp or go' });
 
-  if (!testRunnerAvailable) {
+  if (lang === 'go' && !goRunnerAvailable) {
     return res.status(503).json({
-      error: 'g++ not available. Install g++ to use the test runner.',
+      error: 'go not available. Install Go to use the Go test runner. See https://go.dev/doc/install',
+      runner_available: false,
+      go_available: false,
+    });
+  }
+  if (lang === 'cpp' && !testRunnerAvailable) {
+    return res.status(503).json({
+      error: 'g++ not available. Install g++ to use the C++ test runner.',
       runner_available: false,
     });
   }
@@ -640,50 +676,134 @@ app.post('/api/problems/:id/submit', (req, res) => {
     return res.status(400).json({ error: `Part ${part} does not exist. Problem has ${totalParts} parts.` });
   }
 
-  // Save code first
+  // Save code first (lang-aware key)
+  const codeKey = lang === 'go' ? `go_${mode || 'interview'}` : (mode || 'interview');
   const progress = loadProgress();
   if (!progress.problems[id]) progress.problems[id] = {};
   const entry = progress.problems[id];
   if (!entry.code) entry.code = {};
-  entry.code[mode || 'interview'] = code;
+  entry.code[codeKey] = code;
   ensurePartsInitialized(entry, totalParts);
 
-  // Set started_at if not already set
-  if (!entry.started_at) {
-    entry.started_at = new Date().toISOString();
-  }
-  // Mark current part as attempted
+  if (!entry.started_at) entry.started_at = new Date().toISOString();
   if ((entry.parts[String(part)] || {}).status !== 'passed') {
     entry.parts[String(part)] = { ...entry.parts[String(part)], status: 'attempted' };
   }
-
   saveProgress(progress);
 
-  // Create temp directory
+  const startTime = Date.now();
   const timestamp = Date.now();
   const tmpDir    = path.join(os.tmpdir(), `dsa-md-${id}-${timestamp}`);
   fs.mkdirSync(tmpDir, { recursive: true });
 
-  const solutionFile = path.join(tmpDir, 'solution.cpp');
-  fs.writeFileSync(solutionFile, code, 'utf8');
+  // ── Helper: update progress + respond ──────────────────────────────────────
+  function finalizeResult(parsedParts, timedOut, compilationResult) {
+    const allPassed = parsedParts.every(p => p.all_passed);
+    const freshProgress = loadProgress();
+    const freshEntry    = freshProgress.problems[id] || {};
+    ensurePartsInitialized(freshEntry, totalParts);
 
-  // Build a single combined .cpp to avoid multi-TU duplicate symbol issues.
-  // Tests #include "solution.cpp", so we include it once, then inline all test
-  // code (with their #include stripped) and a main() driver.
-  let combined = '#include "solution.cpp"\n\n';
-  for (let i = 1; i <= part; i++) {
-    const testFile = partDefs[i - 1].test_file;
-    const src      = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', testFile);
-    if (fs.existsSync(src)) {
-      let content = fs.readFileSync(src, 'utf8');
-      content = content.replace(/^\s*#include\s+"solution\.cpp"\s*$/m, '// (included above)');
-      combined += `// --- ${testFile} ---\n${content}\n\n`;
+    if (allPassed && !timedOut) {
+      freshEntry.parts[String(part)] = {
+        status:        'passed',
+        passed_at:     new Date().toISOString(),
+        carry_forward: freshEntry.parts[String(part)]?.carry_forward ?? null,
+      };
+      if (part < totalParts) {
+        const nextKey = String(part + 1);
+        if ((freshEntry.parts[nextKey] || {}).status === 'locked') {
+          freshEntry.parts[nextKey] = { status: 'active', passed_at: null, carry_forward: null };
+        }
+      }
+      if (part === totalParts) freshEntry.completed_at = new Date().toISOString();
+      logActivity(freshProgress, 'passed_part');
     }
+
+    freshProgress.problems[id] = freshEntry;
+    saveProgress(freshProgress);
+
+    res.json({
+      success:            allPassed && !timedOut,
+      submitted_part:     part,
+      lang,
+      compilation:        compilationResult,
+      parts:              parsedParts,
+      unlocked_next_part: allPassed && !timedOut && part < totalParts,
+      timed_out:          timedOut || false,
+      time_ms:            Date.now() - startTime,
+      runner_available:   true,
+    });
   }
 
-  // Append main() driver
-  const partNames = partDefs.slice(0, part).map((_, i) => `part${i + 1}_tests`);
-  combined += `
+  if (lang === 'go') {
+    // ── Go pipeline ────────────────────────────────────────────────────────
+    fs.writeFileSync(path.join(tmpDir, 'go.mod'), `module solution\n\ngo 1.21\n`, 'utf8');
+    fs.writeFileSync(path.join(tmpDir, 'solution.go'), code, 'utf8');
+
+    // Copy test runner files
+    for (let i = 1; i <= part; i++) {
+      const cppTestFile = partDefs[i - 1].test_file;                   // part1_test.cpp
+      const goRunnerFile = cppTestFile.replace('_test.cpp', '_runner.go'); // part1_runner.go
+      const src = path.join(REPO_ROOT, problem.path, 'tests', 'go', goRunnerFile);
+      if (fs.existsSync(src)) {
+        fs.copyFileSync(src, path.join(tmpDir, goRunnerFile));
+      }
+    }
+
+    // Generate main.go driver
+    const partFuncs = partDefs.slice(0, part).map((_, i) => `part${i + 1}Tests`);
+    const mainGo = `package main
+
+func main() {
+\ttotalFailures := 0
+\t${partFuncs.map(fn => `totalFailures += ${fn}()`).join('\n\t')}
+\t_ = totalFailures
+}
+`;
+    fs.writeFileSync(path.join(tmpDir, 'main.go'), mainGo, 'utf8');
+
+    const outBin    = path.join(tmpDir, os.platform() === 'win32' ? 'runner.exe' : 'runner');
+    const buildCmd  = `go build -o "${outBin}" . 2>&1`;
+
+    exec(buildCmd, { timeout: 30000, cwd: tmpDir }, (buildErr, buildOut) => {
+      if (buildErr) {
+        cleanup(tmpDir);
+        return res.json({
+          success: false,
+          submitted_part: part,
+          lang,
+          compilation: { success: false, errors: buildOut || buildErr.message },
+          parts: [],
+          time_ms: Date.now() - startTime,
+          runner_available: true,
+        });
+      }
+
+      exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout) => {
+        cleanup(tmpDir);
+        const parsedParts = parseTestOutput(stdout || '', partDefs.slice(0, part));
+        const timedOut    = runErr && runErr.killed;
+        finalizeResult(parsedParts, timedOut, { success: true, errors: null });
+      });
+    });
+
+  } else {
+    // ── C++ pipeline ───────────────────────────────────────────────────────
+    fs.writeFileSync(path.join(tmpDir, 'solution.cpp'), code, 'utf8');
+
+    let combined = '#include "solution.cpp"\n\n';
+    for (let i = 1; i <= part; i++) {
+      const testFile = partDefs[i - 1].test_file;
+      const src      = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', testFile);
+      if (fs.existsSync(src)) {
+        let content = fs.readFileSync(src, 'utf8');
+        content = content.replace(/^\s*#include\s+"solution\.cpp"\s*$/m, '// (included above)');
+        combined += `// --- ${testFile} ---\n${content}\n\n`;
+      }
+    }
+
+    const partNames = partDefs.slice(0, part).map((_, i) => `part${i + 1}_tests`);
+    combined += `
 // --- generated main ---
 int main() {
   int total_failures = 0;
@@ -691,76 +811,34 @@ int main() {
   return total_failures > 0 ? 1 : 0;
 }
 `;
-  const combinedFile = path.join(tmpDir, 'combined.cpp');
-  fs.writeFileSync(combinedFile, combined, 'utf8');
+    const combinedFile = path.join(tmpDir, 'combined.cpp');
+    fs.writeFileSync(combinedFile, combined, 'utf8');
 
-  const outBin   = path.join(tmpDir, os.platform() === 'win32' ? 'runner.exe' : 'runner');
-  const compileCmd = `g++ -std=c++17 -DRUNNING_TESTS -o "${outBin}" "${combinedFile}" 2>&1`;
+    const outBin     = path.join(tmpDir, os.platform() === 'win32' ? 'runner.exe' : 'runner');
+    const compileCmd = `g++ -std=c++17 -DRUNNING_TESTS -o "${outBin}" "${combinedFile}" 2>&1`;
 
-  const startTime = Date.now();
-
-  exec(compileCmd, { timeout: 15000, cwd: tmpDir }, (compileErr, compileOut) => {
-    if (compileErr) {
-      cleanup(tmpDir);
-      return res.json({
-        success: false,
-        submitted_part: part,
-        compilation: { success: false, errors: compileOut || compileErr.message },
-        parts: [],
-        time_ms: Date.now() - startTime,
-        runner_available: true,
-      });
-    }
-
-    exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout, stderr) => {
-      cleanup(tmpDir);
-
-      const output = stdout || '';
-      const parsedParts = parseTestOutput(output, partDefs.slice(0, part));
-
-      const allPassed = parsedParts.every(p => p.all_passed);
-      const timedOut  = runErr && runErr.killed;
-
-      // Update progress based on results
-      const freshProgress = loadProgress();
-      const freshEntry    = freshProgress.problems[id] || {};
-      ensurePartsInitialized(freshEntry, totalParts);
-
-      if (allPassed && !timedOut) {
-        freshEntry.parts[String(part)] = {
-          status:        'passed',
-          passed_at:     new Date().toISOString(),
-          carry_forward: freshEntry.parts[String(part)]?.carry_forward ?? null,
-        };
-        // Unlock next part
-        if (part < totalParts) {
-          const nextKey = String(part + 1);
-          if ((freshEntry.parts[nextKey] || {}).status === 'locked') {
-            freshEntry.parts[nextKey] = { status: 'active', passed_at: null, carry_forward: null };
-          }
-        }
-        // If last part, set completed_at
-        if (part === totalParts) {
-          freshEntry.completed_at = new Date().toISOString();
-        }
-        logActivity(freshProgress, 'passed_part');
+    exec(compileCmd, { timeout: 15000, cwd: tmpDir }, (compileErr, compileOut) => {
+      if (compileErr) {
+        cleanup(tmpDir);
+        return res.json({
+          success: false,
+          submitted_part: part,
+          lang,
+          compilation: { success: false, errors: compileOut || compileErr.message },
+          parts: [],
+          time_ms: Date.now() - startTime,
+          runner_available: true,
+        });
       }
 
-      freshProgress.problems[id] = freshEntry;
-      saveProgress(freshProgress);
-
-      res.json({
-        success:         allPassed && !timedOut,
-        submitted_part:  part,
-        compilation:     { success: true, errors: null },
-        parts:           parsedParts,
-        unlocked_next_part: allPassed && !timedOut && part < totalParts,
-        timed_out:       timedOut || false,
-        time_ms:         Date.now() - startTime,
-        runner_available: true,
+      exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout) => {
+        cleanup(tmpDir);
+        const parsedParts = parseTestOutput(stdout || '', partDefs.slice(0, part));
+        const timedOut    = runErr && runErr.killed;
+        finalizeResult(parsedParts, timedOut, { success: true, errors: null });
       });
     });
-  });
+  }
 });
 
 function cleanup(dir) {
@@ -1109,7 +1187,11 @@ app.post('/api/roadmap/check', (req, res) => {
 // ── GET /api/runner-status ────────────────────────────────────────────────────
 
 app.get('/api/runner-status', (req, res) => {
-  res.json({ available: testRunnerAvailable });
+  res.json({
+    available:     testRunnerAvailable,
+    cpp_available: testRunnerAvailable,
+    go_available:  goRunnerAvailable,
+  });
 });
 
 // ── Static frontend ───────────────────────────────────────────────────────────
