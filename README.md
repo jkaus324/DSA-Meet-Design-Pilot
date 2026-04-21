@@ -52,7 +52,7 @@ npm run dev
 From the dashboard you can:
 - Browse all problems by tier, pattern, and company
 - Pick your difficulty mode per problem (Learning / Guided / Interview)
-- Write C++ directly in the browser editor
+- Write C++ or Go directly in the browser editor
 - Run tests locally and see pass/fail output inline
 - Read Design Pattern Primers before attempting problems
 - Track your progress across sessions
@@ -111,12 +111,15 @@ Before you attempt a problem, read the primer for its pattern. These aren't Wiki
 
 Primers available: **Strategy · Observer · State · Singleton**
 
+Examples in both C++ and Go.
+
 ---
 
 ## Prerequisites
 
 - Node.js 18+
 - g++ with C++17 support (`g++ --version` to verify)
+- Go 1.21+ for Go problems (`go version` to verify)
 
 ---
 
@@ -149,7 +152,9 @@ DSA-Meet-Design-Pilot/
 │   │   │   ├── README.md              # Problem statement (parts format)
 │   │   │   ├── DESIGN.md              # Why this pattern, what breaks without it
 │   │   │   ├── boilerplate/cpp/       # interview / guided / learning × per part
-│   │   │   └── tests/cpp/             # Test suites per part
+│   │   │   ├── boilerplate/go/        # same three modes in Go
+│   │   │   ├── tests/cpp/             # GoogleTest suites per part
+│   │   │   └── tests/go/              # Go test runners per part
 │   │   └── ...
 │   └── tier2-intermediate/
 ├── patterns/                          # Design pattern primers
