@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 // ─── Data Model (given — do not modify) ─────────────────────────────────────
 
 type Notification struct{ UserID, Message, Channel string }
@@ -37,21 +35,21 @@ type EmailObserver struct{}
 
 func (e *EmailObserver) GetChannel() string { return "email" }
 func (e *EmailObserver) Update(event, priority string, user User) {
-	fmt.Printf("[EMAIL] %s: %s [%s]\n", user.Email, event, priority)
+	// TODO: Print formatted email notification using user.Email, event, priority
 }
 
 type SMSObserver struct{}
 
 func (s *SMSObserver) GetChannel() string { return "sms" }
 func (s *SMSObserver) Update(event, priority string, user User) {
-	fmt.Printf("[SMS] %s: %s [%s]\n", user.Phone, event, priority)
+	// TODO: Print formatted SMS notification using user.Phone, event, priority
 }
 
 type PushObserver struct{}
 
 func (p *PushObserver) GetChannel() string { return "push" }
 func (p *PushObserver) Update(event, priority string, user User) {
-	fmt.Printf("[PUSH] %s: %s [%s]\n", user.ID, event, priority)
+	// TODO: Print formatted push notification using user.ID, event, priority
 }
 
 // ─── PriorityFilteredObserver ─────────────────────────────────────────────────
@@ -67,9 +65,7 @@ func NewPriorityFilteredObserver(obs NotificationObserver, minP string) *Priorit
 
 func (f *PriorityFilteredObserver) GetChannel() string { return f.inner.GetChannel() }
 func (f *PriorityFilteredObserver) Update(event, priority string, user User) {
-	if priorityLevel(priority) >= priorityLevel(f.minPriority) {
-		f.inner.Update(event, priority, user)
-	}
+	// TODO: Forward to f.inner only if priorityLevel(priority) >= priorityLevel(f.minPriority)
 }
 
 // ─── Notification Manager ─────────────────────────────────────────────────────
@@ -79,20 +75,11 @@ type NotificationManager struct {
 }
 
 func (m *NotificationManager) Subscribe(obs NotificationObserver) {
-	m.observers = append(m.observers, obs)
+	// TODO: Append obs to m.observers
 }
 
 func (m *NotificationManager) NotifyAll(event, priority string, users []User) {
-	for _, user := range users {
-		for _, obs := range m.observers {
-			for _, ch := range user.SubscribedChannels {
-				if ch == obs.GetChannel() {
-					obs.Update(event, priority, user)
-					break
-				}
-			}
-		}
-	}
+	// TODO: For each user, for each observer, call Update if user.SubscribedChannels contains obs.GetChannel()
 }
 
 // ─── Test Entry Point ────────────────────────────────────────────────────────

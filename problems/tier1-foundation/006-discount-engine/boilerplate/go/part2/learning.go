@@ -22,11 +22,8 @@ type PercentageDiscount struct {
 }
 
 func (d *PercentageDiscount) Apply(cart []CartItem) float64 {
-	total := 0.0
-	for _, item := range cart {
-		total += item.Price * float64(item.Quantity)
-	}
-	return total * (1.0 - d.Percentage/100.0)
+	// TODO: Sum all item.Price * item.Quantity, then apply d.Percentage discount
+	return 0.0
 }
 
 type FlatDiscount struct {
@@ -34,14 +31,8 @@ type FlatDiscount struct {
 }
 
 func (d *FlatDiscount) Apply(cart []CartItem) float64 {
-	total := 0.0
-	for _, item := range cart {
-		total += item.Price * float64(item.Quantity)
-	}
-	if total-d.Amount < 0 {
-		return 0
-	}
-	return total - d.Amount
+	// TODO: Sum cart total, subtract d.Amount (floor at 0)
+	return 0.0
 }
 
 type BuyXGetYDiscount struct {
@@ -50,15 +41,9 @@ type BuyXGetYDiscount struct {
 }
 
 func (d *BuyXGetYDiscount) Apply(cart []CartItem) float64 {
-	total := 0.0
-	for _, item := range cart {
-		groupSize := d.BuyCount + d.FreeCount
-		groups := item.Quantity / groupSize
-		remainder := item.Quantity % groupSize
-		paidItems := groups*d.BuyCount + min(remainder, d.BuyCount)
-		total += item.Price * float64(paidItems)
-	}
-	return total
+	// TODO: For each item, compute paid quantity using BuyCount + FreeCount group logic
+	// groupSize = BuyCount + FreeCount; paidItems = groups*BuyCount + min(remainder, BuyCount)
+	return 0.0
 }
 
 func min(a, b int) int {
@@ -76,19 +61,9 @@ type StackedDiscount struct {
 }
 
 func (d *StackedDiscount) Apply(cart []CartItem) float64 {
-	current := 0.0
-	for _, item := range cart {
-		current += item.Price * float64(item.Quantity)
-	}
-
-	for _, disc := range d.Discounts {
-		// TODO: Apply each discount to the running total.
-		// HINT: Create a temporary cart with a single item representing
-		// the current subtotal, then call disc.Apply() on it.
-		temp := []CartItem{{Name: "subtotal", Price: current, Quantity: 1, Category: ""}}
-		current = disc.Apply(temp)
-	}
-	return current
+	// TODO: Compute initial total from cart, then apply each discount in d.Discounts sequentially
+	// HINT: Create a temp cart with a single item {Price: current, Quantity: 1} and call disc.Apply() on it
+	return 0.0
 }
 
 // ─── Engine ───────────────────────────────────────────────────────────────────
@@ -106,8 +81,8 @@ func (e *DiscountEngine) SetDiscount(d Discount) {
 }
 
 func (e *DiscountEngine) ComputeTotal(cart []CartItem) float64 {
-	// TODO: Use e.discount.Apply() to compute the final total
-	return e.discount.Apply(cart)
+	// TODO: Apply e.discount to cart and return result
+	return 0.0
 }
 
 // ─── Test Entry Points ────────────────────────────────────────────────────────

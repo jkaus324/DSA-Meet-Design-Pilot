@@ -1,6 +1,5 @@
 package main
 
-import "fmt"
 
 // ─── Data Model (given — do not modify) ─────────────────────────────────────
 
@@ -147,10 +146,9 @@ func NewLoggingObserver(log *[]string) *LoggingObserver {
 }
 
 func (o *LoggingObserver) OnStateChange(issueID int, oldState, newState IssueState) {
-	// TODO: Push formatted string to log
+	// TODO: Push formatted string to o.log
 	// Format: "Issue <id>: <OLD_STATE> -> <NEW_STATE>"
-	msg := fmt.Sprintf("Issue %d: %s -> %s", issueID, stateName(oldState), stateName(newState))
-	*o.log = append(*o.log, msg)
+	// Use stateName() to convert IssueState to string
 }
 
 // ─── Resolver ───────────────────────────────────────────────────────────────
