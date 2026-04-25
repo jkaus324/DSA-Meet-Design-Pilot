@@ -11,7 +11,8 @@
       "Bash(taskkill //F //PID 30360)",
       "Bash(netstat -ano)",
       "Bash(node -e \"const pkg=require\\(''./c:/Users/jkaus/OneDrive/Documents/GitHub/DSA-Meet-Design-Pilot/dashboard/node_modules/@monaco-editor/react/package.json''\\); console.log\\(''@monaco-editor/react version:'', pkg.version\\);\")",
-      "WebFetch(domain:p.superdesign.dev)"
+      "WebFetch(domain:p.superdesign.dev)",
+      "Bash(node --check dashboard/server.js)"
     ]
   }
 }

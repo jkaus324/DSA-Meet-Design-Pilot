@@ -62,26 +62,26 @@ export const api = {
     return request(`${BASE}/activity`);
   },
 
-  getStarter(id, mode, part = 1) {
-    return request(`${BASE}/problems/${id}/starter?mode=${mode}&part=${part}`);
+  getStarter(id, mode, part = 1, lang = 'cpp') {
+    return request(`${BASE}/problems/${id}/starter?mode=${mode}&part=${part}&lang=${lang}`);
   },
 
-  getCode(id, mode) {
-    return request(`${BASE}/problems/${id}/code?mode=${mode}`);
+  getCode(id, mode, lang = 'cpp') {
+    return request(`${BASE}/problems/${id}/code?mode=${mode}&lang=${lang}`);
   },
 
-  saveCode(id, mode, code) {
+  saveCode(id, mode, code, lang = 'cpp') {
     return request(`${BASE}/problems/${id}/code`, {
       method: 'POST',
-      body: JSON.stringify({ mode, code }),
+      body: JSON.stringify({ mode, code, lang }),
     });
   },
 
   // v3: submit code for test-validated part progression
-  submitPart(id, part, mode, code) {
+  submitPart(id, part, mode, code, lang = 'cpp') {
     return request(`${BASE}/problems/${id}/submit`, {
       method: 'POST',
-      body: JSON.stringify({ part, mode, code }),
+      body: JSON.stringify({ part, mode, code, lang }),
     });
   },
 
