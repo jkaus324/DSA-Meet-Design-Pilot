@@ -4,3 +4,9 @@ dashboard/dist/
 progress.json
 progress.json.bak
 .DS_Store
+
+# E2E suite — runtime artifacts
+e2e/runs/
+e2e/.tmp-progress.json
+e2e/.tmp-progress.json.bak
+e2e/.go-build-tmp/

@@ -24,7 +24,17 @@ marked.use(
 
 const REPO_ROOT      = path.join(__dirname, '..');
 const PROBLEMS_YML   = path.join(REPO_ROOT, 'docs', '_data', 'problems.yml');
-const PROGRESS_JSON  = path.join(REPO_ROOT, 'progress.json');
+// PROGRESS_JSON_PATH lets the e2e suite point at a throwaway file so test runs
+// don't clobber the user's real progress. Resolved relative to REPO_ROOT when
+// the env var is a relative path; absolute paths are honored as-is.
+const PROGRESS_JSON  = process.env.PROGRESS_JSON_PATH
+  ? (path.isAbsolute(process.env.PROGRESS_JSON_PATH)
+      ? process.env.PROGRESS_JSON_PATH
+      : path.join(REPO_ROOT, process.env.PROGRESS_JSON_PATH))
+  : path.join(REPO_ROOT, 'progress.json');
+if (process.env.PROGRESS_JSON_PATH) {
+  console.log(`📝 Using progress file: ${PROGRESS_JSON}`);
+}
 const PATTERNS_DIR   = path.join(REPO_ROOT, 'patterns');
 const DIST_DIR       = path.join(__dirname, 'dist');
 

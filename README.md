@@ -162,8 +162,27 @@ DSA-Meet-Design-Pilot/
 ├── dashboard/                         # React + Express dashboard
 │   ├── server.js
 │   └── src/
+├── e2e/                               # Plain-English Playwright stories
+├── scripts/                           # e2e-up.{ps1,sh} bootstrap helpers
 └── progress.json                      # Your local progress (gitignored)
 ```
+
+---
+
+## Running the E2E suite
+
+The `e2e/` folder contains plain-English user stories an LLM-driven browser agent (Playwright MCP) can execute against the running dashboard. Useful before tagging a release or after a UI change:
+
+```bash
+# Start the dashboard with an isolated progress file (won't touch your real progress)
+pwsh scripts/e2e-up.ps1 -Detach        # Windows
+./scripts/e2e-up.sh --detach           # macOS/Linux
+
+# Then in a Claude Code session, ask the agent:
+#   Run e2e/stories/_smoke.md against http://localhost:3000.
+```
+
+See `e2e/README.md` for the full suite, priorities, and authoring guide.
 
 ---
 
