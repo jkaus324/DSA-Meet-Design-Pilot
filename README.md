@@ -3,6 +3,10 @@
 
 ---
 
+> 🚀 **Looking for the full library?** **[CodeJunction Pro →](https://topmate.io/jatin_kaushal24/2053177)** ships **100+ machine coding + LLD problems** with progressive extensions, dual-view editorials, 9 company tracks (Amazon, Flipkart, Razorpay, PhonePe, Meesho, Swiggy, Uber, Ola, Microsoft), and a 6-week prep playbook. This pilot has **20** of them.
+
+---
+
 > *"He could solve any LeetCode hard. He had no idea what hit him when the interviewer asked him to make his solution extensible."*
 >
 > That's a real Amazon LLD round. That candidate was prepared — just not for this.
@@ -204,9 +208,26 @@ If you find a bug, open an issue. If a DESIGN.md explanation didn't click, open 
 
 ---
 
-## Preparing for an interview soon?
+## Want the full 100-problem library?
 
-The public repo gives you the problems and the framework. If you want a walkthrough of how to use it effectively for your specific target company — or a full mock interview with real-time feedback and a Hire/No Hire verdict:
+This pilot has 20 problems. The full version — **CodeJunction Pro** — ships 100+ machine coding + LLD problems pulled from real interviews at Amazon, Flipkart, Razorpay, PhonePe, Meesho, Swiggy, Uber, Ola, Microsoft, and Google.
+
+**What you also get on top of the pilot:**
+- 5x more problems, tagged by company and difficulty
+- **Dual-view editorials** for every problem — LLD perspective + machine-coding perspective + the *Junction* analysis (where one wrong design choice in minute 5 kills the algorithm in minute 25)
+- **9 company-specific tracks** with curated problem sequences in interview order
+- **6-week prep playbook** with a structured weekly cadence
+- **10 design pattern primers** (vs 4 in the pilot)
+- Solutions in **C++ and Java**
+- Cheat sheets and AI review prompts you can paste straight into Claude/ChatGPT
+
+**Get it → [CodeJunction Pro on Topmate](https://topmate.io/jatin_kaushal24/2053177)** · ₹799 one-time, GitHub access within 10 minutes of payment.
+
+---
+
+## Want a 1:1 walkthrough or full mock interview?
+
+The repo gives you the problems and the framework. If you want a tailored walkthrough for your specific target company — or a full mock interview with real-time feedback and a Hire/No Hire verdict:
 
 **Book a session → [topmate.io/jatin_kaushal24](https://topmate.io/jatin_kaushal24)**
 

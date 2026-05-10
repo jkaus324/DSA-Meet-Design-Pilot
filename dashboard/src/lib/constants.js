@@ -30,6 +30,7 @@ export const STATUS_LABELS = {
 };
 
 export const TOPMATE_URL = 'https://topmate.io/jatin_kaushal24';
+export const CODEJUNCTION_URL = 'https://topmate.io/jatin_kaushal24/2053177';
 
 // ─── Part status display config (spec §12) ───────────────────────────────────
 export const PART_STATUS = {

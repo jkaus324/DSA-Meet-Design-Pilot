@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Code, BookOpen, BarChart3, Map, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Code, BookOpen, BarChart3, Map, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { CODEJUNCTION_URL } from '../lib/constants.js';
 
 const NAV_ITEMS = [
   { label: 'Home', icon: LayoutDashboard, to: '/' },
@@ -90,8 +91,58 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* CodeJunction promo — persistent across all pages */}
+      <div className="px-2 pt-3 pb-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
+        <a
+          href={CODEJUNCTION_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={collapsed ? 'CodeJunction Pro — 100+ machine coding problems' : undefined}
+          className="block rounded-lg transition-all duration-150"
+          style={{
+            padding: collapsed ? '8px 0' : '10px 12px',
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))',
+            border: '1px solid var(--color-accent-light)',
+            textAlign: collapsed ? 'center' : 'left',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.20), rgba(139,92,246,0.20))';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
+          {collapsed ? (
+            <Sparkles
+              className="w-[18px] h-[18px] mx-auto"
+              style={{ color: 'var(--color-accent)' }}
+            />
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-[14px] h-[14px] flex-shrink-0" style={{ color: 'var(--color-accent)' }} />
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wide"
+                  style={{ color: 'var(--color-accent)' }}
+                >
+                  Get CodeJunction Pro
+                </span>
+              </div>
+              <div
+                className="text-[11px] leading-tight"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                100+ problems · editorials · 9 company tracks
+              </div>
+            </>
+          )}
+        </a>
+      </div>
+
       {/* Collapse toggle */}
-      <div className="px-2 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="px-2 py-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
         <button
           onClick={() => setCollapsed(c => !c)}
           className="flex items-center gap-3 w-full rounded-lg text-sm font-medium transition-colors duration-150"

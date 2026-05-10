@@ -12,6 +12,7 @@ import DifficultyModeSelector from '../components/DifficultyModeSelector.jsx';
 import StepperTimeline from '../components/StepperTimeline.jsx';
 import PartProgressBar from '../components/PartProgressBar.jsx';
 import CarryForwardDialog from '../components/CarryForwardDialog.jsx';
+import CodeJunctionPromo from '../components/CodeJunctionPromo.jsx';
 import { SkeletonProblemView } from '../components/SkeletonLoader.jsx';
 import { useToast } from '../components/Toast.jsx';
 
@@ -395,6 +396,8 @@ export default function ProblemView({ onProgressChange }) {
         toast.success(`Part ${currentPart} passed!`);
       } else {
         toast.error(`Tests failed for Part ${currentPart}`);
+        // Surface the CodeJunction Pro promo on the "stuck" moment.
+        try { window.dispatchEvent(new CustomEvent('cj-submit-failed')); } catch {}
       }
       if (result.success && result.unlocked_next_part) {
         await refreshParts();
@@ -525,6 +528,8 @@ export default function ProblemView({ onProgressChange }) {
 
   return (
     <>
+      <CodeJunctionPromo />
+
       {carryDialog && (
         <CarryForwardDialog
           partNum={carryDialog.partNum}
