@@ -4,106 +4,44 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
+// Data class (given).
 struct PaymentMethod {
     string name;
-    double cashbackRate;    // e.g. 0.05 = 5%
-    double transactionFee;  // in rupees
-    int    usageCount;
+    double cashbackRate;
+    double transactionFee;
+    int usageCount;
+    bool easyRefundEligible;
+    PaymentMethod(const string& name_, double cashbackRate_, double transactionFee_, int usageCount_, bool easyRefundEligible_ = false)
+      : name(name_), cashbackRate(cashbackRate_), transactionFee(transactionFee_), usageCount(usageCount_), easyRefundEligible(easyRefundEligible_) {}
 };
 
-// ─── Strategy Interface ──────────────────────────────────────────────────────
+// Forward declaration so signatures compile; design and implement your own.
+class RankingStrategy;
 
-class RankingStrategy {
-public:
-    virtual bool compare(const PaymentMethod& a, const PaymentMethod& b) = 0;
-    virtual ~RankingStrategy() = default;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-// ─── Existing Strategies ─────────────────────────────────────────────────────
-// TODO: Copy your Part 1 strategies here (or extend them)
-
-class RewardsMaximizer : public RankingStrategy {
-public:
-    bool compare(const PaymentMethod& a, const PaymentMethod& b) override {
-        return false; // TODO: implement
-    }
-};
-
-class LowFeeSeeker : public RankingStrategy {
-public:
-    bool compare(const PaymentMethod& a, const PaymentMethod& b) override {
-        return false; // TODO: implement
-    }
-};
-
-class TrustBasedRanker : public RankingStrategy {
-public:
-    bool compare(const PaymentMethod& a, const PaymentMethod& b) override {
-        return false; // TODO: implement
-    }
-};
-
-// ─── NEW: Composite Strategy ─────────────────────────────────────────────────
-// HINT: A CompositeStrategy holds a list of other strategies.
-// It tries the first strategy; if tied, falls back to the second, then third...
-// This is the Composite pattern applied to a comparator.
-
-class CompositeStrategy : public RankingStrategy {
-private:
-    vector<RankingStrategy*> criteria;
-public:
-    CompositeStrategy(vector<RankingStrategy*> c) : criteria(c) {}
-
-    bool compare(const PaymentMethod& a, const PaymentMethod& b) override {
-        // TODO: Iterate through criteria.
-        // If criteria[i] says a > b, return true.
-        // If criteria[i] says b > a, return false.
-        // If tied, move to criteria[i+1].
-        return false;
-    }
-};
-
-// ─── Ranker ──────────────────────────────────────────────────────────────────
-
-class PaymentRanker {
-private:
-    RankingStrategy* strategy;
-public:
-    PaymentRanker(RankingStrategy* s) : strategy(s) {}
-    void setStrategy(RankingStrategy* s) { strategy = s; }
-    vector<PaymentMethod> rank(vector<PaymentMethod> methods) {
-        // TODO: Sort using strategy
-        return methods;
-    }
-};
-
-// ─── Test Entry Points ───────────────────────────────────────────────────────
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
 vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod> methods) {
-    RewardsMaximizer s;
-    return PaymentRanker(&s).rank(methods);
+    // TODO: write your solution
+    return methods;
 }
 
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
 vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod> methods) {
-    LowFeeSeeker s;
-    return PaymentRanker(&s).rank(methods);
+    // TODO: write your solution
+    return methods;
 }
 
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
 vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods) {
-    TrustBasedRanker s;
-    return PaymentRanker(&s).rank(methods);
+    // TODO: write your solution
+    return methods;
 }
 
+// HINT: think about how to compose multiple criteria into a single decision.
 vector<PaymentMethod> rank_composite(vector<PaymentMethod> methods, vector<RankingStrategy*> criteria) {
-    CompositeStrategy s(criteria);
-    return PaymentRanker(&s).rank(methods);
+    // TODO: write your solution
+    return methods;
 }
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "Part 2: Composite ranking — implement the TODOs above." << endl;
-    return 0;
-}
-#endif

@@ -1,64 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <set>
-#include <unordered_map>
 #include <algorithm>
-#include <climits>
 using namespace std;
 
-// --- Data Model (given -- do not modify) ------------------------------------
 
-enum class ElevatorState {
-    IDLE,
-    MOVING_UP,
-    MOVING_DOWN,
-    DOOR_OPEN
+// Data class (given).
+struct ElevOp {
+    string kind;
+    string s1;
+    int i1;
+    int i2;
+    ElevOp(const string& kind_, const string& s1_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), i1(i1_), i2(i2_) {}
 };
 
-enum class Direction {
-    UP,
-    DOWN,
-    NONE
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small — one rule per class.
 
-struct Request {
-    int floor;
-    Direction direction;
-};
-
-// --- Elevator ---------------------------------------------------------------
-// HINT: Use two set<int> to track pending floors â€” one for upward stops,
-//       one for downward stops. A set keeps floors sorted automatically.
-// HINT: When the elevator is moving up, check if currentFloor is in
-//       upRequests. When moving down, check downRequests.
-// HINT: In DOOR_OPEN, check if there are more requests in the current
-//       direction. If not, check the other direction. If none, go IDLE.
-
-// class Elevator {
-// private:
-//     int currentFloor;
-//     ElevatorState state;
-//     Direction currentDirection;
-//     set<int> upRequests;    // floors to visit going up
-//     set<int> downRequests;  // floors to visit going down
-// public:
-//     Elevator();
-//     void addRequest(int floor, Direction direction);
-//     void step();
-//     int getCurrentFloor() const;
-//     ElevatorState getState() const;
-// };
-
-// --- Test Entry Points (must exist for tests to compile) --------------------
-// Your solution must provide these functions:
-//
-//   void addRequest(int floor, Direction direction);
-//   void step();
-//   int getCurrentFloor();
-//   ElevatorState getState();
-//
-// How you implement them internally is up to you.
-// -------------------------------------------------------------------------
-
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> elevator_simulate(vector<ElevOp> ops) {
+    // TODO: write your solution
+    return {};
+}

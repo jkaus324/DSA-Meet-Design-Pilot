@@ -49,9 +49,7 @@ struct User {
 
 ---
 
-## Part 1
-
-**Base requirement — Multi-channel notifications**
+## Base Requirement — Multi-channel notifications
 
 Implement a notification system where:
 - Users subscribe to one or more channels: `"email"`, `"sms"`, `"push"`
@@ -90,9 +88,7 @@ Each observer checks if the user has subscribed to its channel before sending.
 
 ---
 
-## Part 2
-
-**Extension 1 — Priority filtering**
+## Extension 1 — Priority filtering
 
 The product team now wants **notification priorities**. Each event has a priority level: `"promotional"`, `"info"`, or `"critical"` (in increasing importance).
 

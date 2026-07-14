@@ -1,0 +1,70 @@
+problem_id: "001-payment-ranker"
+
+# Name of the strategy/factory interface in each language.
+# Required when functions take `list<factory>` params, because the
+# C++ runner emits `std::vector<{cpp}*>` and learning-mode scaffolds
+# need a stable interface name. Optional otherwise.
+factory_interface:
+  cpp:    RankingStrategy
+  java:   RankingStrategy
+  python: RankingStrategy
+  go:     RankingStrategy
+
+types:
+  PaymentMethod:
+    fields:
+      - { name: name,               type: string }
+      - { name: cashbackRate,       type: float }
+      - { name: transactionFee,     type: float }
+      - { name: usageCount,         type: int }
+      - { name: easyRefundEligible, type: bool, default: false }
+
+factories:
+  rewards:
+    cpp:    "new RewardsMaximizer()"
+    java:   "new RewardsMaximizer()"
+    python: "RewardsMaximizer()"
+    go:     "RewardsMaximizer{}"
+  low_fee:
+    cpp:    "new LowFeeSeeker()"
+    java:   "new LowFeeSeeker()"
+    python: "LowFeeSeeker()"
+    go:     "LowFeeSeeker{}"
+  trust:
+    cpp:    "new TrustBasedRanker()"
+    java:   "new TrustBasedRanker()"
+    python: "TrustBasedRanker()"
+    go:     "TrustBasedRanker{}"
+
+functions:
+  - name: rank_by_rewards
+    params:
+      - { name: methods, type: "list<PaymentMethod>" }
+    returns: "list<PaymentMethod>"
+
+  - name: rank_by_low_fee
+    params:
+      - { name: methods, type: "list<PaymentMethod>" }
+    returns: "list<PaymentMethod>"
+
+  - name: rank_by_trust
+    params:
+      - { name: methods, type: "list<PaymentMethod>" }
+    returns: "list<PaymentMethod>"
+
+  - name: rank_composite
+    params:
+      - { name: methods,  type: "list<PaymentMethod>" }
+      - { name: criteria, type: "list<factory>" }
+    returns: "list<PaymentMethod>"
+
+  - name: rank_with_refund_filter
+    params:
+      - { name: methods,           type: "list<PaymentMethod>" }
+      - { name: preferEasyRefund,  type: bool }
+    returns: "list<PaymentMethod>"
+
+parts:
+  1: { name: "Single-criterion strategies", functions: [rank_by_rewards, rank_by_low_fee, rank_by_trust] }
+  2: { name: "Composite ranking",            functions: [rank_composite] }
+  3: { name: "Easy-refund filter",           functions: [rank_with_refund_filter] }

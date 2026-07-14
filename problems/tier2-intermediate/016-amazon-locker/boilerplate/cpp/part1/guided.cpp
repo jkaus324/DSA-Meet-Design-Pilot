@@ -1,57 +1,26 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <map>
-#include <queue>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class LockerSize { SMALL, MEDIUM, LARGE };
-
-struct Package {
-    string packageId;
-    LockerSize size;
+// Data class (given).
+struct LockerOp {
+    string kind;
+    string s1;
+    string s2;
+    int i1;
+    int i2;
+    LockerOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), i1(i1_), i2(i2_) {}
 };
 
-struct Locker {
-    string lockerId;
-    LockerSize size;
-    bool occupied;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-// ─── Allocation Interface ────────────────────────────────────────────────────
-// HINT: The allocation policy is separate from the locker system itself.
-// One policy tries the smallest fitting locker first, but others are possible.
-
-class AllocationPolicy {
-public:
-    virtual string allocate(LockerSize packageSize) = 0;
-    virtual ~AllocationPolicy() = default;
-};
-
-// TODO: Implement a concrete allocation policy that:
-//   - Tries the exact size first, then larger sizes in order
-//   - Returns the locker ID if found, "" if none available
-// HINT: Use a queue per locker size for O(1) allocation.
-
-// ─── Locker System ──────────────────────────────────────────────────────────
-// HINT: The system needs to track:
-//   - All lockers by ID (for state changes)
-//   - Available lockers per size (for fast allocation)
-//   - Active deposits by pickup code (for retrieval)
-
-// TODO: Implement the locker system with these entry points:
-//   void addLocker(const string& lockerId, LockerSize size);
-//   string depositPackage(const string& packageId, LockerSize size);
-//   bool retrievePackage(const string& code);
-
-// HINT: Pickup codes must be unique. Consider using a counter or combining
-// package ID with a timestamp.
-
-// ─── Test Entry Points ───────────────────────────────────────────────────────
-//   void addLocker(const string& lockerId, LockerSize size);
-//   string depositPackage(const string& packageId, LockerSize size);
-//   bool retrievePackage(const string& code);
-// ─────────────────────────────────────────────────────────────────────────────
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> locker_simulate(vector<LockerOp> ops) {
+    // TODO: write your solution
+    return {};
+}

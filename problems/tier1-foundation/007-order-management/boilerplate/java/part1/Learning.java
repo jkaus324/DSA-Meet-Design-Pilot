@@ -1,0 +1,31 @@
+import java.util.*;
+
+// Data class (given — do not modify).
+
+public class Solution {
+    public static void reset_service() {
+        // TODO: implement this
+        // nothing to return
+    }
+
+    public static void set_inventory(String productId, int qty) {
+        // TODO: implement this
+        // nothing to return
+    }
+
+    public static int get_inventory(String productId) {
+        // TODO: implement this
+        return 0;
+    }
+
+    public static String create_order_simple(String productId, int quantity, double totalAmount) {
+        // TODO: implement this
+        return null;
+    }
+
+    public static String get_order_state_str(String orderId) {
+        // TODO: implement this
+        return null;
+    }
+
+}

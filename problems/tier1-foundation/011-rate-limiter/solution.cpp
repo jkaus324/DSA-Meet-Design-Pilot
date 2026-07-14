@@ -156,6 +156,7 @@ bool allow_request_with_strategy(const string& algorithm, const Request& req) {
     if (g_strategyLimiters.find(algorithm) == g_strategyLimiters.end()) {
         g_strategyLimiters[algorithm] = create_limiter(algorithm, 100, 60);
     }
+    if (g_strategyLimiters[algorithm] == nullptr) return false;
     return g_strategyLimiters[algorithm]->allowRequest(req);
 }
 
@@ -197,6 +198,44 @@ bool allow_request_for_tier(UserTier tier, const Request& req) {
         g_tierLimiters[key] = TierBasedFactory::create(tier);
     }
     return g_tierLimiters[key]->allowRequest(req);
+}
+
+// ─── Spec-test wrappers ────────────────────────────────────────────────────
+
+void reset_service() {
+    delete g_limiter;
+    g_limiter = nullptr;
+    for (auto& [k, v] : g_strategyLimiters) delete v;
+    g_strategyLimiters.clear();
+    for (auto& [k, v] : g_tierLimiters) delete v;
+    g_tierLimiters.clear();
+}
+
+bool allow_request_simple(const string& clientId, long timestamp, const string& endpoint) {
+    Request r{clientId, timestamp, endpoint};
+    return allow_request(r);
+}
+
+bool allow_request_with_strategy_simple(const string& algo,
+                                        const string& clientId,
+                                        long timestamp,
+                                        const string& endpoint) {
+    Request r{clientId, timestamp, endpoint};
+    return allow_request_with_strategy(algo, r);
+}
+
+static UserTier tierFromString(const string& t) {
+    if (t == "FREE") return UserTier::FREE;
+    if (t == "PRO") return UserTier::PRO;
+    return UserTier::ENTERPRISE;
+}
+
+bool allow_request_for_tier_str(const string& tier,
+                                const string& clientId,
+                                long timestamp,
+                                const string& endpoint) {
+    Request r{clientId, timestamp, endpoint};
+    return allow_request_for_tier(tierFromString(tier), r);
 }
 
 // ─── Main ──────────────────────────────────────────────────────────────────

@@ -1,64 +1,71 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered, Cancelled };
+// Data class (given).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── OrderManager ───────────────────────────────────────────────────────────
-// HINT: You now need TWO HashMaps:
-//   - orders: unordered_map<string, Order>      — order lookup by ID
-//   - inventory: unordered_map<string, int>      — stock count by product ID
-//
-// On createOrder: decrement inventory for each item
-// On cancelOrder: restore inventory for each item (only if state is Created or Confirmed)
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void set_inventory(string productId, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// class OrderManager {
-//     unordered_map<string, Order> orders;
-//     unordered_map<string, int> inventory;
-//     int nextId = 1;
-// public:
-//     void setInventory(const string& productId, int qty);
-//     int getInventory(const string& productId);
-//     string createOrder(vector<OrderItem> items, double totalAmount);
-//     bool confirmOrder(const string& orderId);
-//     bool shipOrder(const string& orderId);
-//     bool deliverOrder(const string& orderId);
-//     bool cancelOrder(const string& orderId);    // NEW
-//     OrderState getOrderState(const string& orderId);
-// };
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int get_inventory(string productId) {
+    // TODO: write your solution
+    return {};
+}
 
-// HINT: cancelOrder should:
-//   1. Check the order exists
-//   2. Check state is Created or Confirmed
-//   3. Iterate through order items and restore inventory
-//   4. Set state to Cancelled
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: write your solution
+    return {};
+}
 
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-//
-//   string create_order(vector<OrderItem> items, double totalAmount);
-//   bool confirm_order(const string& orderId);
-//   bool ship_order(const string& orderId);
-//   bool deliver_order(const string& orderId);
-//   bool cancel_order(const string& orderId);
-//   OrderState get_order_state(const string& orderId);
-//   void set_inventory(const string& productId, int quantity);
-//   int get_inventory(const string& productId);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string get_order_state_str(string orderId) {
+    // TODO: write your solution
+    return {};
+}
 
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool confirm_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool ship_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool deliver_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool cancel_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int get_history_size(string orderId) {
+    // TODO: write your solution
+    return {};
+}

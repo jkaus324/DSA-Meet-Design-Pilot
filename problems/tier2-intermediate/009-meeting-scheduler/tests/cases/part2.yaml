@@ -1,0 +1,70 @@
+- name: first_available
+  comment: "FirstAvailable picks first room (by id) that fits"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small",  i1: 4,  i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Medium", i1: 10, i2: 0 }
+      - { kind: "add_room", s1: "R3", s2: "Large",  i1: 20, i2: 1 }
+      - { kind: "set_strategy", s1: "first_available" }
+      - { kind: "book_strategy", s1: "M1", s2: "Standup", i1: 540, i2: 570, i3: 3 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "R1"]
+
+- name: first_available_skip_occupied
+  comment: "first room occupied, falls through to next"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small",  i1: 4,  i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Medium", i1: 10, i2: 0 }
+      - { kind: "set_strategy", s1: "first_available" }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "book_strategy", s1: "M2", s2: "Plan", i1: 540, i2: 570, i3: 3 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "R2"]
+
+- name: best_fit
+  comment: "BestFit picks smallest room that meets capacity"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Tiny",  i1: 2,  i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Small", i1: 6,  i2: 0 }
+      - { kind: "add_room", s1: "R3", s2: "Large", i1: 20, i2: 1 }
+      - { kind: "set_strategy", s1: "best_fit" }
+      - { kind: "book_strategy", s1: "M1", s2: "Meeting", i1: 540, i2: 570, i3: 5 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "R2"]
+
+- name: best_fit_no_room
+  comment: "no room fits => empty result"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Tiny",  i1: 2, i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "set_strategy", s1: "best_fit" }
+      - { kind: "book_strategy", s1: "M1", s2: "Big", i1: 540, i2: 570, i3: 10 }
+  expect: ["ok", "ok", "ok", "ok", ""]
+
+- name: priority_prefers_av
+  comment: "PriorityBased picks smallest AV room over non-AV"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small",     i1: 6,  i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Medium AV", i1: 10, i2: 1 }
+      - { kind: "add_room", s1: "R3", s2: "Large AV",  i1: 20, i2: 1 }
+      - { kind: "set_strategy", s1: "priority" }
+      - { kind: "book_strategy", s1: "M1", s2: "Pres", i1: 540, i2: 570, i3: 5 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "R2"]
+
+- name: priority_fallback_non_av
+  comment: "AV room occupied, falls back to non-AV"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small",     i1: 6,  i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Medium AV", i1: 10, i2: 1 }
+      - { kind: "set_strategy", s1: "priority" }
+      - { kind: "book", s1: "M0", s2: "R2", i1: 540, i2: 570 }
+      - { kind: "book_strategy", s1: "M1", s2: "Meet", i1: 540, i2: 570, i3: 5 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "R1"]

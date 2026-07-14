@@ -1,78 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Models (given — do not modify) ────────────────────────────────────
 
-enum class UserType { BUYER, SELLER };
-enum class AuctionStatus { OPEN, CLOSED, NO_SALE };
-
-struct User {
-    int userId;
-    string name;
-    UserType type;
+// Data class (given).
+struct AuctionOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    AuctionOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Bid {
-    int bidderId;
-    double amount;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Auction {
-    int auctionId;
-    int sellerId;
-    string item;
-    double basePrice;
-    AuctionStatus status;
-    vector<Bid> bids;
-};
-
-// ─── Auction System with Closing ────────────────────────────────────────────
-// HINT: This extends Part 1. Include all Part 1 functionality.
-// HINT: State transitions: OPEN -> CLOSED (has bids), OPEN -> NO_SALE (no bids)
-// HINT: CLOSED and NO_SALE are terminal states — no further transitions.
-
-class AuctionSystem {
-    // HINT: Same data structures as Part 1
-
-public:
-    AuctionSystem() {
-        // TODO: Initialize (same as Part 1)
-    }
-
-    int registerUser(string name, string type) {
-        // TODO: Same as Part 1
-        return -1;
-    }
-
-    int createAuction(int sellerId, string item, double basePrice) {
-        // TODO: Same as Part 1
-        return -1;
-    }
-
-    bool placeBid(int auctionId, int buyerId, double amount) {
-        // TODO: Same as Part 1
-        // HINT: Already checks auction is OPEN, so closed auctions are handled
-        return false;
-    }
-
-    double getWinningBid(int auctionId) {
-        // TODO: Same as Part 1
-        return -1;
-    }
-
-    bool closeAuction(int auctionId) {
-        // TODO: Validate auction exists
-        // HINT: Only OPEN auctions can be closed
-        // HINT: If bids exist -> CLOSED; if no bids -> NO_SALE
-        return false;
-    }
-
-    string getAuctionStatus(int auctionId) {
-        // TODO: Return the status as a string
-        // HINT: Map enum to string: OPEN, CLOSED, NO_SALE
-        return "UNKNOWN";
-    }
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> auction_simulate(vector<AuctionOp> ops) {
+    // TODO: write your solution
+    return {};
+}

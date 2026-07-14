@@ -1,44 +1,66 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type FileNode struct {
-	Name        string
-	Size        int
-	Extension   string
-	IsDirectory bool
-	Children    []*FileNode
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func fs_build_default_tree()
+//   func fs_build_empty_tree()
+//   func fs_build_single_file_tree()
+//   func fs_count_by_extension(ext string) int
+//   func fs_has_by_extension(ext string, name string) bool
+//   func fs_count_by_size(minSize int) int
+//   func fs_has_by_size(minSize int, name string) bool
+//   func fs_count_by_name(sub string) int
+//   func fs_has_by_name(sub string, name string) bool
+
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-// ─── Your Design Starts Here ──────────────────────────────────────────────────
-//
-// Design and implement a FileSearchEngine that:
-//   1. Traverses a file tree using DFS
-//   2. Returns files matching a given search criterion
-//   3. Allows new search criteria to be added WITHOUT modifying
-//      the engine itself
-//
-// Think about:
-//   - What abstraction lets you swap search logic at runtime?
-//   - How would you add a 4th search criterion with zero changes
-//     to existing code?
-//   - How do you traverse a tree structure recursively?
-//
-// Entry points (must exist for tests):
-//   func SearchByExtension(root *FileNode, ext string) []*FileNode
-//   func SearchBySize(root *FileNode, minSize int) []*FileNode
-//   func SearchByName(root *FileNode, substring string) []*FileNode
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-func SearchByExtension(root *FileNode, ext string) []*FileNode {
-	return nil
+func fs_build_default_tree() {
+	// TODO: write your solution
+	return
 }
 
-func SearchBySize(root *FileNode, minSize int) []*FileNode {
-	return nil
+func fs_build_empty_tree() {
+	// TODO: write your solution
+	return
 }
 
-func SearchByName(root *FileNode, substring string) []*FileNode {
-	return nil
+func fs_build_single_file_tree() {
+	// TODO: write your solution
+	return
+}
+
+func fs_count_by_extension(ext string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_has_by_extension(ext string, name string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func fs_count_by_size(minSize int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_has_by_size(minSize int, name string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func fs_count_by_name(sub string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_has_by_name(sub string, name string) bool {
+	// TODO: write your solution
+	return false
 }

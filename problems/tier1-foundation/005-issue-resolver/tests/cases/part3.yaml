@@ -1,0 +1,58 @@
+- name: reset_p3
+  call: reset_service
+  args: []
+
+- name: add_a_p3
+  call: ir_add_agent
+  args: [0, "Alice", "BILLING"]
+
+- name: assign_first
+  call: ir_assign_issue_round_robin
+  args: ["Test", "BILLING", "HIGH"]
+
+- name: state_open_initially
+  call: ir_get_issue_state
+  args: [1]
+  expect_equals: "OPEN"
+
+- name: transition_to_in_progress
+  call: ir_transition
+  args: [1, "IN_PROGRESS"]
+  expect_equals: true
+
+- name: state_in_progress
+  call: ir_get_issue_state
+  args: [1]
+  expect_equals: "IN_PROGRESS"
+
+- name: transition_to_resolved
+  call: ir_transition
+  args: [1, "RESOLVED"]
+  expect_equals: true
+
+- name: state_resolved
+  call: ir_get_issue_state
+  args: [1]
+  expect_equals: "RESOLVED"
+
+- name: transition_to_closed
+  call: ir_transition
+  args: [1, "CLOSED"]
+  expect_equals: true
+
+- name: invalid_transition_open_to_closed
+  comment: "Cannot skip states — open → closed invalid"
+  call: ir_transition
+  args: [1, "CLOSED"]
+  expect_equals: false
+
+- name: log_size_3
+  comment: "3 valid transitions logged"
+  call: ir_log_size
+  args: []
+  expect_equals: 3
+
+- name: log_first
+  call: ir_log_entry
+  args: [0]
+  expect_equals: "Issue 1: OPEN -> IN_PROGRESS"

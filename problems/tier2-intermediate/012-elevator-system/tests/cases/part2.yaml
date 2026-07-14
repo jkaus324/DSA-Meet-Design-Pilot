@@ -1,0 +1,78 @@
+- name: add_elevators
+  call: elevator_simulate
+  args:
+    - - { kind: "new_sys" }
+      - { kind: "add_elev", i1: 1 }
+      - { kind: "add_elev", i1: 2 }
+      - { kind: "count" }
+      - { kind: "elev_null", i1: 0 }
+      - { kind: "elev_null", i1: 1 }
+  expect: ["ok", "ok", "ok", "2", "no", "no"]
+
+- name: default_dispatch
+  call: elevator_simulate
+  args:
+    - - { kind: "new_sys" }
+      - { kind: "add_elev", i1: 1 }
+      - { kind: "add_elev", i1: 2 }
+      - { kind: "sys_req", i1: 5, s1: "up" }
+      - { kind: "elev_state", i1: 0 }
+      - { kind: "elev_state", i1: 1 }
+  expect: ["ok", "ok", "ok", "ok", "MOVING_UP", "IDLE"]
+
+- name: nearest_first_dispatch
+  call: elevator_simulate
+  args:
+    - - { kind: "new_sys" }
+      - { kind: "add_elev", i1: 1 }
+      - { kind: "add_elev", i1: 2 }
+      - { kind: "set_strategy", s1: "nearest" }
+      - { kind: "elev_req", i1: 0, i2: 5, s1: "up" }
+      - { kind: "elev_step", i1: 0 }
+      - { kind: "elev_step", i1: 0 }
+      - { kind: "elev_step", i1: 0 }
+      - { kind: "elev_step", i1: 0 }
+      - { kind: "elev_step", i1: 0 }
+      - { kind: "elev_step", i1: 0 }
+      - { kind: "sys_req", i1: 2, s1: "up" }
+      - { kind: "elev_state", i1: 1 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "MOVING_UP"]
+
+- name: least_loaded_dispatch
+  call: elevator_simulate
+  args:
+    - - { kind: "new_sys" }
+      - { kind: "add_elev", i1: 1 }
+      - { kind: "add_elev", i1: 2 }
+      - { kind: "set_strategy", s1: "least_loaded" }
+      - { kind: "elev_req", i1: 0, i2: 3, s1: "up" }
+      - { kind: "elev_req", i1: 0, i2: 5, s1: "up" }
+      - { kind: "elev_req", i1: 0, i2: 7, s1: "up" }
+      - { kind: "sys_req", i1: 4, s1: "up" }
+      - { kind: "elev_pending", i1: 1 }
+  # The first request to elev 0 (3 up) entered MOVING_UP and went to upRequests (set with 3),
+  # then 5 and 7 were added => 3 in upRequests. After sys_req, elev1 should have at least 1 pending.
+  # We assert elev_pending(1) > 0 by checking the string is "1".
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "1"]
+
+- name: step_all_elevators
+  call: elevator_simulate
+  args:
+    - - { kind: "new_sys" }
+      - { kind: "add_elev", i1: 1 }
+      - { kind: "add_elev", i1: 2 }
+      - { kind: "elev_req", i1: 0, i2: 3, s1: "up" }
+      - { kind: "elev_req", i1: 1, i2: 2, s1: "up" }
+      - { kind: "sys_step" }
+      - { kind: "elev_floor", i1: 0 }
+      - { kind: "elev_floor", i1: 1 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "1", "1"]
+
+- name: invalid_elevator_index
+  call: elevator_simulate
+  args:
+    - - { kind: "new_sys" }
+      - { kind: "add_elev", i1: 1 }
+      - { kind: "elev_null", i1: -1 }
+      - { kind: "elev_null", i1: 5 }
+  expect: ["ok", "ok", "yes", "yes"]

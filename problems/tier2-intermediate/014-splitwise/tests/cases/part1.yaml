@@ -1,0 +1,82 @@
+- name: simple_equal_split
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice", s2: "Alice" }
+      - { kind: "add_user", s1: "bob",   s2: "Bob" }
+      - { kind: "add_user", s1: "charlie", s2: "Charlie" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "alice,bob,charlie", i1: 300 }
+      - { kind: "balance", s1: "bob",     s2: "alice" }
+      - { kind: "balance", s1: "charlie", s2: "alice" }
+      - { kind: "balance", s1: "alice",   s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "100.00", "100.00", "0.00"]
+
+- name: accumulated_balances
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice", s2: "Alice" }
+      - { kind: "add_user", s1: "bob",   s2: "Bob" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "alice,bob", i1: 200 }
+      - { kind: "add_expense", s1: "E2", s2: "alice", s3: "alice,bob", i1: 100 }
+      - { kind: "balance", s1: "bob", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "150.00"]
+
+- name: mutual_debt_netting
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice", s2: "Alice" }
+      - { kind: "add_user", s1: "bob",   s2: "Bob" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "alice,bob", i1: 200 }
+      - { kind: "add_expense", s1: "E2", s2: "bob",   s3: "alice,bob", i1: 60 }
+      - { kind: "balance", s1: "bob",   s2: "alice" }
+      - { kind: "balance", s1: "alice", s2: "bob" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "70.00", "0.00"]
+
+- name: payer_not_in_participants
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice", s2: "Alice" }
+      - { kind: "add_user", s1: "bob",   s2: "Bob" }
+      - { kind: "add_user", s1: "charlie", s2: "Charlie" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "bob,charlie", i1: 200 }
+      - { kind: "balance", s1: "bob",     s2: "alice" }
+      - { kind: "balance", s1: "charlie", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "100.00", "100.00"]
+
+- name: self_expense_no_debt
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice", s2: "Alice" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "alice", i1: 100 }
+      - { kind: "balance", s1: "alice", s2: "alice" }
+  expect: ["ok", "ok", "ok", "0.00"]
+
+- name: multi_user_multi_expense
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "A" }
+      - { kind: "add_user", s1: "B" }
+      - { kind: "add_user", s1: "C" }
+      - { kind: "add_user", s1: "D" }
+      - { kind: "add_expense", s1: "E1", s2: "A", s3: "A,B,C,D", i1: 400 }
+      - { kind: "add_expense", s1: "E2", s2: "B", s3: "A,B,C,D", i1: 200 }
+      - { kind: "balance", s1: "B", s2: "A" }
+      - { kind: "balance", s1: "C", s2: "A" }
+      - { kind: "balance", s1: "C", s2: "B" }
+      - { kind: "balance", s1: "D", s2: "A" }
+      - { kind: "balance", s1: "D", s2: "B" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "50.00", "100.00", "50.00", "100.00", "50.00"]
+
+- name: empty_balances
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice", s2: "Alice" }
+      - { kind: "add_user", s1: "bob",   s2: "Bob" }
+      - { kind: "balance", s1: "bob", s2: "alice" }
+  expect: ["ok", "ok", "ok", "0.00"]

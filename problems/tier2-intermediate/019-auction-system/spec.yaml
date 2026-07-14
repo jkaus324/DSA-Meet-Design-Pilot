@@ -1,0 +1,23 @@
+problem_id: "019-auction-system"
+
+types:
+  AuctionOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: s3,   type: string, default: "" }
+      - { name: i1,   type: int, default: 0 }
+      - { name: i2,   type: int, default: 0 }
+      - { name: i3,   type: int, default: 0 }
+
+functions:
+  - name: auction_simulate
+    params:
+      - { name: ops, type: "list<AuctionOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Core auction system",         functions: [auction_simulate] }
+  2: { name: "Closing + state management",   functions: [auction_simulate] }
+  3: { name: "Multiple auction strategies",  functions: [auction_simulate] }

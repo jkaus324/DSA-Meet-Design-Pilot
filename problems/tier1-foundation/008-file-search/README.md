@@ -46,9 +46,7 @@ struct FileNode {
 
 ---
 
-## Part 1
-
-**Base requirement — Search by a single criterion**
+## Base Requirement — Search by a single criterion
 
 Implement a `FileSearchEngine` that accepts any search criterion and uses DFS to traverse the file tree, returning all files that match.
 
@@ -90,9 +88,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Combine criteria with AND/OR**
+## Extension 1 — Combine criteria with AND/OR
 
 The product team now wants **composite filters**: find files that are `.cpp` AND larger than 100KB, or files that are `.pdf` OR named "report".
 
@@ -113,9 +109,7 @@ The function accepts a list of criteria and a mode. In "AND" mode, a file must m
 
 ---
 
-## Part 3
-
-**Extension 2 — Sort results independently**
+## Extension 2 — Sort results independently
 
 The product team wants search results to be **sorted** by different strategies: alphabetically by name, by file size (largest first), or by extension.
 

@@ -1,0 +1,22 @@
+problem_id: "014-splitwise"
+
+types:
+  SplitOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: s3,   type: string, default: "" }
+      - { name: s4,   type: string, default: "" }
+      - { name: i1,   type: int,    default: 0 }
+
+functions:
+  - name: splitwise_simulate
+    params:
+      - { name: ops, type: "list<SplitOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Equal split + balance tracking",   functions: [splitwise_simulate] }
+  2: { name: "Multiple split strategies",         functions: [splitwise_simulate] }
+  3: { name: "Debt simplification (greedy)",      functions: [splitwise_simulate] }

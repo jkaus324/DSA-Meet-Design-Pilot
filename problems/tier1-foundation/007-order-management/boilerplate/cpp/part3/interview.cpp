@@ -1,54 +1,89 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <chrono>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered, Cancelled };
+// Data class (given).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void set_inventory(string productId, int qty);
+//   int get_inventory(string productId);
+//   string create_order_simple(string productId, int quantity, double totalAmount);
+//   string get_order_state_str(string orderId);
+//   bool confirm_order(string orderId);
+//   bool ship_order(string orderId);
+//   bool deliver_order(string orderId);
+//   bool cancel_order(string orderId);
+//   int get_history_size(string orderId);
+//   void om_attach_observer();
+//   int om_observer_count();
+//   string om_observer_last_to();
 
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-struct StateTransition {
-    OrderState fromState;
-    OrderState toState;
-    long long timestamp;
-};
+void set_inventory(string productId, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
 
-class OrderObserver {
-public:
-    virtual void onStateChange(const string& orderId,
-                               OrderState from, OrderState to) = 0;
-    virtual ~OrderObserver() = default;
-};
+int get_inventory(string productId) {
+    // TODO: write your solution
+    return {};
+}
 
-// ─── NEW in Extension 2 ────────────────────────────────────────────────────
-//
-// Track the full transition history for every order.
-// Notify registered observers on every successful state change.
-//
-// Think about:
-//   - Where do you store per-order history? (HashMap of vectors)
-//   - How do you decouple notification logic from the state machine?
-//   - What if you want logging, analytics, AND alerts — all independently?
-//
-// Entry points (must exist for tests):
-//   All Part 1 and Part 2 entry points, plus:
-//   vector<StateTransition> get_order_history(const string& orderId);
-//   void add_observer(OrderObserver* obs);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: write your solution
+    return {};
+}
 
+string get_order_state_str(string orderId) {
+    // TODO: write your solution
+    return {};
+}
 
+bool confirm_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool ship_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool deliver_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool cancel_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+int get_history_size(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+void om_attach_observer() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+int om_observer_count() {
+    // TODO: write your solution
+    return {};
+}
+
+string om_observer_last_to() {
+    // TODO: write your solution
+    return {};
+}

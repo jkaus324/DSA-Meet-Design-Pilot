@@ -1,0 +1,128 @@
+- name: initial_state
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "floor" }
+      - { kind: "state" }
+  expect: ["ok", "0", "IDLE"]
+
+- name: add_upward_request
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 3, s1: "up" }
+      - { kind: "state" }
+  expect: ["ok", "ok", "MOVING_UP"]
+
+- name: step_moves_one_floor
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 3, s1: "up" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "step" }
+      - { kind: "floor" }
+  expect: ["ok", "ok", "ok", "1", "ok", "2"]
+
+- name: door_opens_at_target
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 2, s1: "up" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+  expect: ["ok", "ok", "ok", "ok", "2", "DOOR_OPEN"]
+
+- name: idle_after_last_request
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 1, s1: "up" }
+      - { kind: "step" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "state" }
+      - { kind: "floor" }
+  expect: ["ok", "ok", "ok", "DOOR_OPEN", "ok", "IDLE", "1"]
+
+- name: scan_upward_order
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 5, s1: "up" }
+      - { kind: "req", i1: 2, s1: "up" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "2", "DOOR_OPEN", "ok", "MOVING_UP", "ok", "ok", "ok", "5", "DOOR_OPEN"]
+
+- name: scan_reversal
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 3, s1: "up" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "state" }
+      - { kind: "req", i1: 1, s1: "down" }
+      - { kind: "step" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "DOOR_OPEN", "ok", "ok", "MOVING_DOWN", "ok", "ok", "1", "DOOR_OPEN"]
+
+- name: request_at_current_floor
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 0, s1: "up" }
+      - { kind: "state" }
+      - { kind: "floor" }
+  expect: ["ok", "ok", "DOOR_OPEN", "0"]
+
+- name: idle_step_noop
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "floor" }
+  expect: ["ok", "ok", "0", "IDLE", "ok", "0"]
+
+- name: multiple_stops_in_order
+  call: elevator_simulate
+  args:
+    - - { kind: "new_elev" }
+      - { kind: "req", i1: 5, s1: "up" }
+      - { kind: "req", i1: 3, s1: "up" }
+      - { kind: "req", i1: 1, s1: "up" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "step" }
+      - { kind: "floor" }
+      - { kind: "state" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "DOOR_OPEN", "ok", "ok", "ok", "3", "DOOR_OPEN", "ok", "ok", "ok", "5", "DOOR_OPEN"]

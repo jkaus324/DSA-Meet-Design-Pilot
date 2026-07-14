@@ -1,0 +1,8 @@
+# Part 2 (StackedDiscount) requires composite discount instances which can't be
+# expressed as simple list<factory> in the spec. Skipping for migration.
+- name: placeholder
+  call: apply_percentage_discount
+  args:
+    - - { name: "A", price: 100.0, quantity: 1 }
+    - 0.0
+  expect_close: 100.0

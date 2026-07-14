@@ -4,45 +4,38 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class Priority { LOW, MEDIUM, HIGH, CRITICAL };
-enum class IssueState { OPEN, IN_PROGRESS, RESOLVED, CLOSED };
-enum class Category { BILLING, TECHNICAL, GENERAL, ACCOUNT };
+// Data class (given).
 
-struct Issue {
-    int id;
-    string description;
-    Category category;
-    Priority priority;
-    IssueState state;
-    int assignedAgentId;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void ir_add_agent(int id, string name, string specialization);
+//   int ir_assign_issue_round_robin(string description, string category, string priority);
+//   int ir_agent_issue_count(int agentId);
+//   int ir_agent_load(int agentId);
 
-struct Agent {
-    int id;
-    string name;
-    int currentLoad;
-    vector<Category> specializations;
-};
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── Your Design Starts Here ────────────────────────────────────────────────
-//
-// Design and implement an IssueResolver that:
-//   1. Assigns issues to agents using round-robin rotation
-//   2. Allows new assignment strategies to be added WITHOUT modifying
-//      the resolver itself
-//
-// Think about:
-//   - What abstraction lets you swap assignment logic at runtime?
-//   - How would you add a 4th assignment policy with zero changes
-//     to existing code?
-//   - What happens when Extension 1 (multiple strategies) is added?
-//
-// Entry points (must exist for tests):
-//   Issue assign_issue(vector<Agent>& agents, vector<Issue>& issues, Issue issue);
-//   vector<Issue> get_agent_issues(const vector<Issue>& issues, int agentId);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void ir_add_agent(int id, string name, string specialization) {
+    // TODO: write your solution
+    // nothing to return
+}
 
+int ir_assign_issue_round_robin(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
+}
 
+int ir_agent_issue_count(int agentId) {
+    // TODO: write your solution
+    return {};
+}
+
+int ir_agent_load(int agentId) {
+    // TODO: write your solution
+    return {};
+}

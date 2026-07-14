@@ -4,52 +4,35 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
+// Data class (given).
 struct PaymentMethod {
     string name;
-    double cashbackRate;    // e.g. 0.05 = 5%
-    double transactionFee;  // in rupees
-    int    usageCount;
+    double cashbackRate;
+    double transactionFee;
+    int usageCount;
+    bool easyRefundEligible;
+    PaymentMethod(const string& name_, double cashbackRate_, double transactionFee_, int usageCount_, bool easyRefundEligible_ = false)
+      : name(name_), cashbackRate(cashbackRate_), transactionFee(transactionFee_), usageCount(usageCount_), easyRefundEligible(easyRefundEligible_) {}
 };
 
-// ─── Strategy Interface ──────────────────────────────────────────────────────
-// HINT: This interface lets you swap ranking logic at runtime.
-// What method signature would let you compare two PaymentMethods?
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-class /* YourInterfaceName */ {
-public:
-    virtual bool /* yourMethodName */(const PaymentMethod& a, const PaymentMethod& b) = 0;
-    virtual ~/* YourInterfaceName */() = default;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod> methods) {
+    // TODO: write your solution
+    return methods;
+}
 
-// ─── Concrete Strategies ─────────────────────────────────────────────────────
-// TODO: Implement a strategy for each ranking criterion:
-//   - Rewards maximizer (highest cashback first)
-//   - Low-fee seeker (lowest transaction fee first)
-//   - Trust-based ranker (highest usage count first)
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod> methods) {
+    // TODO: write your solution
+    return methods;
+}
 
-
-// ─── Ranker ──────────────────────────────────────────────────────────────────
-// TODO: Implement a PaymentRanker class that:
-//   - Accepts any strategy (via constructor or setter)
-//   - Has a rank() method that returns sorted payment methods
-//   - Does NOT know about specific ranking criteria
-
-// class PaymentRanker {
-// public:
-//     PaymentRanker(/* what goes here? */);
-//     vector<PaymentMethod> rank(vector<PaymentMethod> methods);
-// };
-
-
-// ─── Test Entry Points (must exist for tests to compile) ─────────────────────
-// Your solution must provide these functions:
-//
-//   vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod> methods);
-//   vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod> methods);
-//   vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods);
-//
-// How you implement them internally is up to you.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods) {
+    // TODO: write your solution
+    return methods;
+}

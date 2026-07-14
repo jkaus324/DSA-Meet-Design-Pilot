@@ -1,83 +1,35 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// Data class (given).
 
-type Priority int
+// HINT: introduce an abstraction so new rules don't change existing code.
 
-const (
-	PriorityLow      Priority = iota
-	PriorityMedium
-	PriorityHigh
-	PriorityCritical
-)
-
-type IssueState int
-
-const (
-	IssueStateOpen       IssueState = iota
-	IssueStateInProgress
-	IssueStateResolved
-	IssueStateClosed
-)
-
-type Category int
-
-const (
-	CategoryBilling   Category = iota
-	CategoryTechnical
-	CategoryGeneral
-	CategoryAccount
-)
-
-type Issue struct {
-	ID              int
-	Description     string
-	Cat             Category
-	Prio            Priority
-	State           IssueState
-	AssignedAgentID int
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Agent struct {
-	ID              int
-	Name            string
-	CurrentLoad     int
-	Specializations []Category
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func ir_add_agent(id int, name string, specialization string) {
+	// TODO: write your solution
+	return
 }
 
-// ─── Assignment Interface ───────────────────────────────────────────────────
-// HINT: This interface lets you swap assignment logic at runtime.
-// What method signature would let you select an agent for an issue?
-
-type AssignmentStrategy interface {
-	// HINT: returns the ID of the selected agent
-	SelectAgent(agents []Agent, issue Issue) int
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func ir_assign_issue_round_robin(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
 }
 
-// ─── Concrete Strategy ──────────────────────────────────────────────────────
-// TODO: Implement a round-robin strategy:
-//   - Track which agent was assigned last
-//   - Cycle through agents in order (0, 1, 2, 0, 1, 2, ...)
-//   - Return the selected agent's ID
-
-// ─── Resolver ───────────────────────────────────────────────────────────────
-// TODO: Implement an IssueResolver struct that:
-//   - Accepts any AssignmentStrategy
-//   - Has an Assign() method that assigns an issue to the selected agent
-//   - Has a GetAgentIssues() method to retrieve issues for a given agent
-//   - Does NOT know about specific assignment algorithms
-
-// type IssueResolver struct { ... }
-// func (r *IssueResolver) Assign(agents []Agent, issues *[]Issue, issue Issue) Issue
-// func (r *IssueResolver) GetAgentIssues(issues []Issue, agentID int) []Issue
-
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-// Your solution must provide these functions:
-
-func AssignIssue(agents []Agent, issues *[]Issue, issue Issue) Issue {
-	return issue // TODO: use IssueResolver with RoundRobinStrategy
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func ir_agent_issue_count(agentId int) int {
+	// TODO: write your solution
+	return 0
 }
 
-func GetAgentIssues(issues []Issue, agentID int) []Issue {
-	return nil // TODO: use IssueResolver
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func ir_agent_load(agentId int) int {
+	// TODO: write your solution
+	return 0
 }

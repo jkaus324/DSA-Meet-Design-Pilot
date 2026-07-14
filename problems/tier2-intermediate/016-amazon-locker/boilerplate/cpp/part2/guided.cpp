@@ -1,63 +1,26 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <map>
-#include <queue>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class LockerSize { SMALL, MEDIUM, LARGE };
-
-struct Package {
-    string packageId;
-    LockerSize size;
+// Data class (given).
+struct LockerOp {
+    string kind;
+    string s1;
+    string s2;
+    int i1;
+    int i2;
+    LockerOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), i1(i1_), i2(i2_) {}
 };
 
-struct Locker {
-    string lockerId;
-    LockerSize size;
-    bool occupied;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-// ─── Notification Interface ─────────────────────────────────────────────────
-// HINT: Multiple channels (email, SMS, push) can be registered.
-// They are all notified on deposit and on expiry.
-
-class NotificationChannel {
-public:
-    virtual void notify(const string& packageId, const string& message) = 0;
-    virtual ~NotificationChannel() = default;
-};
-
-// TODO: Implement concrete notification channels (e.g., EmailChannel, SMSChannel)
-//       for testing purposes, a simple channel that logs messages is sufficient.
-
-// ─── Deposit Record ─────────────────────────────────────────────────────────
-// HINT: Each deposit now needs a timestamp to support expiry.
-//       Store the deposit time alongside the locker ID and package ID.
-
-// ─── Locker System with Expiry ──────────────────────────────────────────────
-// HINT: Extend your Part 1 system with:
-//   - A configurable expiry duration (in hours)
-//   - A depositPackage() that records the deposit time
-//   - A checkExpired(currentTime) that scans active deposits
-//   - Notification dispatch on deposit and expiry events
-
-// TODO: Entry points:
-//   void setCodeExpiry(int hours);
-//   vector<string> checkExpired(long currentTime);
-//   void addNotificationChannel(/* channel */);
-
-// HINT: depositPackage() now takes an additional timestamp parameter:
-//   string depositPackage(const string& packageId, LockerSize size, long depositTime);
-
-// ─── Test Entry Points ───────────────────────────────────────────────────────
-//   void addLocker(const string& lockerId, LockerSize size);
-//   string depositPackage(const string& packageId, LockerSize size, long depositTime);
-//   bool retrievePackage(const string& code);
-//   void setCodeExpiry(int hours);
-//   vector<string> checkExpired(long currentTime);
-//   void addNotificationChannel(/* channel */);
-// ─────────────────────────────────────────────────────────────────────────────
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> locker_simulate(vector<LockerOp> ops) {
+    // TODO: write your solution
+    return {};
+}

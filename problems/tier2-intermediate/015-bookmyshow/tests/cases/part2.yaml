@@ -1,0 +1,101 @@
+- name: lock_seats_success
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0;0,1", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "available_count", s1: "S1", i1: 1000 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "48"]
+
+- name: cannot_lock_locked_seats
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0;0,1", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "lock", s1: "S1", s2: "0,0", s3: "user2", i1: 5, i2: 1000, i3: 1 }
+  expect: ["ok", "ok", "ok", "LOCK_1", ""]
+
+- name: confirm_within_ttl
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0;0,1", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "confirm", i3: 0, i1: 1200 }
+      - { kind: "available_count", s1: "S1", i1: 1200 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "ok", "48"]
+
+- name: confirm_after_ttl_expires
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0;0,1", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "confirm", i3: 0, i1: 1400 }
+      - { kind: "available_count", s1: "S1", i1: 1400 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "fail", "50"]
+
+- name: expired_lock_releases_seats
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "lock", s1: "S1", s2: "0,0", s3: "user2", i1: 5, i2: 1400, i3: 1 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "LOCK_2"]
+
+- name: manual_release
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0;0,1", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "release", i3: 0, i1: 1060 }
+      - { kind: "available_count", s1: "S1", i1: 1060 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "ok", "50"]
+
+- name: no_confirm_after_release
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "release", i3: 0, i1: 1060 }
+      - { kind: "confirm", i3: 0, i1: 1120 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "ok", "fail"]
+
+- name: no_double_confirm
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "confirm", i3: 0, i1: 1100 }
+      - { kind: "confirm", i3: 0, i1: 1150 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "ok", "fail"]
+
+- name: cannot_book_locked_seat
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "lock", s1: "S1", s2: "0,0", s3: "user1", i1: 5, i2: 1000, i3: 0 }
+      - { kind: "book", s1: "B1", s2: "S1", s3: "0,0", s4: "user2", i1: 1060 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "fail"]
+
+- name: release_nonexistent_lock
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "release_id", s1: "NONEXISTENT", i1: 1000 }
+  expect: ["ok", "fail"]

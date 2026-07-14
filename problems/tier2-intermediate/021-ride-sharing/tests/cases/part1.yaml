@@ -1,0 +1,83 @@
+- name: add_user
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "has_user", s1: "Rohan" }
+      - { kind: "has_user", s1: "Unknown" }
+  expect: ["ok", "ok", "yes", "no"]
+
+- name: add_vehicle
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "has_vehicle", s1: "KA-01-1234" }
+  expect: ["ok", "ok", "ok", "yes"]
+
+- name: offer_ride
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "offer", s1: "Rohan", s2: "Bangalore", s3: "Mysore", s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "has_ride", i2: 0 }
+      - { kind: "ride_origin", i2: 0 }
+      - { kind: "ride_dest",   i2: 0 }
+      - { kind: "ride_total",  i2: 0 }
+      - { kind: "ride_avail",  i2: 0 }
+      - { kind: "ride_active", i2: 0 }
+  expect: ["ok", "ok", "ok", "RIDE-1", "yes", "Bangalore", "Mysore", "3", "3", "yes"]
+
+- name: no_duplicate_active_ride_per_vehicle
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "offer", s1: "Rohan", s2: "Bangalore", s3: "Mysore", s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "offer", s1: "Rohan", s2: "Bangalore", s3: "Chennai", s4: "KA-01-1234", i1: 2, i2: 1 }
+  expect: ["ok", "ok", "ok", "RIDE-1", ""]
+
+- name: cannot_use_others_vehicle
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "offer", s1: "Deepa", s2: "Bangalore", s3: "Mysore", s4: "KA-01-1234", i1: 2, i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", ""]
+
+- name: rides_offered_counter
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "add_veh", s1: "Rohan", s2: "XUV",   s3: "KA-01-5678" }
+      - { kind: "user_offered", s1: "Rohan" }
+      - { kind: "offer", s1: "Rohan", s2: "B", s3: "M", s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "user_offered", s1: "Rohan" }
+      - { kind: "offer", s1: "Rohan", s2: "B", s3: "C", s4: "KA-01-5678", i1: 2, i2: 1 }
+      - { kind: "user_offered", s1: "Rohan" }
+  expect: ["ok", "ok", "ok", "ok", "0", "RIDE-1", "1", "RIDE-2", "2"]
+
+- name: offer_ride_invalid_user
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "offer", s1: "Ghost", s2: "A", s3: "B", s4: "KA-01-1234", i1: 2, i2: 0 }
+  expect: ["ok", "ok", "ok", ""]
+
+- name: offer_ride_invalid_vehicle
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "offer", s1: "Rohan", s2: "A", s3: "B", s4: "INVALID-REG", i1: 2, i2: 0 }
+  expect: ["ok", "ok", ""]

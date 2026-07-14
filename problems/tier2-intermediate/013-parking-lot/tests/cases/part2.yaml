@@ -1,0 +1,107 @@
+- name: flat_rate
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "flat", i1: 10 }
+      - { kind: "park", s1: "CAR1", s2: "C", i1: 1000, i2: 0, s3: "G1" }
+      - { kind: "unpark", i1: 0, i2: 8600, s1: "G2" }
+  expect: ["ok", "ok", "ok", "T1", "10.00"]
+
+- name: hourly_rate
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "hourly", i1: 5 }
+      - { kind: "park", s1: "CAR2", s2: "C", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 9000 }
+  expect: ["ok", "ok", "ok", "T1", "15.00"]
+
+- name: hourly_exact_hour
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "hourly", i1: 5 }
+      - { kind: "park", s1: "CAR3", s2: "C", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 3600 }
+  expect: ["ok", "ok", "ok", "T1", "5.00"]
+
+- name: tiered_base_rate
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "tiered", i1: 10, i2: 8, i3: 5 }
+      - { kind: "park", s1: "CAR4", s2: "C", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 3000 }
+  expect: ["ok", "ok", "ok", "T1", "10.00"]
+
+- name: tiered_mid_rate
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "tiered", i1: 10, i2: 8, i3: 5 }
+      - { kind: "park", s1: "CAR5", s2: "C", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 7200 }
+  expect: ["ok", "ok", "ok", "T1", "18.00"]
+
+- name: tiered_high_rate
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "tiered", i1: 10, i2: 8, i3: 5 }
+      - { kind: "park", s1: "CAR6", s2: "C", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 18000 }
+  expect: ["ok", "ok", "ok", "T1", "36.00"]
+
+- name: swap_strategy
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "flat", i1: 10 }
+      - { kind: "park", s1: "SW1", s2: "C", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 7200 }
+      - { kind: "set_pricing", s1: "hourly", i1: 5 }
+      - { kind: "park", s1: "SW2", s2: "C", i1: 0, i2: 1 }
+      - { kind: "unpark", i1: 1, i2: 7200 }
+  expect: ["ok", "ok", "ok", "ok", "T1", "10.00", "ok", "T2", "10.00"]
+
+- name: gate_management
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_gate", s1: "E1", s2: "entry" }
+      - { kind: "add_gate", s1: "E2", s2: "entry" }
+      - { kind: "add_gate", s1: "X1", s2: "exit" }
+      - { kind: "gates_count", s1: "entry" }
+      - { kind: "gates_count", s1: "exit" }
+      - { kind: "gate_at", s1: "exit", i1: 0 }
+  expect: ["ok", "ok", "ok", "ok", "2", "1", "X1"]
+
+- name: gate_on_ticket
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "set_pricing", s1: "flat", i1: 10 }
+      - { kind: "add_gate", s1: "ENTRY1", s2: "entry" }
+      - { kind: "add_gate", s1: "EXIT1", s2: "exit" }
+      - { kind: "park", s1: "GATE_CAR", s2: "C", i1: 0, i2: 0, s3: "ENTRY1" }
+      - { kind: "ticket_entry", i1: 0 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "T1", "ENTRY1"]
+
+- name: short_stay_rounds_up
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "S" }
+      - { kind: "set_pricing", s1: "hourly", i1: 5 }
+      - { kind: "park", s1: "SHORT", s2: "M", i1: 0, i2: 0 }
+      - { kind: "unpark", i1: 0, i2: 1 }
+  expect: ["ok", "ok", "ok", "T1", "5.00"]

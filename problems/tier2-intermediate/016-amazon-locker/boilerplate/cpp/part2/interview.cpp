@@ -1,49 +1,26 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <map>
-#include <queue>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class LockerSize { SMALL, MEDIUM, LARGE };
-
-struct Package {
-    string packageId;
-    LockerSize size;
+// Data class (given).
+struct LockerOp {
+    string kind;
+    string s1;
+    string s2;
+    int i1;
+    int i2;
+    LockerOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), i1(i1_), i2(i2_) {}
 };
 
-struct Locker {
-    string lockerId;
-    LockerSize size;
-    bool occupied;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> locker_simulate(vector<LockerOp> ops);
 
-// ─── Notification Interface ─────────────────────────────────────────────────
-
-class NotificationChannel {
-public:
-    virtual void notify(const string& packageId, const string& message) = 0;
-    virtual ~NotificationChannel() = default;
-};
-
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Extend your locker system from Part 1 with:
-//   1. Pickup code expiry — codes expire after N hours
-//   2. Expired package detection — checkExpired() scans and frees lockers
-//   3. Notification channels — notify on deposit and on expiry
-//
-// Think about:
-//   - How do you add expiry without modifying core deposit/retrieve logic?
-//   - How do you support multiple notification channels (email, SMS, push)?
-//   - What data do you need to track per deposit for expiry to work?
-//
-// Entry points (in addition to Part 1):
-//   void setCodeExpiry(int hours);
-//   vector<string> checkExpired(long currentTime);
-//   void addNotificationChannel(NotificationChannel* channel);
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
+vector<string> locker_simulate(vector<LockerOp> ops) {
+    // TODO: write your solution
+    return {};
+}

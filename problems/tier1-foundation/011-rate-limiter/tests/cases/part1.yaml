@@ -1,0 +1,161 @@
+- name: reset_p1_a
+  call: reset_service
+  args: []
+
+- name: init_3_60
+  call: init_limiter
+  args: [3, 60]
+
+- name: allow_1
+  call: allow_request_simple
+  args: ["client_A", 1000, "/api/search"]
+  expect_equals: true
+
+- name: allow_2
+  call: allow_request_simple
+  args: ["client_A", 1001, "/api/search"]
+  expect_equals: true
+
+- name: allow_3
+  call: allow_request_simple
+  args: ["client_A", 1002, "/api/search"]
+  expect_equals: true
+
+- name: reset_p1_b
+  call: reset_service
+  args: []
+
+- name: init_b
+  call: init_limiter
+  args: [3, 60]
+
+- name: over_b1
+  call: allow_request_simple
+  args: ["client_B", 2000, "/api/pay"]
+  expect_equals: true
+
+- name: over_b2
+  call: allow_request_simple
+  args: ["client_B", 2001, "/api/pay"]
+  expect_equals: true
+
+- name: over_b3
+  call: allow_request_simple
+  args: ["client_B", 2002, "/api/pay"]
+  expect_equals: true
+
+- name: over_b4_rejected
+  comment: "4th request exceeds limit"
+  call: allow_request_simple
+  args: ["client_B", 2003, "/api/pay"]
+  expect_equals: false
+
+- name: over_b5_rejected
+  call: allow_request_simple
+  args: ["client_B", 2004, "/api/pay"]
+  expect_equals: false
+
+- name: reset_p1_c
+  call: reset_service
+  args: []
+
+- name: init_c
+  call: init_limiter
+  args: [2, 60]
+
+- name: alice_1
+  call: allow_request_simple
+  args: ["alice", 3000, "/api/x"]
+  expect_equals: true
+
+- name: alice_2
+  call: allow_request_simple
+  args: ["alice", 3001, "/api/x"]
+  expect_equals: true
+
+- name: alice_3_rejected
+  call: allow_request_simple
+  args: ["alice", 3002, "/api/x"]
+  expect_equals: false
+
+- name: bob_1_independent
+  comment: "Different clients have independent limits"
+  call: allow_request_simple
+  args: ["bob", 3003, "/api/x"]
+  expect_equals: true
+
+- name: bob_2
+  call: allow_request_simple
+  args: ["bob", 3004, "/api/x"]
+  expect_equals: true
+
+- name: bob_3_rejected
+  call: allow_request_simple
+  args: ["bob", 3005, "/api/x"]
+  expect_equals: false
+
+- name: reset_p1_d
+  call: reset_service
+  args: []
+
+- name: init_d
+  call: init_limiter
+  args: [2, 60]
+
+- name: c_t1000
+  call: allow_request_simple
+  args: ["client_C", 1000, "/api/y"]
+  expect_equals: true
+
+- name: c_t1020
+  call: allow_request_simple
+  args: ["client_C", 1020, "/api/y"]
+  expect_equals: true
+
+- name: c_t1040_in_window
+  comment: "Still in [1000,1060) window"
+  call: allow_request_simple
+  args: ["client_C", 1040, "/api/y"]
+  expect_equals: false
+
+- name: c_t1060_new_window
+  comment: "Window reset at 1060"
+  call: allow_request_simple
+  args: ["client_C", 1060, "/api/y"]
+  expect_equals: true
+
+- name: c_t1080_new
+  call: allow_request_simple
+  args: ["client_C", 1080, "/api/y"]
+  expect_equals: true
+
+- name: reset_p1_e
+  call: reset_service
+  args: []
+
+- name: init_e
+  call: init_limiter
+  args: [5, 60]
+
+- name: count_zero_initially
+  call: get_request_count
+  args: ["new_client"]
+  expect_equals: 0
+
+- name: req_e1
+  call: allow_request_simple
+  args: ["new_client", 5000, "/api/z"]
+
+- name: count_one_after_one
+  call: get_request_count
+  args: ["new_client"]
+  expect_equals: 1
+
+- name: req_e2
+  call: allow_request_simple
+  args: ["new_client", 5001, "/api/z"]
+
+- name: count_two
+  call: get_request_count
+  args: ["new_client"]
+  expect_equals: 2

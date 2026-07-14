@@ -4,66 +4,38 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class Priority { LOW, MEDIUM, HIGH, CRITICAL };
-enum class IssueState { OPEN, IN_PROGRESS, RESOLVED, CLOSED };
-enum class Category { BILLING, TECHNICAL, GENERAL, ACCOUNT };
+// Data class (given).
 
-struct Issue {
-    int id;
-    string description;
-    Category category;
-    Priority priority;
-    IssueState state;
-    int assignedAgentId;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Agent {
-    int id;
-    string name;
-    int currentLoad;
-    vector<Category> specializations;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── Assignment Interface ───────────────────────────────────────────────────
-// HINT: This interface lets you swap assignment logic at runtime.
-// What method signature would let you select an agent for an issue?
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void ir_add_agent(int id, string name, string specialization) {
+    // TODO: write your solution
+    // nothing to return
+}
 
-class /* YourInterfaceName */ {
-public:
-    virtual int /* yourMethodName */(vector<Agent>& agents, const Issue& issue) = 0;
-    virtual ~/* YourInterfaceName */() = default;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_assign_issue_round_robin(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
+}
 
-// ─── Concrete Strategy ──────────────────────────────────────────────────────
-// TODO: Implement a round-robin strategy:
-//   - Track which agent was assigned last
-//   - Cycle through agents in order (0, 1, 2, 0, 1, 2, ...)
-//   - Return the selected agent's ID
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_agent_issue_count(int agentId) {
+    // TODO: write your solution
+    return {};
+}
 
-
-// ─── Resolver ───────────────────────────────────────────────────────────────
-// TODO: Implement an IssueResolver class that:
-//   - Accepts any assignment strategy (via constructor or setter)
-//   - Has an assign() method that assigns an issue to the selected agent
-//   - Has a getAgentIssues() method to retrieve issues for a given agent
-//   - Does NOT know about specific assignment algorithms
-
-// class IssueResolver {
-// public:
-//     IssueResolver(/* what goes here? */);
-//     Issue assign(vector<Agent>& agents, vector<Issue>& issues, Issue issue);
-//     vector<Issue> getAgentIssues(const vector<Issue>& issues, int agentId);
-// };
-
-
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-// Your solution must provide these functions:
-//
-//   Issue assign_issue(vector<Agent>& agents, vector<Issue>& issues, Issue issue);
-//   vector<Issue> get_agent_issues(const vector<Issue>& issues, int agentId);
-//
-// How you implement them internally is up to you.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_agent_load(int agentId) {
+    // TODO: write your solution
+    return {};
+}

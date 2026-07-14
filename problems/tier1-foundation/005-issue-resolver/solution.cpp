@@ -225,6 +225,107 @@ Issue assign_next_priority(vector<Agent>& agents, vector<Issue>& issues) {
     return resolver.assignNextPriority(agents, issues);
 }
 
+// ─── Spec-test wrappers ────────────────────────────────────────────────────
+
+static vector<Agent>  g_agents;
+static vector<Issue>  g_issues;
+static int            g_issue_id = 0;
+static RoundRobinStrategy* g_rr = nullptr;
+static IssueResolver*      g_ir = nullptr;
+static vector<string>      g_log;
+static LoggingObserver*    g_logger = nullptr;
+
+void reset_service() {
+    g_agents.clear();
+    g_issues.clear();
+    g_issue_id = 0;
+    delete g_rr;
+    delete g_ir;
+    delete g_logger;
+    g_rr = new RoundRobinStrategy();
+    g_ir = new IssueResolver(g_rr);
+    g_log.clear();
+    g_logger = new LoggingObserver(g_log);
+    g_ir->addObserver(g_logger);
+}
+
+static Category catFromString(const string& s) {
+    if (s == "TECHNICAL") return Category::TECHNICAL;
+    if (s == "GENERAL") return Category::GENERAL;
+    if (s == "ACCOUNT") return Category::ACCOUNT;
+    return Category::BILLING;
+}
+
+static Priority prioFromString(const string& s) {
+    if (s == "MEDIUM") return Priority::MEDIUM;
+    if (s == "HIGH") return Priority::HIGH;
+    if (s == "CRITICAL") return Priority::CRITICAL;
+    return Priority::LOW;
+}
+
+void ir_add_agent(int id, const string& name, const string& specialization) {
+    Agent a;
+    a.id = id;
+    a.name = name;
+    a.currentLoad = 0;
+    if (!specialization.empty()) a.specializations.push_back(catFromString(specialization));
+    g_agents.push_back(a);
+}
+
+int ir_assign_issue_round_robin(const string& description, const string& category, const string& priority) {
+    Issue i{++g_issue_id, description, catFromString(category), prioFromString(priority), IssueState::OPEN, -1};
+    Issue assigned = g_ir->assign(g_agents, g_issues, i);
+    return assigned.assignedAgentId;
+}
+
+int ir_assign_issue_least_loaded(const string& description, const string& category, const string& priority) {
+    LeastLoadedStrategy s;
+    IssueResolver r(&s);
+    Issue i{++g_issue_id, description, catFromString(category), prioFromString(priority), IssueState::OPEN, -1};
+    Issue assigned = r.assign(g_agents, g_issues, i);
+    return assigned.assignedAgentId;
+}
+
+int ir_assign_issue_specialist(const string& description, const string& category, const string& priority) {
+    SpecialistStrategy s;
+    IssueResolver r(&s);
+    Issue i{++g_issue_id, description, catFromString(category), prioFromString(priority), IssueState::OPEN, -1};
+    Issue assigned = r.assign(g_agents, g_issues, i);
+    return assigned.assignedAgentId;
+}
+
+int ir_agent_issue_count(int agentId) {
+    return (int)g_ir->getAgentIssues(g_issues, agentId).size();
+}
+
+int ir_agent_load(int agentId) {
+    for (auto& a : g_agents) if (a.id == agentId) return a.currentLoad;
+    return -1;
+}
+
+bool ir_transition(int issueId, const string& newState) {
+    IssueState s;
+    if (newState == "IN_PROGRESS") s = IssueState::IN_PROGRESS;
+    else if (newState == "RESOLVED") s = IssueState::RESOLVED;
+    else if (newState == "CLOSED") s = IssueState::CLOSED;
+    else s = IssueState::OPEN;
+    return g_ir->transitionState(g_issues, issueId, s);
+}
+
+string ir_get_issue_state(int issueId) {
+    for (auto& i : g_issues) if (i.id == issueId) return stateName(i.state);
+    return "";
+}
+
+int ir_log_size() {
+    return (int)g_log.size();
+}
+
+string ir_log_entry(int idx) {
+    if (idx < 0 || idx >= (int)g_log.size()) return "";
+    return g_log[idx];
+}
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 #ifndef RUNNING_TESTS

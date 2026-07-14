@@ -1,45 +1,41 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered };
+// Data class (given).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void set_inventory(string productId, int qty);
+//   int get_inventory(string productId);
+//   string create_order_simple(string productId, int quantity, double totalAmount);
+//   string get_order_state_str(string orderId);
 
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── Your Design Starts Here ────────────────────────────────────────────────
-//
-// Design and implement an OrderManager that:
-//   1. Creates orders and stores them in a HashMap
-//   2. Enforces valid state transitions:
-//      Created -> Confirmed -> Shipped -> Delivered
-//   3. Rejects any invalid transition (no skipping, no backward)
-//
-// Think about:
-//   - How do you validate that a transition is legal?
-//   - What data structure gives O(1) order lookup by ID?
-//   - What happens when Extension 1 (cancellation) is added?
-//
-// Entry points (must exist for tests):
-//   string create_order(vector<OrderItem> items, double totalAmount);
-//   bool confirm_order(const string& orderId);
-//   bool ship_order(const string& orderId);
-//   bool deliver_order(const string& orderId);
-//   OrderState get_order_state(const string& orderId);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void set_inventory(string productId, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
 
+int get_inventory(string productId) {
+    // TODO: write your solution
+    return {};
+}
 
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: write your solution
+    return {};
+}
+
+string get_order_state_str(string orderId) {
+    // TODO: write your solution
+    return {};
+}

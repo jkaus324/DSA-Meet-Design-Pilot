@@ -4,6 +4,7 @@ const fs = require('fs');
 const { exec } = require('child_process');
 const os = require('os');
 const yaml = require('js-yaml');
+const PYTHON_CMD = os.platform() === 'win32' ? 'python' : 'python3';
 const { marked } = require('marked');
 const { markedHighlight } = require('marked-highlight');
 const hljs = require('highlight.js');
@@ -32,9 +33,6 @@ const PROGRESS_JSON  = process.env.PROGRESS_JSON_PATH
       ? process.env.PROGRESS_JSON_PATH
       : path.join(REPO_ROOT, process.env.PROGRESS_JSON_PATH))
   : path.join(REPO_ROOT, 'progress.json');
-if (process.env.PROGRESS_JSON_PATH) {
-  console.log(`📝 Using progress file: ${PROGRESS_JSON}`);
-}
 const PATTERNS_DIR   = path.join(REPO_ROOT, 'patterns');
 const DIST_DIR       = path.join(__dirname, 'dist');
 
@@ -59,29 +57,194 @@ if (os.platform() === 'win32') {
   }
 }
 
-let testRunnerAvailable = false;
-exec('g++ --version', (err) => {
-  if (err) {
-    console.warn('⚠️  g++ not found. C++ test runner / Submit will not work.');
-    console.warn('   Install: sudo apt install g++ (Linux) | xcode-select --install (Mac) | MinGW (Windows)');
-    testRunnerAvailable = false;
-  } else {
-    testRunnerAvailable = true;
-    console.log('✅ g++ found — C++ test runner available.');
-  }
-});
+// ─── Java (javac) availability check ────────────────────────────────────────
 
-let goRunnerAvailable = false;
-exec('go version', (err) => {
-  if (err) {
-    console.warn('⚠️  go not found. Go test runner will not work.');
-    console.warn('   Install: https://go.dev/doc/install');
-    goRunnerAvailable = false;
-  } else {
-    goRunnerAvailable = true;
-    console.log('✅ go found — Go test runner available.');
+// Auto-detect JDK on all platforms — javac is often installed but not on PATH.
+// Check JAVA_HOME first, then platform-specific common locations.
+(function detectJava() {
+  const { execSync } = require('child_process');
+  // Quick check: already on PATH?
+  try { execSync('javac -version', { stdio: 'ignore' }); return; } catch (_) {}
+
+  const candidates = [];
+
+  // 1. JAVA_HOME (all platforms)
+  if (process.env.JAVA_HOME) {
+    candidates.push(path.join(process.env.JAVA_HOME, 'bin'));
   }
-});
+
+  if (os.platform() === 'win32') {
+    // Common Windows JDK install paths
+    const programFiles = process.env.ProgramFiles || 'C:\\Program Files';
+    const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+    for (const base of [programFiles, programFilesX86]) {
+      for (const vendor of ['Java', 'Eclipse Adoptium', 'Microsoft', 'Amazon Corretto', 'Zulu', 'BellSoft']) {
+        const vendorDir = path.join(base, vendor);
+        if (fs.existsSync(vendorDir)) {
+          try {
+            const entries = fs.readdirSync(vendorDir).filter(e => e.startsWith('jdk'));
+            entries.sort().reverse(); // prefer latest version
+            for (const e of entries) candidates.push(path.join(vendorDir, e, 'bin'));
+          } catch (_) {}
+        }
+      }
+    }
+  } else if (os.platform() === 'darwin') {
+    // macOS: /usr/libexec/java_home, Homebrew, installed JDKs
+    try {
+      const jHome = execSync('/usr/libexec/java_home 2>/dev/null').toString().trim();
+      if (jHome) candidates.push(path.join(jHome, 'bin'));
+    } catch (_) {}
+    candidates.push(
+      '/opt/homebrew/opt/openjdk/bin',
+      '/usr/local/opt/openjdk/bin'
+    );
+    // Scan /Library/Java/JavaVirtualMachines for installed JDKs
+    const libJvm = '/Library/Java/JavaVirtualMachines';
+    if (fs.existsSync(libJvm)) {
+      try {
+        const entries = fs.readdirSync(libJvm).filter(e => e.includes('jdk'));
+        entries.sort().reverse();
+        for (const e of entries) candidates.push(path.join(libJvm, e, 'Contents', 'Home', 'bin'));
+      } catch (_) {}
+    }
+  } else {
+    // Linux: common locations (Dell machines, Ubuntu, Fedora, etc.)
+    candidates.push('/usr/lib/jvm/default/bin', '/usr/lib/jvm/java/bin');
+    const jvmBase = '/usr/lib/jvm';
+    if (fs.existsSync(jvmBase)) {
+      try {
+        const entries = fs.readdirSync(jvmBase).filter(e => e.includes('jdk') || e.includes('java'));
+        entries.sort().reverse();
+        for (const e of entries) candidates.push(path.join(jvmBase, e, 'bin'));
+      } catch (_) {}
+    }
+    // SDKMAN
+    const home = process.env.HOME || '';
+    if (home) {
+      candidates.push(path.join(home, '.sdkman', 'candidates', 'java', 'current', 'bin'));
+      const jabbaDir = path.join(home, '.jabba', 'jdk');
+      if (fs.existsSync(jabbaDir)) {
+        try {
+          const entries = fs.readdirSync(jabbaDir);
+          entries.sort().reverse();
+          for (const e of entries) candidates.push(path.join(jabbaDir, e, 'bin'));
+        } catch (_) {}
+      }
+    }
+    // Snap-installed OpenJDK
+    candidates.push('/snap/openjdk/current/jdk/bin');
+  }
+
+  const javacName = os.platform() === 'win32' ? 'javac.exe' : 'javac';
+  for (const dir of candidates) {
+    if (fs.existsSync(path.join(dir, javacName))) {
+      process.env.PATH = dir + path.delimiter + (process.env.PATH || '');
+      console.log(`✅ Java auto-detected at ${dir}`);
+      return;
+    }
+  }
+})();
+
+// ─── Python availability check ──────────────────────────────────────────────
+
+// On Windows, python3 may not exist but 'python' or 'py' launcher might.
+// On Linux/macOS with pyenv or conda, python3 might not be on the default PATH.
+(function detectPython() {
+  const { execSync } = require('child_process');
+  // Quick check: already works?
+  try { execSync(`${os.platform() === 'win32' ? 'python' : 'python3'} --version`, { stdio: 'ignore' }); return; } catch (_) {}
+
+  const candidates = [];
+
+  if (os.platform() === 'win32') {
+    // Windows: check py launcher, then common install paths
+    try { execSync('py -3 --version', { stdio: 'ignore' }); return; } catch (_) {}
+    const localAppData = process.env.LOCALAPPDATA || '';
+    if (localAppData) {
+      const pyDir = path.join(localAppData, 'Programs', 'Python');
+      if (fs.existsSync(pyDir)) {
+        try {
+          const entries = fs.readdirSync(pyDir).filter(e => e.startsWith('Python3'));
+          entries.sort().reverse();
+          for (const e of entries) candidates.push(path.join(pyDir, e));
+        } catch (_) {}
+      }
+    }
+    candidates.push('C:\\Python39', 'C:\\Python310', 'C:\\Python311', 'C:\\Python312', 'C:\\Python313');
+  } else {
+    // macOS / Linux: pyenv, conda, Homebrew
+    const home = process.env.HOME || '';
+    if (home) {
+      candidates.push(
+        path.join(home, '.pyenv', 'shims'),
+        path.join(home, 'miniconda3', 'bin'),
+        path.join(home, 'anaconda3', 'bin')
+      );
+    }
+    candidates.push('/opt/homebrew/bin', '/usr/local/bin');
+  }
+
+  const pyName = os.platform() === 'win32' ? 'python.exe' : 'python3';
+  for (const dir of candidates) {
+    if (fs.existsSync(path.join(dir, pyName))) {
+      process.env.PATH = dir + path.delimiter + (process.env.PATH || '');
+      console.log(`✅ Python auto-detected at ${dir}`);
+      return;
+    }
+  }
+})();
+
+// Language registry — adding a new language means: add an entry here, write a
+// runner under harness/<lang>/, and ensure gen_stubs.py emits boilerplate for it.
+const HARNESS_DIR = path.join(REPO_ROOT, 'harness');
+const SNAKEYAML_JAR = path.join(HARNESS_DIR, 'java', 'lib', 'snakeyaml-2.2.jar');
+const LANGS = {
+  cpp: {
+    ext: 'cpp',
+    boilerplateMode: m => `${m}.cpp`,
+    testFileLegacy:  n => `part${n}_test.cpp`,
+    detect: 'g++ --version',
+  },
+  java: {
+    ext: 'java',
+    boilerplateMode: m => `${m.charAt(0).toUpperCase() + m.slice(1)}.java`,
+    testFileLegacy:  n => `Part${n}Test.java`,
+    detect: 'javac -version',
+  },
+  python: {
+    ext: 'py',
+    boilerplateMode: m => `${m}.py`,
+    testFileLegacy:  n => `part${n}_test.py`,
+    detect: `${PYTHON_CMD} --version`,
+  },
+  javascript: {
+    ext: 'js',
+    boilerplateMode: m => `${m}.js`,
+    testFileLegacy:  n => `part${n}_test.js`,
+    detect: 'node --version',
+  },
+  go: {
+    ext: 'go',
+    boilerplateMode: m => `${m}.go`,
+    testFileLegacy:  n => `part${n}_runner.go`,
+    detect: 'go version',
+  },
+};
+
+const runnerAvailable = { cpp: false, java: false, python: false, javascript: false, go: false };
+
+for (const [lang, cfg] of Object.entries(LANGS)) {
+  exec(cfg.detect, (err) => {
+    runnerAvailable[lang] = !err;
+    if (err) {
+      console.warn(`⚠️  ${lang}: '${cfg.detect}' failed. Submit for ${lang} disabled.`);
+    } else {
+      console.log(`✅ ${lang} runner available.`);
+    }
+  });
+}
+
 
 // ─── Data helpers ───────────────────────────────────────────────────────────
 
@@ -93,11 +256,14 @@ function loadProblems() {
   try {
     const raw = fs.readFileSync(PROBLEMS_YML, 'utf8');
     const all = yaml.load(raw) || [];
+    const TIER_DIR = { 1: 'tier1-foundation', 2: 'tier2-intermediate', 3: 'tier3-advanced' };
     // Filter out problems whose folder doesn't exist on disk
     return all.filter(p => {
-      const problemDir = path.join(REPO_ROOT, p.path);
+      const tierFolder = TIER_DIR[p.tier] || `tier${p.tier}`;
+      const derivedPath = p.path || `problems/${tierFolder}/${p.id}`;
+      p.path = derivedPath;
+      const problemDir = path.join(REPO_ROOT, derivedPath);
       if (!fs.existsSync(problemDir)) {
-        console.warn(`WARNING: Problem "${p.id}" registered in problems.yml but folder missing: ${p.path}`);
         return false;
       }
       return true;
@@ -106,6 +272,30 @@ function loadProblems() {
     console.error('ERROR: Failed to parse problems.yml:', e.message);
     return [];
   }
+}
+
+// Normalize parts: handles both array-of-objects (free repo) and number (mined)
+function normalizePartDefs(problem) {
+  if (Array.isArray(problem.parts)) return problem.parts;
+  const numParts = typeof problem.parts === 'number' ? problem.parts : 1;
+  const details = problem.parts_detail || [];
+  const defs = [];
+  for (let i = 0; i < numParts; i++) {
+    defs.push({
+      name: details[i] || `Part ${i + 1}`,
+      description_marker: `## Part ${i + 1}`,
+      test_file: `part${i + 1}_test.cpp`,
+      java_test_file: `Part${i + 1}Test.java`,
+    });
+  }
+  return defs;
+}
+
+// Returns the code-storage key for a given lang+mode combo.
+// C++ uses the legacy bare key (backward compat). Java uses 'java:<mode>'.
+function codeKey(lang, mode) {
+  // C++ keeps the legacy bare key; everything else namespaces by language.
+  return lang === 'cpp' ? mode : `${lang}:${mode}`;
 }
 
 function loadProgress() {
@@ -129,13 +319,40 @@ function loadProgress() {
 
 function createEmptyProgress() {
   return {
-    version: 3,
+    version: 4,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     problems: {},
     primers_read: [],
     activity: [],
+    // ── Gamification (§9) ──────────────────────────────────────────────────────
+    // Signal Score (XP) is NOT stored — it's derived client-side from passed
+    // parts × tier × dsa_depth. Only earned/spent values persist here.
+    gamification: {
+      hint_tokens: 0,
+      unlocked_design: [],     // problem ids whose DESIGN.md was bought
+      unlocked_editorial: [],  // problem ids whose editorial was bought early
+      drill_stats: { total_correct: 0, best_streak: 0, runs: 0, tokens_earned: 0 },
+    },
   };
+}
+
+// Ensure the gamification block exists (defensive — also covers the migration).
+function ensureGamification(progress) {
+  if (!progress.gamification) {
+    progress.gamification = {
+      hint_tokens: 0,
+      unlocked_design: [],
+      unlocked_editorial: [],
+      drill_stats: { total_correct: 0, best_streak: 0, runs: 0, tokens_earned: 0 },
+    };
+  }
+  const g = progress.gamification;
+  if (typeof g.hint_tokens !== 'number') g.hint_tokens = 0;
+  if (!Array.isArray(g.unlocked_design)) g.unlocked_design = [];
+  if (!Array.isArray(g.unlocked_editorial)) g.unlocked_editorial = [];
+  if (!g.drill_stats) g.drill_stats = { total_correct: 0, best_streak: 0, runs: 0, tokens_earned: 0 };
+  return g;
 }
 
 function logActivity(progress, actionType) {
@@ -186,6 +403,14 @@ function calculateActivityStreak(progress) {
 // ─── v2 → v3 migration ──────────────────────────────────────────────────────
 
 function migrateProgress(data) {
+  // v3 → v4: add the gamification block (idempotent).
+  if ((data.version || 1) >= 3 && (data.version || 1) < 4) {
+    console.log('Migrating progress.json from v3 to v4 (gamification)...');
+    ensureGamification(data);
+    data.version = 4;
+    saveProgress(data);
+    console.log('Migration complete.');
+  }
   if ((data.version || 1) >= 3) return data;
 
   console.log('Migrating progress.json from v2 to v3...');
@@ -227,7 +452,8 @@ function migrateProgress(data) {
     entry.parts = parts;
   }
 
-  data.version = 3;
+  ensureGamification(data);
+  data.version = 4;
   saveProgress(data);
   console.log('Migration complete.');
   return data;
@@ -291,18 +517,55 @@ function splitReadmeByParts(rawMarkdown, partDefs) {
   if (!partDefs || partDefs.length === 0) return { scenario: rawMarkdown, sections: [rawMarkdown] };
 
   const lines = rawMarkdown.split('\n');
-  const markerIndices = partDefs.map(p => {
+
+  // Per part, the set of heading prefixes that may introduce that part. We
+  // accept all common conventions used in our READMEs:
+  //   • "## Part N"                (canonical)
+  //   • "## Base Requirement"      (part 1)        + "## Extension N-1"
+  //   • "### Base Requirement"     (part 1, nested under "## Parts")
+  //                                                + "### Extension N-1"
+  const candidatesFor = (idx, def) => {
+    const m = [def.description_marker, `## Part ${idx + 1}`, `### Part ${idx + 1}`];
+    if (idx === 0) m.push('## Base Requirement', '### Base Requirement');
+    else m.push(`## Extension ${idx}`, `### Extension ${idx}`);
+    return m;
+  };
+
+  const matches = (line, mks) => {
+    const t = line.trim();
+    return mks.some(m => t.startsWith(m));
+  };
+
+  const allCandidates = partDefs.map((def, i) => candidatesFor(i, def));
+
+  const markerIndices = allCandidates.map(mks => {
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim().startsWith(p.description_marker)) return i;
+      if (matches(lines[i], mks)) return i;
     }
     return -1;
   });
 
-  // Everything before the first found marker = scenario/context
+  // For section termination: next part marker, OR the next H2 heading that
+  // is NOT a part marker (e.g. "## Running Tests", "## Constraints"). This
+  // prevents trailing sections from being absorbed into the last part.
+  const isPartMarkerLine = (j) => allCandidates.some(mks => matches(lines[j], mks));
+  const nextSectionBreak = (start) => {
+    for (let j = start + 1; j < lines.length; j++) {
+      if (/^##\s/.test(lines[j]) && !isPartMarkerLine(j)) return j;
+    }
+    return lines.length;
+  };
+
+  // Everything before the first found marker = scenario/context.
+  // If that scenario ends with a "## Parts" wrapper heading, drop it — the
+  // parts list itself will be rendered below.
   const firstMarker = markerIndices.find(i => i !== -1);
-  const scenarioLines = firstMarker !== undefined && firstMarker > 0
+  let scenarioLines = firstMarker !== undefined && firstMarker > 0
     ? lines.slice(0, firstMarker)
-    : lines;
+    : firstMarker === undefined ? lines : [];
+  while (scenarioLines.length && /^(\s*|##\s+Parts\s*)$/.test(scenarioLines[scenarioLines.length - 1])) {
+    scenarioLines = scenarioLines.slice(0, -1);
+  }
   const scenario = scenarioLines.join('\n').trim();
 
   const sections = [];
@@ -312,9 +575,9 @@ function splitReadmeByParts(rawMarkdown, partDefs) {
       sections.push(null);
       continue;
     }
-    const end = markerIndices[i + 1] !== undefined && markerIndices[i + 1] !== -1
-      ? markerIndices[i + 1]
-      : lines.length;
+    const nextPart = markerIndices.slice(i + 1).find(idx => idx !== -1);
+    const breakAt  = nextSectionBreak(start);
+    const end = nextPart !== undefined ? Math.min(nextPart, breakAt) : breakAt;
     sections.push(lines.slice(start, end).join('\n'));
   }
 
@@ -334,11 +597,22 @@ function deriveStatus(partsObj, totalParts) {
 }
 
 function ensurePartsInitialized(entry, totalParts) {
-  if (!entry.parts) {
-    entry.parts = {};
-    entry.parts['1'] = { status: 'active', passed_at: null, carry_forward: null };
-    for (let i = 2; i <= totalParts; i++) {
-      entry.parts[String(i)] = { status: 'locked', passed_at: null, carry_forward: null };
+  if (!entry.parts) entry.parts = {};
+
+  // Fill any missing slots from 1..totalParts. Part 1 defaults to 'active' when
+  // truly fresh; later parts default to 'locked'. We can't trust that an
+  // existing partial dict (e.g. only "1" present from earlier writes) covers
+  // all parts — without backfilling, the submit-time unlock check in
+  // updateProgressAfterRun would never see part N+1 as 'locked' and would
+  // silently skip the unlock.
+  for (let i = 1; i <= totalParts; i++) {
+    const key = String(i);
+    if (!entry.parts[key]) {
+      entry.parts[key] = {
+        status: i === 1 ? 'active' : 'locked',
+        passed_at: null,
+        carry_forward: null,
+      };
     }
   }
   return entry;
@@ -346,7 +620,7 @@ function ensurePartsInitialized(entry, totalParts) {
 
 function mergeProblemWithProgress(problem, progress, primersRead) {
   const p = progress.problems[problem.id] || {};
-  const totalParts = (problem.parts || []).length || 1;
+  const totalParts = normalizePartDefs(problem).length;
   const partsProgress = p.parts || null;
 
   ensurePartsInitialized(p, totalParts);
@@ -381,6 +655,7 @@ function mergeProblemWithProgress(problem, progress, primersRead) {
     ...problem,
     status,
     difficulty_mode:  p.difficulty_mode || 'interview',
+    reveal_mode:      p.reveal_mode     || 'interview',
     started_at:       p.started_at      || null,
     completed_at:     p.completed_at    || null,
     notes:            p.notes           || '',
@@ -454,7 +729,7 @@ app.get('/api/problems', (req, res) => {
 
 app.post('/api/problems/:id/status', (req, res) => {
   const { id } = req.params;
-  const { notes, difficulty_mode } = req.body;
+  const { notes, difficulty_mode, reveal_mode } = req.body;
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
@@ -466,6 +741,9 @@ app.post('/api/problems/:id/status', (req, res) => {
   if (difficulty_mode !== undefined && ['interview', 'guided', 'learning'].includes(difficulty_mode)) {
     entry.difficulty_mode = difficulty_mode;
   }
+  if (reveal_mode !== undefined && ['interview', 'study'].includes(reveal_mode)) {
+    entry.reveal_mode = reveal_mode;
+  }
   if (notes !== undefined) {
     entry.notes = notes;
   }
@@ -473,6 +751,45 @@ app.post('/api/problems/:id/status', (req, res) => {
   const totalParts = (problem.parts || []).length || 1;
   ensurePartsInitialized(entry, totalParts);
   progress.problems[id] = entry;
+  saveProgress(progress);
+
+  const primersRead = progress.primers_read || [];
+  res.json(mergeProblemWithProgress(problem, progress, primersRead));
+});
+
+// ── POST /api/problems/:id/reset ─────────────────────────────────────────────
+// Wipes all progress for a problem: clears saved code (every lang/mode),
+// timestamps, and rebuilds parts to the canonical fresh state (part 1 active,
+// the rest locked). Difficulty/reveal mode and notes are preserved — this
+// resets PROGRESS, not the user's per-problem preferences.
+
+app.post('/api/problems/:id/reset', (req, res) => {
+  const { id } = req.params;
+
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const progress = loadProgress();
+  const entry    = progress.problems[id];
+
+  // Nothing recorded yet — already in a fresh state.
+  if (!entry) {
+    const primersRead = progress.primers_read || [];
+    return res.json(mergeProblemWithProgress(problem, progress, primersRead));
+  }
+
+  // Drop progress fields; keep preferences (difficulty_mode, reveal_mode, notes).
+  delete entry.parts;
+  delete entry.code;
+  delete entry.started_at;
+  delete entry.completed_at;
+
+  const totalParts = normalizePartDefs(problem).length;
+  ensurePartsInitialized(entry, totalParts);  // rebuilds part 1 active / rest locked
+
+  progress.problems[id] = entry;
+  logActivity(progress, 'reset_problem');
   saveProgress(progress);
 
   const primersRead = progress.primers_read || [];
@@ -489,11 +806,13 @@ app.get('/api/problems/:id/parts', (req, res) => {
 
   const progress   = loadProgress();
   const entry      = progress.problems[id] || {};
-  const partDefs   = problem.parts || [{ name: 'Complete', description_marker: '## Part 1', test_file: 'part1_test.cpp' }];
+  const partDefs   = normalizePartDefs(problem);
   const totalParts = partDefs.length;
 
   ensurePartsInitialized(entry, totalParts);
   const partsProgress = entry.parts || {};
+  const revealMode = entry.reveal_mode || 'interview';
+  const isStudyMode = revealMode === 'study';
 
   // Read README and split by markers
   const readmePath = path.join(REPO_ROOT, problem.path, 'README.md');
@@ -509,16 +828,30 @@ app.get('/api/problems/:id/parts', (req, res) => {
     const partKey    = String(partNum);
     const partProg   = partsProgress[partKey] || { status: 'locked', passed_at: null, carry_forward: null };
     const isLocked   = partProg.status === 'locked';
+    // In study mode, show descriptions for locked parts; in interview mode, hide them
+    const hideContent = isLocked && !isStudyMode;
     const section    = sections[i];
 
-    // Count tests in test file
+    // Count tests — prefer spec-driven tests/cases/partN.yaml when available,
+    // else fall back to legacy per-language test files.
     let testCount = 0;
     if (!isLocked) {
-      const testPath = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', def.test_file);
-      if (fs.existsSync(testPath)) {
-        const testContent = fs.readFileSync(testPath, 'utf8');
-        const matches = testContent.match(/cout\s*<<\s*"(PASS|FAIL)\s/g);
-        testCount = matches ? matches.length / 2 : 0; // PASS + FAIL per test
+      const lang = LANGS[req.query.lang] ? req.query.lang : 'cpp';
+      const specCases = path.join(REPO_ROOT, problem.path, 'tests', 'cases', `part${partNum}.yaml`);
+      if (fs.existsSync(specCases)) {
+        const raw = fs.readFileSync(specCases, 'utf8');
+        const arr = yaml.load(raw) || [];
+        testCount = Array.isArray(arr) ? arr.length : 0;
+      } else {
+        const testFileName = lang === 'java' ? def.java_test_file : def.test_file;
+        const testPath = path.join(REPO_ROOT, problem.path, 'tests', lang, testFileName || '');
+        if (fs.existsSync(testPath)) {
+          const testContent = fs.readFileSync(testPath, 'utf8');
+          const matches = lang === 'java'
+            ? testContent.match(/System\.out\.println\("(PASS|FAIL)\s/g)
+            : testContent.match(/cout\s*<<\s*"(PASS|FAIL)\s/g);
+          testCount = matches ? matches.length / 2 : 0;
+        }
       }
     }
 
@@ -528,7 +861,7 @@ app.get('/api/problems/:id/parts', (req, res) => {
       status:           partProg.status,
       passed_at:        partProg.passed_at,
       carry_forward:    partProg.carry_forward,
-      description_html: isLocked ? null : (section ? marked(section) : null),
+      description_html: hideContent ? null : (section ? marked(section) : null),
       test_count:       testCount,
     };
   });
@@ -538,52 +871,42 @@ app.get('/api/problems/:id/parts', (req, res) => {
     total_parts: totalParts,
     scenario_html: scenario ? marked(scenario) : null,
     parts,
-    runner_available: testRunnerAvailable,
+    runner_available: runnerAvailable.cpp,
   });
 });
 
 // ── GET /api/problems/:id/starter ────────────────────────────────────────────
-// Updated: accepts ?mode= and ?part= and ?lang= query params
+// Updated: accepts ?mode= and ?part= query params
 
 app.get('/api/problems/:id/starter', (req, res) => {
   const { id } = req.params;
   const mode = ['interview', 'guided', 'learning'].includes(req.query.mode)
     ? req.query.mode : 'interview';
   const part = parseInt(req.query.part, 10) || 1;
-  const lang = ['cpp', 'go'].includes(req.query.lang) ? req.query.lang : 'cpp';
-  const ext  = lang === 'go' ? 'go' : 'cpp';
+  const lang = LANGS[req.query.lang] ? req.query.lang : 'cpp';
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
   if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
 
-  const tryFile = (p, m) => path.join(REPO_ROOT, problem.path, 'boilerplate', lang, `part${p}`, `${m}.${ext}`);
+  const modeFile = LANGS[lang].boilerplateMode;
+  const tryFile = (p, m) => path.join(REPO_ROOT, problem.path, 'boilerplate', lang, `part${p}`, modeFile(m));
 
   let filePath = tryFile(part, mode);
   let fallback = false;
 
-  if (!fs.existsSync(filePath)) {
-    filePath = tryFile(part, 'learning');
-    fallback = true;
-  }
-  if (!fs.existsSync(filePath)) {
-    filePath = tryFile(1, mode);
-    fallback = true;
-  }
-  if (!fs.existsSync(filePath)) {
-    filePath = tryFile(1, 'learning');
-    fallback = true;
-  }
+  if (!fs.existsSync(filePath)) { filePath = tryFile(part, 'learning'); fallback = true; }
+  if (!fs.existsSync(filePath)) { filePath = tryFile(1, mode);          fallback = true; }
+  if (!fs.existsSync(filePath)) { filePath = tryFile(1, 'learning');    fallback = true; }
 
-  const defaultStarter = lang === 'go'
-    ? `package main\n\n// Write your solution here.\n`
-    : `// Starter file not found for mode: ${mode}, part: ${part}\n// Write your solution here.\n`;
+  const commentChar = lang === 'python' ? '#' : '//';
+  const defaultComment = `${commentChar} Starter file not found for mode: ${mode}, part: ${part}\n${commentChar} Write your solution here.\n`;
 
   const code = fs.existsSync(filePath)
     ? fs.readFileSync(filePath, 'utf8')
-    : defaultStarter;
+    : defaultComment;
 
-  res.json({ mode, part, lang, code, fallback });
+  res.json({ lang, mode, part, code, fallback });
 });
 
 // ── GET /api/problems/:id/code ────────────────────────────────────────────────
@@ -592,35 +915,31 @@ app.get('/api/problems/:id/code', (req, res) => {
   const { id } = req.params;
   const mode = ['interview', 'guided', 'learning'].includes(req.query.mode)
     ? req.query.mode : 'interview';
-  const lang    = ['cpp', 'go'].includes(req.query.lang) ? req.query.lang : 'cpp';
-  const codeKey = lang === 'go' ? `go_${mode}` : mode;
+  const lang = LANGS[req.query.lang] ? req.query.lang : 'cpp';
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
   if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
 
-  const progress  = loadProgress();
-  const entry     = progress.problems[id] || {};
-  const saved     = (entry.code || {})[codeKey] || '';
+  const progress = loadProgress();
+  const entry    = progress.problems[id] || {};
+  const saved    = (entry.code || {})[codeKey(lang, mode)] || '';
 
   if (saved) {
-    return res.json({ mode, lang, code: saved, is_starter: false });
+    return res.json({ lang, mode, code: saved, is_starter: false });
   }
 
-  // Fall back to part1 starter
-  const ext = lang === 'go' ? 'go' : 'cpp';
-  const tryFile = (m) => path.join(REPO_ROOT, problem.path, 'boilerplate', lang, 'part1', `${m}.${ext}`);
+  const modeFile = LANGS[lang].boilerplateMode;
+  const tryFile = (m) => path.join(REPO_ROOT, problem.path, 'boilerplate', lang, 'part1', modeFile(m));
   let filePath = tryFile(mode);
   if (!fs.existsSync(filePath)) filePath = tryFile('learning');
 
-  const defaultCode = lang === 'go'
-    ? `package main\n\n// Write your solution here.\n`
-    : `// Write your solution here.\n`;
+  const commentChar = lang === 'python' ? '#' : '//';
   const code = fs.existsSync(filePath)
     ? fs.readFileSync(filePath, 'utf8')
-    : defaultCode;
+    : `${commentChar} Write your solution here.\n`;
 
-  res.json({ mode, lang, code, is_starter: true });
+  res.json({ lang, mode, code, is_starter: true });
 });
 
 // ── POST /api/problems/:id/code ───────────────────────────────────────────────
@@ -632,26 +951,25 @@ app.post('/api/problems/:id/code', (req, res) => {
   if (!['interview', 'guided', 'learning'].includes(mode)) {
     return res.status(400).json({ error: 'mode must be interview, guided, or learning' });
   }
-  if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
-  if (!['cpp', 'go'].includes(lang)) {
-    return res.status(400).json({ error: 'lang must be cpp or go' });
+  if (!LANGS[lang]) {
+    return res.status(400).json({ error: `lang must be one of ${Object.keys(LANGS).join(', ')}` });
   }
+  if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
 
   const problems = loadProblems();
   if (!problems.find(p => p.id === id)) return res.status(404).json({ error: `Problem ${id} not found` });
 
-  const codeKey = lang === 'go' ? `go_${mode}` : mode;
   const progress = loadProgress();
   if (!progress.problems[id]) progress.problems[id] = {};
   if (!progress.problems[id].code) progress.problems[id].code = {};
-  progress.problems[id].code[codeKey] = code;
+  progress.problems[id].code[codeKey(lang, mode)] = code;
   logActivity(progress, 'saved_code');
   saveProgress(progress);
 
-  res.json({ saved: true, mode, lang });
+  res.json({ saved: true, lang, mode });
 });
 
-// ── POST /api/problems/:id/submit ────────────────────────────────────────────
+// ── POST /api/problems/:id/submit ← NEW ──────────────────────────────────────
 
 app.post('/api/problems/:id/submit', (req, res) => {
   const { id } = req.params;
@@ -659,40 +977,33 @@ app.post('/api/problems/:id/submit', (req, res) => {
 
   if (typeof code !== 'string') return res.status(400).json({ error: 'code must be a string' });
   if (!Number.isInteger(part) || part < 1) return res.status(400).json({ error: 'part must be a positive integer' });
-  if (!['cpp', 'go'].includes(lang)) return res.status(400).json({ error: 'lang must be cpp or go' });
+  if (!LANGS[lang]) return res.status(400).json({ error: `lang must be one of ${Object.keys(LANGS).join(', ')}` });
 
-  if (lang === 'go' && !goRunnerAvailable) {
+  if (!runnerAvailable[lang]) {
     return res.status(503).json({
-      error: 'go not available. Install Go to use the Go test runner. See https://go.dev/doc/install',
-      runner_available: false,
-      go_available: false,
-    });
-  }
-  if (lang === 'cpp' && !testRunnerAvailable) {
-    return res.status(503).json({
-      error: 'g++ not available. Install g++ to use the C++ test runner.',
+      error: `${lang} runner not available on this host (detected via '${LANGS[lang].detect}').`,
       runner_available: false,
     });
   }
+  const isJava = lang === 'java';
 
   const problems = loadProblems();
   const problem  = problems.find(p => p.id === id);
   if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
 
-  const partDefs   = problem.parts || [{ name: 'Complete', description_marker: '## Part 1', test_file: 'part1_test.cpp' }];
+  const partDefs   = normalizePartDefs(problem);
   const totalParts = partDefs.length;
 
   if (part > totalParts) {
     return res.status(400).json({ error: `Part ${part} does not exist. Problem has ${totalParts} parts.` });
   }
 
-  // Save code first (lang-aware key)
-  const codeKey = lang === 'go' ? `go_${mode || 'interview'}` : (mode || 'interview');
+  // Save code first
   const progress = loadProgress();
   if (!progress.problems[id]) progress.problems[id] = {};
   const entry = progress.problems[id];
   if (!entry.code) entry.code = {};
-  entry.code[codeKey] = code;
+  entry.code[codeKey(lang, mode || 'interview')] = code;
   ensurePartsInitialized(entry, totalParts);
 
   if (!entry.started_at) entry.started_at = new Date().toISOString();
@@ -701,18 +1012,18 @@ app.post('/api/problems/:id/submit', (req, res) => {
   }
   saveProgress(progress);
 
-  const startTime = Date.now();
+  // Create temp directory
   const timestamp = Date.now();
-  const tmpDir    = path.join(os.tmpdir(), `dsa-md-${id}-${timestamp}`);
+  const tmpDir    = path.join(os.tmpdir(), `cj-${id}-${lang}-${timestamp}`);
   fs.mkdirSync(tmpDir, { recursive: true });
 
-  // ── Helper: update progress + respond ──────────────────────────────────────
-  function finalizeResult(parsedParts, timedOut, compilationResult) {
-    const allPassed = parsedParts.every(p => p.all_passed);
+  const startTime = Date.now();
+
+  // ── Shared: update progress after run ───────────────────────────────────────
+  function updateProgressAfterRun(allPassed, timedOut) {
     const freshProgress = loadProgress();
     const freshEntry    = freshProgress.problems[id] || {};
     ensurePartsInitialized(freshEntry, totalParts);
-
     if (allPassed && !timedOut) {
       freshEntry.parts[String(part)] = {
         status:        'passed',
@@ -720,86 +1031,55 @@ app.post('/api/problems/:id/submit', (req, res) => {
         carry_forward: freshEntry.parts[String(part)]?.carry_forward ?? null,
       };
       if (part < totalParts) {
-        const nextKey = String(part + 1);
-        if ((freshEntry.parts[nextKey] || {}).status === 'locked') {
+        const nextKey  = String(part + 1);
+        const nextProg = freshEntry.parts[nextKey];
+        if (!nextProg || nextProg.status === 'locked') {
           freshEntry.parts[nextKey] = { status: 'active', passed_at: null, carry_forward: null };
         }
       }
       if (part === totalParts) freshEntry.completed_at = new Date().toISOString();
       logActivity(freshProgress, 'passed_part');
     }
-
     freshProgress.problems[id] = freshEntry;
     saveProgress(freshProgress);
+  }
 
+  // Common reply shape for compile / runtime failures.
+  const reply = (compilationOk, errors, parsedParts, timedOut) => {
+    const allPassed = compilationOk && parsedParts.every(p => p.all_passed) && !timedOut;
+    updateProgressAfterRun(allPassed, timedOut);
     res.json({
-      success:            allPassed && !timedOut,
-      submitted_part:     part,
-      lang,
-      compilation:        compilationResult,
-      parts:              parsedParts,
-      unlocked_next_part: allPassed && !timedOut && part < totalParts,
-      timed_out:          timedOut || false,
-      time_ms:            Date.now() - startTime,
-      runner_available:   true,
+      success: allPassed,
+      submitted_part: part,
+      compilation: { success: compilationOk, errors },
+      parts: parsedParts,
+      unlocked_next_part: allPassed && part < totalParts,
+      timed_out: timedOut || false,
+      time_ms: Date.now() - startTime,
+      runner_available: true,
+    });
+  };
+
+  // Spec-driven path — used when problem has spec.yaml + tests/cases/.
+  const problemAbsDir = path.join(REPO_ROOT, problem.path);
+  const hasSpec = fs.existsSync(path.join(problemAbsDir, 'spec.yaml'))
+              && fs.existsSync(path.join(problemAbsDir, 'tests', 'cases'));
+
+  if (hasSpec) {
+    runSpecDrivenSubmit({ lang, problem, problemAbsDir, partDefs, part, code, tmpDir, reply });
+    return;
+  }
+
+  if (lang === 'python' || lang === 'javascript') {
+    return res.status(400).json({
+      error: `Problem ${id} has no spec.yaml. ${lang} is only supported for spec-driven problems.`,
     });
   }
 
-  if (lang === 'go') {
-    // ── Go pipeline ────────────────────────────────────────────────────────
-    fs.writeFileSync(path.join(tmpDir, 'go.mod'), `module solution\n\ngo 1.21\n`, 'utf8');
-    fs.writeFileSync(path.join(tmpDir, 'solution.go'), code, 'utf8');
-
-    // Copy test runner files
-    for (let i = 1; i <= part; i++) {
-      const cppTestFile = partDefs[i - 1].test_file;                   // part1_test.cpp
-      const goRunnerFile = cppTestFile.replace('_test.cpp', '_runner.go'); // part1_runner.go
-      const src = path.join(REPO_ROOT, problem.path, 'tests', 'go', goRunnerFile);
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, path.join(tmpDir, goRunnerFile));
-      }
-    }
-
-    // Generate main.go driver
-    const partFuncs = partDefs.slice(0, part).map((_, i) => `part${i + 1}Tests`);
-    const mainGo = `package main
-
-func main() {
-\ttotalFailures := 0
-\t${partFuncs.map(fn => `totalFailures += ${fn}()`).join('\n\t')}
-\t_ = totalFailures
-}
-`;
-    fs.writeFileSync(path.join(tmpDir, 'main.go'), mainGo, 'utf8');
-
-    const outBin    = path.join(tmpDir, os.platform() === 'win32' ? 'runner.exe' : 'runner');
-    const buildCmd  = `go build -o "${outBin}" . 2>&1`;
-
-    exec(buildCmd, { timeout: 30000, cwd: tmpDir }, (buildErr, buildOut) => {
-      if (buildErr) {
-        cleanup(tmpDir);
-        return res.json({
-          success: false,
-          submitted_part: part,
-          lang,
-          compilation: { success: false, errors: buildOut || buildErr.message },
-          parts: [],
-          time_ms: Date.now() - startTime,
-          runner_available: true,
-        });
-      }
-
-      exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout) => {
-        cleanup(tmpDir);
-        const parsedParts = parseTestOutput(stdout || '', partDefs.slice(0, part));
-        const timedOut    = runErr && runErr.killed;
-        finalizeResult(parsedParts, timedOut, { success: true, errors: null });
-      });
-    });
-
-  } else {
-    // ── C++ pipeline ───────────────────────────────────────────────────────
-    fs.writeFileSync(path.join(tmpDir, 'solution.cpp'), code, 'utf8');
+  if (!isJava) {
+    // ── C++ pipeline ─────────────────────────────────────────────────────────
+    const solutionFile = path.join(tmpDir, 'solution.cpp');
+    fs.writeFileSync(solutionFile, code, 'utf8');
 
     let combined = '#include "solution.cpp"\n\n';
     for (let i = 1; i <= part; i++) {
@@ -807,20 +1087,14 @@ func main() {
       const src      = path.join(REPO_ROOT, problem.path, 'tests', 'cpp', testFile);
       if (fs.existsSync(src)) {
         let content = fs.readFileSync(src, 'utf8');
-        content = content.replace(/^\s*#include\s+"solution\.cpp"\s*$/m, '// (included above)');
+        content = content.replace(/^\s*#include\s+"(?:\.\.\/)*solution\.cpp"\s*$/m, '// (included above)');
+        content = content.replace(/^\s*int\s+main\s*\(\s*\)\s*\{[\s\S]*?\bpart\d+_tests\s*\([^)]*\)[\s\S]*?\}\s*$/m, '// (standalone main stripped by harness)');
         combined += `// --- ${testFile} ---\n${content}\n\n`;
       }
     }
-
     const partNames = partDefs.slice(0, part).map((_, i) => `part${i + 1}_tests`);
-    combined += `
-// --- generated main ---
-int main() {
-  int total_failures = 0;
-  ${partNames.map(fn => `total_failures += ${fn}();`).join('\n  ')}
-  return total_failures > 0 ? 1 : 0;
-}
-`;
+    combined += `\n// --- generated main ---\nint main() {\n  int total_failures = 0;\n  ${partNames.map(fn => `total_failures += ${fn}();`).join('\n  ')}\n  return total_failures > 0 ? 1 : 0;\n}\n`;
+
     const combinedFile = path.join(tmpDir, 'combined.cpp');
     fs.writeFileSync(combinedFile, combined, 'utf8');
 
@@ -831,21 +1105,85 @@ int main() {
       if (compileErr) {
         cleanup(tmpDir);
         return res.json({
-          success: false,
-          submitted_part: part,
-          lang,
+          success: false, submitted_part: part,
           compilation: { success: false, errors: compileOut || compileErr.message },
-          parts: [],
-          time_ms: Date.now() - startTime,
-          runner_available: true,
+          parts: [], time_ms: Date.now() - startTime, runner_available: true,
         });
       }
-
       exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout) => {
         cleanup(tmpDir);
         const parsedParts = parseTestOutput(stdout || '', partDefs.slice(0, part));
+        const allPassed   = parsedParts.every(p => p.all_passed);
         const timedOut    = runErr && runErr.killed;
-        finalizeResult(parsedParts, timedOut, { success: true, errors: null });
+        updateProgressAfterRun(allPassed, timedOut);
+        res.json({
+          success: allPassed && !timedOut, submitted_part: part,
+          compilation: { success: true, errors: null },
+          parts: parsedParts,
+          unlocked_next_part: allPassed && !timedOut && part < totalParts,
+          timed_out: timedOut || false,
+          time_ms: Date.now() - startTime, runner_available: true,
+        });
+      });
+    });
+
+  } else {
+    // ── Java pipeline ─────────────────────────────────────────────────────────
+    // Write user's solution
+    fs.writeFileSync(path.join(tmpDir, 'Solution.java'), code, 'utf8');
+
+    // Copy test files
+    for (let i = 1; i <= part; i++) {
+      const testFileName = partDefs[i - 1].java_test_file;
+      const src = path.join(REPO_ROOT, problem.path, 'tests', 'java', testFileName);
+      if (fs.existsSync(src)) {
+        fs.copyFileSync(src, path.join(tmpDir, testFileName));
+      }
+    }
+
+    // Generate Main.java driver
+    const testClasses = partDefs.slice(0, part).map((_, i) => `Part${i + 1}Test`);
+    const mainJava = [
+      'public class Main {',
+      '    public static void main(String[] args) {',
+      '        int failures = 0;',
+      ...testClasses.map(cls => `        failures += ${cls}.runTests();`),
+      '        System.exit(failures > 0 ? 1 : 0);',
+      '    }',
+      '}',
+    ].join('\n');
+    fs.writeFileSync(path.join(tmpDir, 'Main.java'), mainJava, 'utf8');
+
+    // List all .java files explicitly (no shell glob needed)
+    const javaFiles = fs.readdirSync(tmpDir)
+      .filter(f => f.endsWith('.java'))
+      .map(f => `"${path.join(tmpDir, f)}"`)
+      .join(' ');
+    const compileCmd = `javac -cp "${tmpDir}" ${javaFiles} 2>&1`;
+
+    exec(compileCmd, { timeout: 20000, cwd: tmpDir }, (compileErr, compileOut) => {
+      if (compileErr) {
+        cleanup(tmpDir);
+        return res.json({
+          success: false, submitted_part: part,
+          compilation: { success: false, errors: compileOut || compileErr.message },
+          parts: [], time_ms: Date.now() - startTime, runner_available: true,
+        });
+      }
+      exec(`java -cp "${tmpDir}" Main`, { timeout: 10000, cwd: tmpDir }, (runErr, stdout) => {
+        cleanup(tmpDir);
+        const parsedParts = parseTestOutput(stdout || '', partDefs.slice(0, part));
+        const allPassed   = parsedParts.every(p => p.all_passed);
+        const timedOut    = runErr && runErr.killed;
+        updateProgressAfterRun(allPassed, timedOut);
+        res.json({
+          success: allPassed && !timedOut, submitted_part: part,
+          compilation: { success: true, errors: null },
+          parts: parsedParts,
+          unlocked_next_part: allPassed && !timedOut && part < totalParts,
+          timed_out: timedOut || false,
+          time_ms: Date.now() - startTime, runner_available: true,
+        });
       });
     });
   }
@@ -853,6 +1191,152 @@ int main() {
 
 function cleanup(dir) {
   try { fs.rmSync(dir, { recursive: true, force: true }); } catch (_) {}
+}
+
+// Spec-driven submission — used when problem has spec.yaml + tests/cases/.
+// Each language's runner reads the YAML at runtime (Python, Java) or via codegen (C++)
+// and emits PASS/FAIL/PART<N>_SUMMARY lines that parseTestOutput consumes unchanged.
+function runSpecDrivenSubmit({ lang, problem, problemAbsDir, partDefs, part, code, tmpDir, reply }) {
+  // Stage spec + cases for the runner to find.
+  fs.copyFileSync(path.join(problemAbsDir, 'spec.yaml'), path.join(tmpDir, 'spec.yaml'));
+  const casesDst = path.join(tmpDir, 'tests', 'cases');
+  fs.mkdirSync(casesDst, { recursive: true });
+  for (const f of fs.readdirSync(path.join(problemAbsDir, 'tests', 'cases'))) {
+    if (f.endsWith('.yaml')) fs.copyFileSync(path.join(problemAbsDir, 'tests', 'cases', f), path.join(casesDst, f));
+  }
+
+  const t0 = Date.now();
+  const driveParts = (compileFn, runFn) => {
+    compileFn((compileErr, compileOut) => {
+      if (compileErr) {
+        cleanup(tmpDir);
+        return reply(false, compileOut || compileErr.message, [], false);
+      }
+      // Run each part 1..N sequentially; collect output and parse.
+      let allOut = '';
+      let timedOut = false;
+      const next = (i) => {
+        if (i > part) {
+          cleanup(tmpDir);
+          return reply(true, null, parseTestOutput(allOut, partDefs.slice(0, part)), timedOut);
+        }
+        runFn(i, (runErr, stdout) => {
+          allOut += '\n' + (stdout || '');
+          if (runErr && runErr.killed) timedOut = true;
+          next(i + 1);
+        });
+      };
+      next(1);
+    });
+  };
+
+  if (lang === 'python') {
+    fs.writeFileSync(path.join(tmpDir, 'solution.py'), code, 'utf8');
+    fs.copyFileSync(path.join(HARNESS_DIR, 'python', 'runner.py'), path.join(tmpDir, 'runner.py'));
+    driveParts(
+      (cb) => cb(null, ''),  // no compile step
+      (i, cb) => exec(`${PYTHON_CMD} "${path.join(tmpDir, 'runner.py')}" --problem-dir "${tmpDir}" --part ${i}`, { timeout: 10000, cwd: tmpDir }, cb),
+    );
+    return;
+  }
+
+  if (lang === 'javascript') {
+    fs.writeFileSync(path.join(tmpDir, 'solution.js'), code, 'utf8');
+    fs.copyFileSync(path.join(HARNESS_DIR, 'javascript', 'runner.js'), path.join(tmpDir, 'runner.js'));
+    // The runner depends on js-yaml; point NODE_PATH at the dashboard's
+    // node_modules so the temp-dir copy resolves it (no per-problem install).
+    const runEnv = { ...process.env, NODE_PATH: path.join(__dirname, 'node_modules') };
+    driveParts(
+      (cb) => cb(null, ''),  // interpreted — no compile step
+      (i, cb) => exec(`node "${path.join(tmpDir, 'runner.js')}" --problem-dir "${tmpDir}" --part ${i}`, { timeout: 10000, cwd: tmpDir, env: runEnv }, cb),
+    );
+    return;
+  }
+
+  if (lang === 'java') {
+    fs.writeFileSync(path.join(tmpDir, 'Solution.java'), code, 'utf8');
+    fs.copyFileSync(path.join(HARNESS_DIR, 'java', 'Runner.java'), path.join(tmpDir, 'Runner.java'));
+    // path.delimiter is ';' on Windows, ':' on macOS/Linux — never hardcode.
+    const cp = `${tmpDir}${path.delimiter}${SNAKEYAML_JAR}`;
+    driveParts(
+      (cb) => exec(`javac -cp "${cp}" "${path.join(tmpDir, 'Solution.java')}" "${path.join(tmpDir, 'Runner.java')}" 2>&1`, { timeout: 20000, cwd: tmpDir }, cb),
+      (i, cb) => exec(`java -cp "${cp}" Runner --problem-dir "${tmpDir}" --part ${i}`, { timeout: 10000, cwd: tmpDir }, cb),
+    );
+    return;
+  }
+
+  if (lang === 'cpp') {
+    fs.writeFileSync(path.join(tmpDir, 'solution.cpp'), code, 'utf8');
+    // Codegen one runner per part, compile each, run.
+    const codegen = path.join(HARNESS_DIR, 'cpp', 'codegen.py');
+    let compileErrs = '';
+    const compileAll = (cb) => {
+      const compileOne = (i) => {
+        if (i > part) return cb(null, '');
+        const runnerSrc = path.join(tmpDir, `runner${i}.cpp`);
+        exec(`${PYTHON_CMD} "${codegen}" "${problemAbsDir}" ${i} > "${runnerSrc}"`, { timeout: 5000 }, (cgErr) => {
+          if (cgErr) return cb(cgErr, `codegen failed for part ${i}: ${cgErr.message}`);
+          const outBin = path.join(tmpDir, os.platform() === 'win32' ? `r${i}.exe` : `r${i}`);
+          exec(`g++ -std=c++17 -DRUNNING_TESTS -o "${outBin}" "${runnerSrc}" 2>&1`, { timeout: 15000, cwd: tmpDir }, (err, out) => {
+            if (err) { compileErrs += out || err.message; return cb(err, compileErrs); }
+            compileOne(i + 1);
+          });
+        });
+      };
+      compileOne(1);
+    };
+    driveParts(
+      compileAll,
+      (i, cb) => {
+        const outBin = path.join(tmpDir, os.platform() === 'win32' ? `r${i}.exe` : `r${i}`);
+        exec(`"${outBin}"`, { timeout: 10000, cwd: tmpDir }, cb);
+      },
+    );
+    return;
+  }
+
+  if (lang === 'go') {
+    // Go is compiled and has one main() per directory, so each part gets its
+    // own subdir (goN/) holding solution.go + a generated runner.go + a minimal
+    // go.mod, then `go run .` offline (stdlib-only, no module downloads).
+    const codegen = path.join(HARNESS_DIR, 'go', 'codegen.py');
+    const partDir = (i) => path.join(tmpDir, `go${i}`);
+    let compileErrs = '';
+    const stageAll = (cb) => {
+      const stageOne = (i) => {
+        if (i > part) return cb(null, '');
+        const d = partDir(i);
+        try {
+          fs.mkdirSync(d, { recursive: true });
+          fs.writeFileSync(path.join(d, 'solution.go'), code, 'utf8');
+          fs.writeFileSync(path.join(d, 'go.mod'), 'module cjrun\n\ngo 1.21\n', 'utf8');
+        } catch (e) { return cb(e, `staging failed for part ${i}: ${e.message}`); }
+        const runnerSrc = path.join(d, 'runner.go');
+        exec(`${PYTHON_CMD} "${codegen}" "${problemAbsDir}" ${i} > "${runnerSrc}"`, { timeout: 5000 }, (cgErr) => {
+          if (cgErr) return cb(cgErr, `codegen failed for part ${i}: ${cgErr.message}`);
+          stageOne(i + 1);
+        });
+      };
+      stageOne(1);
+    };
+    const goEnv = { ...process.env, GOPROXY: 'off', GOFLAGS: '-mod=mod', CGO_ENABLED: '0' };
+    driveParts(
+      // `go run` compiles + runs in one step; compile errors surface at run time
+      // per-part, so there's no separate compile pass. We still validate that
+      // the build for part `part` is sane by letting run-time report it.
+      (cb) => stageAll(cb),
+      (i, cb) => exec('go run .', { timeout: 30000, cwd: partDir(i), env: goEnv }, (err, stdout, stderr) => {
+        // A build failure yields no PART summary; surface stderr so the user
+        // sees the compile error (parseTestOutput treats missing parts as 0/0).
+        if (err && !(stdout || '').includes('PART')) {
+          compileErrs += stderr || err.message;
+          return cb(null, `BUILD ERROR (part ${i}):\n${stderr || err.message}`);
+        }
+        cb(null, stdout);
+      }),
+    );
+    return;
+  }
 }
 
 function parseTestOutput(stdout, partDefs) {
@@ -929,7 +1413,7 @@ app.post('/api/problems/:id/parts/:part/carry-forward', (req, res) => {
 // ── POST /api/problems/:id/parts/:part/skip ← NEW ────────────────────────────
 
 app.post('/api/problems/:id/parts/:part/skip', (req, res) => {
-  if (testRunnerAvailable) {
+  if (runnerAvailable.cpp) {
     return res.status(403).json({ error: 'Skip is only available when g++ is not installed.' });
   }
 
@@ -1017,6 +1501,44 @@ app.get('/api/problems/:id/ai-prompt', (req, res) => {
   }
   const markdown = fs.readFileSync(filePath, 'utf8');
   res.json({ markdown });
+});
+
+// ── GET /api/problems/:id/editorial ──────────────────────────────────────────
+
+app.get('/api/problems/:id/editorial', (req, res) => {
+  const { id } = req.params;
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const filePath = path.join(REPO_ROOT, problem.path, 'EDITORIAL.md');
+  if (!fs.existsSync(filePath)) return res.json({ available: false, html: null });
+
+  const html = renderMarkdown(filePath);
+  res.json({ available: true, html });
+});
+
+// ── GET /api/problems/:id/solution ────────────────────────────────────────────
+
+app.get('/api/problems/:id/solution', (req, res) => {
+  const { id } = req.params;
+  const { lang = 'cpp' } = req.query;
+  const problems = loadProblems();
+  const problem  = problems.find(p => p.id === id);
+  if (!problem) return res.status(404).json({ error: `Problem ${id} not found` });
+
+  const ext = LANGS[lang] ? LANGS[lang].ext : 'cpp';
+  const filename = `solution.${ext}`;
+  const filePath = path.join(REPO_ROOT, problem.path, filename);
+  if (!fs.existsSync(filePath)) return res.json({ available: false, code: null, html: null });
+
+  const code = fs.readFileSync(filePath, 'utf8');
+  const langTag = lang === 'python' ? 'python'
+    : lang === 'java' ? 'java'
+    : lang === 'javascript' ? 'javascript'
+    : 'cpp';
+  const html = marked('```' + langTag + '\n' + code + '\n```');
+  res.json({ available: true, code, html });
 });
 
 // ── GET /api/primers ──────────────────────────────────────────────────────────
@@ -1194,28 +1716,117 @@ app.post('/api/roadmap/check', (req, res) => {
   res.json({ key, checked: !!checked });
 });
 
+// ── Gamification (§9) ─────────────────────────────────────────────────────────
+
+// GET /api/gamification — token balance, content unlocks, drill stats.
+app.get('/api/gamification', (req, res) => {
+  const progress = loadProgress();
+  const g = ensureGamification(progress);
+  res.json({
+    hint_tokens:        g.hint_tokens,
+    unlocked_design:    g.unlocked_design,
+    unlocked_editorial: g.unlocked_editorial,
+    drill_stats:        g.drill_stats,
+  });
+});
+
+// POST /api/gamification/spend — spend 1 token to unlock design/editorial content.
+// Server-authoritative: rejects if balance < 1. Idempotent if already unlocked.
+app.post('/api/gamification/spend', (req, res) => {
+  const { kind, problemId } = req.body || {};
+  if (!['design', 'editorial'].includes(kind)) {
+    return res.status(400).json({ error: "kind must be 'design' or 'editorial'" });
+  }
+  if (typeof problemId !== 'string' || !problemId) {
+    return res.status(400).json({ error: 'problemId is required' });
+  }
+  const progress = loadProgress();
+  const g = ensureGamification(progress);
+  const list = kind === 'design' ? g.unlocked_design : g.unlocked_editorial;
+
+  // Already unlocked → no charge, just confirm.
+  if (list.includes(problemId)) {
+    return res.json({ ok: true, already: true, hint_tokens: g.hint_tokens, kind, problemId });
+  }
+  if (g.hint_tokens < 1) {
+    return res.status(402).json({ error: 'Not enough hint tokens', hint_tokens: g.hint_tokens });
+  }
+  g.hint_tokens -= 1;
+  list.push(problemId);
+  saveProgress(progress);
+  res.json({ ok: true, hint_tokens: g.hint_tokens, kind, problemId });
+});
+
+// POST /api/gamification/drill-result — record a drill run; grant a token on a
+// 3-correct run. Body: { correct: bool, runStreak: int, runComplete: bool, earnedToken: bool }
+app.post('/api/gamification/drill-result', (req, res) => {
+  const { correct, runStreak, runComplete, earnedToken } = req.body || {};
+  const progress = loadProgress();
+  const g = ensureGamification(progress);
+
+  if (correct) g.drill_stats.total_correct = (g.drill_stats.total_correct || 0) + 1;
+  if (typeof runStreak === 'number') {
+    g.drill_stats.best_streak = Math.max(g.drill_stats.best_streak || 0, runStreak);
+  }
+  if (runComplete) g.drill_stats.runs = (g.drill_stats.runs || 0) + 1;
+  if (earnedToken) {
+    g.hint_tokens += 1;
+    g.drill_stats.tokens_earned = (g.drill_stats.tokens_earned || 0) + 1;
+    logActivity(progress, 'drill_token');
+  }
+  saveProgress(progress);
+  res.json({ ok: true, hint_tokens: g.hint_tokens, drill_stats: g.drill_stats });
+});
+
+// GET /api/drills — serve the authored pattern-recognition drill bank.
+let _drillsCache = null;
+app.get('/api/drills', (req, res) => {
+  if (_drillsCache) return res.json(_drillsCache);
+  const drillsPath = path.join(REPO_ROOT, 'docs', '_data', 'drills.yml');
+  try {
+    if (!fs.existsSync(drillsPath)) return res.json({ patterns: {} });
+    const raw = fs.readFileSync(drillsPath, 'utf8');
+    const parsed = yaml.load(raw) || {};
+    _drillsCache = { patterns: parsed };
+    res.json(_drillsCache);
+  } catch (e) {
+    console.error('Failed to load drills.yml:', e.message);
+    res.status(500).json({ error: 'Failed to load drills' });
+  }
+});
+
 // ── GET /api/runner-status ────────────────────────────────────────────────────
 
 app.get('/api/runner-status', (req, res) => {
   res.json({
-    available:     testRunnerAvailable,
-    cpp_available: testRunnerAvailable,
-    go_available:  goRunnerAvailable,
+    available: runnerAvailable.cpp,        // legacy field — kept for older clients
+    cpp:        runnerAvailable.cpp,
+    java:       runnerAvailable.java,
+    python:     runnerAvailable.python,
+    javascript: runnerAvailable.javascript,
+    go:         runnerAvailable.go,
   });
 });
 
 // ── Static frontend ───────────────────────────────────────────────────────────
 
-if (fs.existsSync(DIST_DIR)) {
-  app.use(express.static(DIST_DIR));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(DIST_DIR, 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.send('<h2>Frontend not built. Run <code>npm install</code> first.</h2>');
-  });
-}
+// Serve whatever static assets exist. The catch-all below re-checks index.html
+// on every request rather than only at startup: in `npm run dev`, vite runs
+// concurrently and creates dist/ (and dist/assets/) BEFORE it finishes writing
+// index.html, so a startup-only guard would lock in a route that then throws
+// ENOENT on sendFile until the build lands. Checking per-request also recovers
+// from a partial/interrupted prior build (dist exists, index.html missing).
+const INDEX_HTML = path.join(DIST_DIR, 'index.html');
+
+app.use(express.static(DIST_DIR));
+app.get('*', (req, res) => {
+  if (fs.existsSync(INDEX_HTML)) {
+    return res.sendFile(INDEX_HTML);
+  }
+  res
+    .status(503)
+    .send('<h2>Frontend not built yet — the build may still be running. Refresh in a few seconds.</h2>');
+});
 
 // ── Start server ──────────────────────────────────────────────────────────────
 
@@ -1224,6 +1835,9 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 function startServer(port) {
   const server = app.listen(port, () => {
     console.log(`Dashboard running at http://localhost:${port}`);
+    if (process.env.PROGRESS_JSON_PATH) {
+      console.log(`📝 Using progress file: ${PROGRESS_JSON}`);
+    }
     import('open').then(({ default: open }) => {
       open(`http://localhost:${port}`);
     }).catch(() => {});

@@ -1,0 +1,24 @@
+problem_id: "015-bookmyshow"
+
+types:
+  ShowOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: s3,   type: string, default: "" }
+      - { name: s4,   type: string, default: "" }
+      - { name: i1,   type: int,    default: 0 }
+      - { name: i2,   type: int,    default: 0 }
+      - { name: i3,   type: int,    default: 0 }
+
+functions:
+  - name: show_simulate
+    params:
+      - { name: ops, type: "list<ShowOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Theater/show/booking management",   functions: [show_simulate] }
+  2: { name: "Seat locking with TTL",              functions: [show_simulate] }
+  3: { name: "Contiguous seat search (sliding)",   functions: [show_simulate] }

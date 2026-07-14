@@ -1,110 +1,47 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <queue>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model ─────────────────────────────────────────────────────────────
 
-struct Request {
-    string clientId;
-    long timestamp;
-    string endpoint;
-};
+// Data class (given).
 
-enum class UserTier { FREE, PRO, ENTERPRISE };
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-// ─── Strategy Interface ─────────────────────────────────────────────────────
-
-class RateLimiter {
-public:
-    virtual bool allowRequest(const Request& req) = 0;
-    virtual int getRequestCount(const string& clientId) = 0;
-    virtual ~RateLimiter() = default;
-};
-
-// ─── All Algorithms (complete from Parts 1-2) ───────────────────────────────
-
-class FixedWindowLimiter : public RateLimiter {
-    int maxRequests; int windowSizeSeconds;
-    unordered_map<string, int> requestCounts;
-    unordered_map<string, long> windowStarts;
-    long getWindowStart(long ts) { return (ts / windowSizeSeconds) * windowSizeSeconds; }
-public:
-    FixedWindowLimiter(int maxReq, int ws) : maxRequests(maxReq), windowSizeSeconds(ws) {}
-    bool allowRequest(const Request& req) override {
-        long ws = getWindowStart(req.timestamp);
-        if (windowStarts[req.clientId] != ws) { windowStarts[req.clientId] = ws; requestCounts[req.clientId] = 0; }
-        if (requestCounts[req.clientId] >= maxRequests) return false;
-        requestCounts[req.clientId]++; return true;
-    }
-    int getRequestCount(const string& cid) override { return requestCounts.count(cid) ? requestCounts[cid] : 0; }
-};
-
-class SlidingWindowLimiter : public RateLimiter {
-    int maxRequests; int windowSizeSeconds;
-    unordered_map<string, queue<long>> requestQueues;
-public:
-    SlidingWindowLimiter(int maxReq, int ws) : maxRequests(maxReq), windowSizeSeconds(ws) {}
-    bool allowRequest(const Request& req) override {
-        auto& q = requestQueues[req.clientId];
-        while (!q.empty() && q.front() <= req.timestamp - windowSizeSeconds) q.pop();
-        if ((int)q.size() >= maxRequests) return false;
-        q.push(req.timestamp); return true;
-    }
-    int getRequestCount(const string& cid) override { return requestQueues.count(cid) ? (int)requestQueues[cid].size() : 0; }
-};
-
-class TokenBucketLimiter : public RateLimiter {
-    int maxTokens; double refillRate;
-    unordered_map<string, double> tokens;
-    unordered_map<string, long> lastRefill;
-public:
-    TokenBucketLimiter(int maxTok, int ws) : maxTokens(maxTok), refillRate((double)maxTok / ws) {}
-    bool allowRequest(const Request& req) override {
-        if (tokens.find(req.clientId) == tokens.end()) { tokens[req.clientId] = maxTokens; lastRefill[req.clientId] = req.timestamp; }
-        long elapsed = req.timestamp - lastRefill[req.clientId];
-        tokens[req.clientId] = min((double)maxTokens, tokens[req.clientId] + elapsed * refillRate);
-        lastRefill[req.clientId] = req.timestamp;
-        if (tokens[req.clientId] < 1.0) return false;
-        tokens[req.clientId] -= 1.0; return true;
-    }
-    int getRequestCount(const string& cid) override { return tokens.find(cid) == tokens.end() ? 0 : maxTokens - (int)tokens[cid]; }
-};
-
-// ─── Factory ────────────────────────────────────────────────────────────────
-
-RateLimiter* create_limiter(const string& algo, int maxReq, int ws) {
-    if (algo == "fixed-window") return new FixedWindowLimiter(maxReq, ws);
-    if (algo == "sliding-window") return new SlidingWindowLimiter(maxReq, ws);
-    if (algo == "token-bucket") return new TokenBucketLimiter(maxReq, ws);
-    return nullptr;
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
 }
 
-// ─── Global Entry Points (Parts 1-2) ────────────────────────────────────────
-
-static FixedWindowLimiter* g_limiter = nullptr;
-static unordered_map<string, RateLimiter*> g_strategyLimiters;
-
-void init_limiter(int maxRequests, int windowSize) { delete g_limiter; g_limiter = new FixedWindowLimiter(maxRequests, windowSize); }
-bool allow_request(const Request& req) { return g_limiter ? g_limiter->allowRequest(req) : false; }
-int get_request_count(const string& cid) { return g_limiter ? g_limiter->getRequestCount(cid) : 0; }
-bool allow_request_with_strategy(const string& algo, const Request& req) {
-    if (g_strategyLimiters.find(algo) == g_strategyLimiters.end()) g_strategyLimiters[algo] = create_limiter(algo, 100, 60);
-    return g_strategyLimiters[algo]->allowRequest(req);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void init_limiter(int maxRequests, int windowSize) {
+    // TODO: write your solution
+    // nothing to return
 }
 
-// ─── Tier-Based Factory ─────────────────────────────────────────────────────
-// TODO: Implement a tier-based factory that creates limiters with the right limits
-// HINT: Map each tier to its request limit, then use create_limiter()
-//
-//   FREE       -> 10 requests per 60 seconds
-//   PRO        -> 100 requests per 60 seconds
-//   ENTERPRISE -> 1000 requests per 60 seconds
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool allow_request_simple(string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}
 
-// TODO: Implement allow_request_for_tier()
-// HINT: You'll need a map of tier -> RateLimiter* to persist state across calls
-// bool allow_request_for_tier(UserTier tier, const Request& req);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int get_request_count(string clientId) {
+    // TODO: write your solution
+    return {};
+}
 
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool allow_request_with_strategy_simple(string algorithm, string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool allow_request_for_tier_str(string tier, string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}

@@ -1,0 +1,35 @@
+- name: easy_refund_preferred
+  comment: "Refund-eligible methods come first when preferred"
+  call: rank_with_refund_filter
+  args:
+    - - { name: "Card A", cashbackRate: 0.10, transactionFee: 5.0, usageCount: 300, easyRefundEligible: false }
+      - { name: "Card B", cashbackRate: 0.02, transactionFee: 2.0, usageCount: 500, easyRefundEligible: true  }
+      - { name: "Card C", cashbackRate: 0.05, transactionFee: 3.0, usageCount: 400, easyRefundEligible: true  }
+    - true
+  expect_size: 3
+  expect_field: easyRefundEligible
+  expect: [true, true, false]
+  also:
+    - { index: 2, field: name, equals: "Card A" }
+
+- name: refund_filter_disabled
+  comment: "preferEasyRefund=false keeps cashback ordering"
+  call: rank_with_refund_filter
+  args:
+    - - { name: "Card A", cashbackRate: 0.10, transactionFee: 5.0, usageCount: 300, easyRefundEligible: false }
+      - { name: "Card B", cashbackRate: 0.02, transactionFee: 2.0, usageCount: 500, easyRefundEligible: true  }
+    - false
+  expect_size: 2
+  expect_field: name
+  expect: ["Card A", "Card B"]
+
+- name: all_refund_eligible_tiebreak
+  comment: "All refund-eligible: tiebreak by cashback"
+  call: rank_with_refund_filter
+  args:
+    - - { name: "Card A", cashbackRate: 0.10, transactionFee: 5.0, usageCount: 300, easyRefundEligible: true }
+      - { name: "Card B", cashbackRate: 0.02, transactionFee: 2.0, usageCount: 500, easyRefundEligible: true }
+    - true
+  expect_size: 2
+  expect_field: name
+  expect: ["Card A", "Card B"]

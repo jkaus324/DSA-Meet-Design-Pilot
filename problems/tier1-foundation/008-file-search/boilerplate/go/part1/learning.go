@@ -1,85 +1,53 @@
 package main
 
-import "strings"
+// Data class (given � do not modify).
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
-
-type FileNode struct {
-	Name        string
-	Size        int
-	Extension   string
-	IsDirectory bool
-	Children    []*FileNode
+func reset_service() {
+	// TODO: implement this
+	return
 }
 
-// ─── Search Criteria Interface ────────────────────────────────────────────────
-
-type SearchCriteria interface {
-	Matches(file *FileNode) bool
+func fs_build_default_tree() {
+	// TODO: implement this
+	return
 }
 
-// ─── Concrete Search Criteria ─────────────────────────────────────────────────
-// TODO: Implement the Matches() method for each criterion
-
-type SearchByExtensionCriteria struct {
-	Ext string
+func fs_build_empty_tree() {
+	// TODO: implement this
+	return
 }
 
-func (c *SearchByExtensionCriteria) Matches(file *FileNode) bool {
-	// TODO: return true if file (not directory) has the matching extension
+func fs_build_single_file_tree() {
+	// TODO: implement this
+	return
+}
+
+func fs_count_by_extension(ext string) int {
+	// TODO: implement this
+	return 0
+}
+
+func fs_has_by_extension(ext string, name string) bool {
+	// TODO: implement this
 	return false
 }
 
-type SearchByMinSizeCriteria struct {
-	MinSize int
+func fs_count_by_size(minSize int) int {
+	// TODO: implement this
+	return 0
 }
 
-func (c *SearchByMinSizeCriteria) Matches(file *FileNode) bool {
-	// TODO: return true if file (not directory) has size >= MinSize
+func fs_has_by_size(minSize int, name string) bool {
+	// TODO: implement this
 	return false
 }
 
-type SearchByNameCriteria struct {
-	Substring string
+func fs_count_by_name(sub string) int {
+	// TODO: implement this
+	return 0
 }
 
-func (c *SearchByNameCriteria) Matches(file *FileNode) bool {
-	// TODO: return true if file name contains Substring
-	_ = strings.Contains
+func fs_has_by_name(sub string, name string) bool {
+	// TODO: implement this
 	return false
-}
-
-// ─── Search Engine ────────────────────────────────────────────────────────────
-
-type FileSearchEngine struct{}
-
-func (e *FileSearchEngine) dfs(node *FileNode, criteria SearchCriteria, results *[]*FileNode) {
-	if node == nil {
-		return
-	}
-	// TODO: if node is a file and matches criteria, add to results
-	// TODO: recurse into all children
-}
-
-func (e *FileSearchEngine) Search(root *FileNode, criteria SearchCriteria) []*FileNode {
-	var results []*FileNode
-	e.dfs(root, criteria, &results)
-	return results
-}
-
-// ─── Test Entry Points ────────────────────────────────────────────────────────
-
-func SearchByExtension(root *FileNode, ext string) []*FileNode {
-	criteria := &SearchByExtensionCriteria{Ext: ext}
-	return (&FileSearchEngine{}).Search(root, criteria)
-}
-
-func SearchBySize(root *FileNode, minSize int) []*FileNode {
-	criteria := &SearchByMinSizeCriteria{MinSize: minSize}
-	return (&FileSearchEngine{}).Search(root, criteria)
-}
-
-func SearchByName(root *FileNode, substring string) []*FileNode {
-	criteria := &SearchByNameCriteria{Substring: substring}
-	return (&FileSearchEngine{}).Search(root, criteria)
 }

@@ -177,9 +177,75 @@ void add_observer(OrderObserver* obs) {
     manager.addObserver(obs);
 }
 
+extern void om_clear_observer();
+
 void reset_manager() {
     manager = OrderManager();
+    om_clear_observer();
 }
+
+// Spec-test wrappers
+void reset_service() { reset_manager(); }
+
+string get_order_state_str(const string& orderId) {
+    try {
+        OrderState s = manager.getOrderState(orderId);
+        switch (s) {
+            case OrderState::Created:   return "Created";
+            case OrderState::Confirmed: return "Confirmed";
+            case OrderState::Shipped:   return "Shipped";
+            case OrderState::Delivered: return "Delivered";
+            case OrderState::Cancelled: return "Cancelled";
+        }
+    } catch (...) {}
+    return "";
+}
+
+string create_order_simple(const string& productId, int quantity, double totalAmount) {
+    vector<OrderItem> items = {{productId, quantity}};
+    return create_order(items, totalAmount);
+}
+
+int get_history_size(const string& orderId) {
+    return (int)manager.getOrderHistory(orderId).size();
+}
+
+// Counting observer
+class CountingOrderObs : public OrderObserver {
+public:
+    int count = 0;
+    string lastOrderId;
+    string lastFrom, lastTo;
+    static string toName(OrderState s) {
+        switch (s) {
+            case OrderState::Created: return "Created";
+            case OrderState::Confirmed: return "Confirmed";
+            case OrderState::Shipped: return "Shipped";
+            case OrderState::Delivered: return "Delivered";
+            case OrderState::Cancelled: return "Cancelled";
+        }
+        return "";
+    }
+    void onStateChange(const string& orderId, OrderState from, OrderState to) override {
+        count++;
+        lastOrderId = orderId;
+        lastFrom = toName(from);
+        lastTo = toName(to);
+    }
+};
+static CountingOrderObs* g_om_obs = nullptr;
+
+void om_clear_observer() {
+    if (g_om_obs) { delete g_om_obs; g_om_obs = nullptr; }
+}
+
+void om_attach_observer() {
+    if (g_om_obs) { delete g_om_obs; g_om_obs = nullptr; }
+    g_om_obs = new CountingOrderObs();
+    manager.addObserver(g_om_obs);
+}
+int om_observer_count() { return g_om_obs ? g_om_obs->count : 0; }
+string om_observer_last_to() { return g_om_obs ? g_om_obs->lastTo : ""; }
 
 // ─── Main (test your implementation) ────────────────────────────────────────
 

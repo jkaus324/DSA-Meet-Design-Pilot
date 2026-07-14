@@ -1,0 +1,81 @@
+- name: deposit_notification
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_chan" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "chan_log_size" }
+  expect: ["ok", "ok", "ok", "CODE-1", "1"]
+
+- name: code_expiry
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "set_expiry", i1: 2 }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "check_expired", i1: 8201 }
+      - { kind: "expired_at", i2: 0 }
+  expect: ["ok", "ok", "ok", "CODE-1", "1", "pkg1"]
+
+- name: non_expired_code
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "set_expiry", i1: 2 }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "check_expired", i1: 4600 }
+      - { kind: "retrieve", i2: 0 }
+  expect: ["ok", "ok", "ok", "CODE-1", "0", "ok"]
+
+- name: expired_locker_reuse
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "set_expiry", i1: 1 }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "deposit", s1: "pkg2", s2: "S", i1: 1500, i2: 1 }
+      - { kind: "check_expired", i1: 5000 }
+      - { kind: "deposit", s1: "pkg3", s2: "S", i1: 5001, i2: 2 }
+  expect: ["ok", "ok", "ok", "CODE-1", "", "1", "CODE-2"]
+
+- name: expiry_notification
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_chan" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "set_expiry", i1: 1 }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "chan_log_size" }
+      - { kind: "check_expired", i1: 5000 }
+      - { kind: "chan_log_size" }
+  expect: ["ok", "ok", "ok", "ok", "CODE-1", "1", "1", "2"]
+
+- name: selective_expiry
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "add_locker", s1: "S2", s2: "S" }
+      - { kind: "set_expiry", i1: 2 }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "deposit", s1: "pkg2", s2: "S", i1: 5000, i2: 1 }
+      - { kind: "check_expired", i1: 8201 }
+      - { kind: "expired_at", i2: 0 }
+      - { kind: "retrieve", i2: 1 }
+      - { kind: "retrieve", i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "CODE-1", "CODE-2", "1", "pkg1", "ok", "fail"]
+
+- name: no_expiry_default
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i1: 1000, i2: 0 }
+      - { kind: "check_expired", i1: 999999999 }
+      - { kind: "retrieve", i2: 0 }
+  expect: ["ok", "ok", "CODE-1", "0", "ok"]

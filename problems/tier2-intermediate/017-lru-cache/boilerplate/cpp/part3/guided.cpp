@@ -1,93 +1,26 @@
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <string>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    long expiresAt;
-    Node* prev;
-    Node* next;
-    Node(int k, int v, long exp = 0)
-        : key(k), value(v), expiresAt(exp), prev(nullptr), next(nullptr) {}
+// Data class (given).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-enum class EvictionReason { CAPACITY, TTL_EXPIRED, EXPLICIT_DELETE };
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-// ─── Eviction Listener Interface ─────────────────────────────────────────────
-// HINT: Listeners are notified whenever an entry is evicted, regardless of reason.
-// They receive the key, value, and why the eviction happened.
-
-class EvictionListener {
-public:
-    virtual void onEviction(int key, int value, EvictionReason reason) = 0;
-    virtual ~EvictionListener() = default;
-};
-
-// ─── LRU Cache with Listeners ───────────────────────────────────────────────
-// HINT: Extend your Part 2 cache with a list of eviction listeners.
-
-class LRUCache {
-    // TODO: Your cache class should:
-    //   - Store a vector of listener pointers
-    //   - Call all listeners when evicting (capacity, TTL, explicit delete)
-    //   - Support addEvictionListener() and removeEvictionListener()
-
-    // HINT: When evicting a node, notify listeners BEFORE deleting the node
-    //       so they can read the key and value.
-
-    // HINT: To prevent re-entrancy issues, consider adding a boolean guard
-    //       that blocks cache modifications during listener notification.
-
-public:
-    LRUCache(int capacity) {
-        // TODO: Initialize
-    }
-
-    void put(int key, int value, long currentTime, int ttl = 0) {
-        // TODO: Implement
-    }
-
-    int get(int key, long currentTime) {
-        return -1;
-    }
-
-    bool deleteKey(int key) {
-        return false;
-    }
-
-    int size() {
-        return 0;
-    }
-
-    void addEvictionListener(EvictionListener* listener) {
-        // TODO: Add listener to the list
-    }
-
-    void removeEvictionListener(EvictionListener* listener) {
-        // TODO: Find and remove listener from the list
-        //       Use std::find + erase
-    }
-};
-
-// ─── Test Entry Points ───────────────────────────────────────────────────────
-//   LRUCache(int capacity);
-//   void put(int key, int value, long currentTime, int ttl = 0);
-//   int get(int key, long currentTime);
-//   bool deleteKey(int key);
-//   int size();
-//   void addEvictionListener(EvictionListener* listener);
-//   void removeEvictionListener(EvictionListener* listener);
-// ─────────────────────────────────────────────────────────────────────────────
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache Part 3 — implement the methods above." << endl;
-    return 0;
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-#endif
-

@@ -1,63 +1,26 @@
 #include <iostream>
-#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    Node* prev;
-    Node* next;
-    Node(int k, int v) : key(k), value(v), prev(nullptr), next(nullptr) {}
+// Data class (given).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-// ─── Cache Interface ─────────────────────────────────────────────────────────
-// HINT: You need two data structures working together:
-//   - One for O(1) key lookup
-//   - One for O(1) ordering (move-to-front, remove-from-tail)
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-class LRUCache {
-    // HINT: Store key → Node* mapping for O(1) lookup
-    // HINT: Use a doubly linked list for O(1) reordering
-    // HINT: Sentinel head/tail nodes eliminate null-pointer edge cases
-
-public:
-    // TODO: Constructor — initialize with capacity, set up sentinel nodes
-    LRUCache(int capacity) {
-        // TODO: Initialize
-    }
-
-    // TODO: get(key) — return value if found, -1 otherwise
-    //       HINT: On hit, move the node to the front (most recently used)
-    int get(int key) {
-        return -1;
-    }
-
-    // TODO: put(key, value) — insert or update
-    //       HINT: If key exists, update value and move to front
-    //       HINT: If at capacity, evict the node just before tail (least recently used)
-    //       HINT: Always add new nodes right after head
-    void put(int key, int value) {
-        // TODO: Implement
-    }
-
-    // HINT: Helper methods you'll need:
-    //   void addToFront(Node* node)  — insert right after head sentinel
-    //   void removeNode(Node* node)  — unlink from current position
-    //   void moveToFront(Node* node) — removeNode + addToFront
-};
-
-// ─── Test Entry Points ───────────────────────────────────────────────────────
-//   LRUCache(int capacity);
-//   int get(int key);
-//   void put(int key, int value);
-// ─────────────────────────────────────────────────────────────────────────────
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache — implement the methods above." << endl;
-    return 0;
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-#endif
-

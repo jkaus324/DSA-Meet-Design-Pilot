@@ -7,124 +7,64 @@
 
 ## Problem Statement
 
-Build a surge pricing engine for a ride-sharing platform. The system must:
+You are building a surge pricing engine for a ride-sharing platform. The engine computes a multiplier applied to base fares based on real-time supply, demand, time of day, and weather conditions. Multiple independent surge factors combine to produce a final multiplier. Downstream systems (driver apps, ops dashboards) must be notified when the multiplier changes significantly.
 
-1. Track supply (available drivers) and demand (active ride requests) in real-time
-2. Calculate a **surge multiplier** when demand exceeds supply
-3. Account for multiple surge factors: demand/supply ratio, time of day, and weather conditions
-4. Notify downstream systems when surge changes significantly
-
----
-
-## Before You Code
-
-**Two patterns working together:**
-- **Strategy**: The surge *calculation algorithm* is swappable — demand-based, weather-based, time-based factors can each be a separate strategy
-- **Observer**: When the surge multiplier changes significantly, notify multiple downstream systems (drivers, ops dashboard, pricing display)
-
-**The DSA angle:** Surge factors combine independently — the final multiplier is the max (or sum) of all active factors. Think about how to model this without a giant if-else chain.
+**Constraints:**
+- Surge multiplier is always >= 1.0
+- Final multiplier = max of all active factor multipliers
+- Surge change threshold for notifications: delta > 0.5x
+- Supported ride types: "economy", "premium", "pool"
 
 ---
 
-## Data Structures
+## Base Requirement — Multi-Factor Surge Calculation
 
-```cpp
-struct RideRequest {
-    string userId;
-    string pickup;
-    string dropoff;
-    string rideType;  // "economy", "premium", "pool"
-};
-
-struct Driver {
-    string id;
-    double rating;
-    string rideType;
-    bool   available;
-};
-
-struct PricingContext {
-    double baseFare;
-    int    availableDrivers;
-    int    activeRideRequests;
-    string timeOfDay;   // "morning", "evening", "night"
-    string weather;     // "clear", "rain", "storm"
-};
-```
-
----
-
-## Part 1
-
-**Base requirement — Surge calculation**
-
-Implement a surge pricing engine that computes a surge multiplier from multiple independent factors:
+Implement a `SurgePricingEngine` that computes a surge multiplier from multiple independent factors. Each factor is a separate strategy. The engine applies all registered strategies and returns the maximum multiplier.
 
 | Factor | Rule |
-|--------|------|
-| **Demand surge** | demand/supply ratio > 1.5 → 1.25x; > 2.0 → 1.5x; > 3.0 → 2.0x; no drivers → 2.5x |
-| **Weather surge** | storm → 2.0x; rain → 1.3x; clear → 1.0x |
-| **Time surge** | evening peak → 1.4x; morning peak → 1.2x; other → 1.0x |
+|---|---|
+| DemandSurge | ratio > 3.0 → 2.0x; ratio > 2.0 → 1.5x; ratio > 1.5 → 1.25x; no drivers → 2.5x |
+| WeatherSurge | storm → 2.0x; rain → 1.3x; clear → 1.0x |
+| TimeSurge | evening peak → 1.4x; morning peak → 1.2x; other → 1.0x |
 
-**Rule:** The final surge multiplier is the **maximum** of all active factors. Surge is always at least 1.0x.
-
-**Entry points (tests will call these):**
-```cpp
-double calculateSurge(const PricingContext& ctx);
-double calculateFare(const RideRequest& req, const PricingContext& ctx);
-// fare = ctx.baseFare * calculateSurge(ctx)
+**Example:**
+```
+ctx = {drivers=5, requests=12, weather="rain", timeOfDay="evening", baseFare=100.0}
+// DemandSurge: ratio=2.4 → 1.5x
+// WeatherSurge: rain → 1.3x
+// TimeSurge: evening → 1.4x
+// Final: max(1.5, 1.3, 1.4) = 1.5x
+calculateSurge(ctx)  →  1.5
+calculateFare(req, ctx)  →  150.0
 ```
 
-**What to implement:**
-```cpp
-class SurgeStrategy {
-public:
-    virtual double multiplier(const PricingContext& ctx) = 0;
-    virtual ~SurgeStrategy() = default;
-};
+**Public methods:**
+- `void addStrategy(SurgeStrategy* strategy)`
+- `double calculateSurge(const PricingContext& ctx)`
+- `double calculateFare(const RideRequest& req, const PricingContext& ctx)`
 
-class DemandSurge  : public SurgeStrategy { ... };
-class WeatherSurge : public SurgeStrategy { ... };
-class TimeSurge    : public SurgeStrategy { ... };
-
-class SurgePricingEngine {
-    vector<SurgeStrategy*> strategies;
-public:
-    void addStrategy(SurgeStrategy* s);
-    double calculateSurge(const PricingContext& ctx);
-};
-```
-
-Adding a new surge factor (e.g., "special event") must require **zero changes** to existing strategies.
+Adding a new surge factor (e.g., "special event") must require zero changes to existing strategy classes.
 
 ---
 
-## Part 2
+## Extension 1 — Surge Change Notifications
 
-**Extension 1 — Surge change notifications**
+Register observers that receive alerts when the surge multiplier changes by more than 0.5x compared to the previous calculation. Driver observers are filtered by ride type — an economy driver only receives notifications for economy surge changes.
 
-The ops team needs **real-time alerts** when surge multiplier changes significantly (by more than 0.5x):
+**Example:**
+```
+registerSurgeObserver(&opsObserver)
+registerSurgeObserver(&economyDriverObserver)  // filtered to rideType="economy"
 
-- **Drivers** should be notified when surge increases (encourages them to go online)
-- **Ops dashboard** receives all surge change events
-- Driver notifications are filtered by `rideType` — economy drivers only see economy surge changes
-
-**New entry points:**
-```cpp
-void registerSurgeObserver(SurgeObserver* obs);
-// calculateFare() now also triggers notifications when surge changes significantly
+// Previous surge: 1.0x
+calculateFare(economyReq, highDemandCtx)  →  200.0, surge=2.0x
+// delta = 1.0 > 0.5 threshold → both observers notified
+// opsObserver.onSurgeChange(1.0, 2.0, "economy")  called
+// economyDriverObserver.onSurgeChange(1.0, 2.0, "economy")  called
 ```
 
-**Observer interface:**
-```cpp
-class SurgeObserver {
-public:
-    virtual void onSurgeChange(double oldMult, double newMult,
-                               const string& rideType) = 0;
-};
-```
-
-**Design challenge:** How do you combine Strategy (surge calculation) with Observer (surge notifications) cleanly? Does the engine become the subject? Or is there a separate notifier?
+**Public method:**
+- `void registerSurgeObserver(SurgeObserver* obs)`
 
 ---
 

@@ -1,0 +1,18 @@
+problem_id: "018-twitter"
+
+types:
+  TwitterOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: i1,   type: int, default: 0 }
+      - { name: i2,   type: int, default: 0 }
+
+functions:
+  - name: twitter_simulate
+    params:
+      - { name: ops, type: "list<TwitterOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Core Twitter system",                 functions: [twitter_simulate] }
+  2: { name: "K-Way merge optimized news feed",     functions: [twitter_simulate] }

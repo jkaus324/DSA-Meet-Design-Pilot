@@ -1,0 +1,20 @@
+problem_id: "016-amazon-locker"
+
+types:
+  LockerOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: i1,   type: int,    default: 0 }
+      - { name: i2,   type: int,    default: 0 }
+
+functions:
+  - name: locker_simulate
+    params:
+      - { name: ops, type: "list<LockerOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Core locker allocation/deposit/retrieval", functions: [locker_simulate] }
+  2: { name: "Code expiry + notifications",               functions: [locker_simulate] }

@@ -1,0 +1,28 @@
+problem_id: "009-meeting-scheduler"
+
+# This problem is highly stateful (rooms, meetings, observers). To express tests
+# in a single function-call form, the solution exposes a `meeting_simulate`
+# free function that takes a list of Op records and returns one outcome string
+# per operation. Each YAML test = one simulator invocation.
+
+types:
+  Op:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: s3,   type: string, default: "" }
+      - { name: i1,   type: int,    default: 0 }
+      - { name: i2,   type: int,    default: 0 }
+      - { name: i3,   type: int,    default: 0 }
+
+functions:
+  - name: meeting_simulate
+    params:
+      - { name: ops, type: "list<Op>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Room booking + conflict detection", functions: [meeting_simulate] }
+  2: { name: "Allocation strategies",              functions: [meeting_simulate] }
+  3: { name: "Observer notifications",             functions: [meeting_simulate] }

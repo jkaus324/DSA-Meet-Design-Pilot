@@ -1,0 +1,48 @@
+import java.util.*;
+
+// Data class (given).
+class CartItem {
+    public String name;
+    public double price;
+    public int quantity;
+    public String category;
+
+    public CartItem(String name, double price, int quantity, String category) {
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+        this.category = category;
+    }
+
+    public CartItem(String name, double price, int quantity) {
+        this(name, price, quantity, "");
+    }
+}
+
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+public class Solution {
+    // HINT: pick the field that defines 'better' for this ranking and compare the two.
+    public static double apply_percentage_discount(List<CartItem> cart, double percentage) {
+        // TODO: write your solution
+        return 0.0;
+    }
+
+    // HINT: pick the field that defines 'better' for this ranking and compare the two.
+    public static double apply_flat_discount(List<CartItem> cart, double amount) {
+        // TODO: write your solution
+        return 0.0;
+    }
+
+    // HINT: pick the field that defines 'better' for this ranking and compare the two.
+    public static double apply_bogo(List<CartItem> cart, int buyCount, int freeCount) {
+        // TODO: write your solution
+        return 0.0;
+    }
+
+    // HINT: pick the field that defines 'better' for this ranking and compare the two.
+    public static double apply_percentage_with_eligibility(List<CartItem> cart, double percentage, double minCartValue, boolean requireFirstTimeUser, boolean isFirstTimeUser, String eligibleCategory) {
+        // TODO: write your solution
+        return 0.0;
+    }
+
+}

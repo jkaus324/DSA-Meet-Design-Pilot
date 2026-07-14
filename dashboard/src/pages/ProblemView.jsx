@@ -34,6 +34,19 @@ const KBD_STYLE = {
 const TABS_LEFT  = ['Description', 'Notes'];
 const TABS_RIGHT = ['Code', 'Design', 'AI Prompt'];
 
+// Language metadata — label shown on the toggle, tooltip, Monaco grammar id,
+// and the phrasing of the "runner missing" hint. `order` is the canonical
+// display order; the actual list shown per problem is problem.languages.
+const LANG_META = {
+  cpp:        { label: 'C++',  title: 'C++17',            monaco: 'cpp',        missing: 'g++ required — install g++ or use Skip' },
+  go:         { label: 'Go',   title: 'Go 1.21+',         monaco: 'go',         missing: 'go required — install Go or use Skip' },
+  java:       { label: 'Java', title: 'Java 17+',         monaco: 'java',       missing: 'javac required — install a JDK or use Skip' },
+  python:     { label: 'Py',   title: 'Python 3',         monaco: 'python',     missing: 'python3 required — install Python or use Skip' },
+  javascript: { label: 'JS',   title: 'JavaScript (Node)', monaco: 'javascript', missing: 'node required — install Node.js or use Skip' },
+};
+const LANG_ORDER = ['cpp', 'go', 'java', 'python', 'javascript'];
+const monacoLang = (l) => (LANG_META[l] && LANG_META[l].monaco) || 'plaintext';
+
 function canViewDesign(mode, parts) {
   if (mode === 'learning') return true;
   if (!parts || parts.length === 0) return false;
@@ -162,6 +175,9 @@ export default function ProblemView({ onProgressChange }) {
   const [parts,         setParts]         = useState([]);
   const [scenarioHtml,  setScenarioHtml]  = useState(null);
   const [runnerAvail,   setRunnerAvail]   = useState(true);
+  // Per-language runner availability from /api/runner-status. runnerAvail (above)
+  // is the derived flag for the currently-selected lang; see the effect below.
+  const [runnerByLang,  setRunnerByLang]  = useState(null);
   const [design,        setDesign]        = useState(null);
   const [aiPrompt,      setAiPrompt]      = useState(null);
   const [loading,       setLoading]       = useState(true);
@@ -277,9 +293,24 @@ export default function ProblemView({ onProgressChange }) {
     return api.getProblemParts(id).then(data => {
       setParts(data.parts || []);
       setScenarioHtml(data.scenario_html || null);
-      setRunnerAvail(data.runner_available !== false);
+      // Only trust the parts endpoint's cpp-specific flag until the
+      // per-language map arrives; the effect below refines runnerAvail per lang.
+      if (!runnerByLang) setRunnerAvail(data.runner_available !== false);
     });
-  }, [id]);
+  }, [id, runnerByLang]);
+
+  // Fetch per-language runner availability once.
+  useEffect(() => {
+    api.runnerStatus()
+      .then(s => setRunnerByLang(s || {}))
+      .catch(() => setRunnerByLang({}));
+  }, []);
+
+  // Derive runnerAvail for the selected language whenever it or the map changes.
+  useEffect(() => {
+    if (!runnerByLang) return;
+    setRunnerAvail(runnerByLang[lang] !== false);
+  }, [runnerByLang, lang]);
 
   useEffect(() => {
     setLoading(true);
@@ -385,7 +416,7 @@ export default function ProblemView({ onProgressChange }) {
     const currentPart = getCurrentPart(parts);
     setSubmitting(true);
     setSubmitResult(null);
-    setSubmitStatus(lang === 'go' ? 'Building...' : 'Compiling...');
+    setSubmitStatus(lang === 'python' || lang === 'javascript' ? 'Running...' : 'Compiling...');
     api.saveCode(id, mode, code, lang).catch(console.error);
     try {
       const result = await api.submitPart(id, currentPart, mode, code, lang);
@@ -528,7 +559,10 @@ export default function ProblemView({ onProgressChange }) {
 
   return (
     <>
-      <CodeJunctionPromo />
+      {/* key={id} remounts the promo on every problem, so it appears once
+          each time a new question is opened (dismissing hides it only for the
+          current question). */}
+      <CodeJunctionPromo key={id} />
 
       {carryDialog && (
         <CarryForwardDialog
@@ -756,11 +790,11 @@ export default function ProblemView({ onProgressChange }) {
               gap: 2,
             }}
           >
-            {['cpp', 'go'].map(l => (
+            {LANG_ORDER.filter(l => (problem.languages || ['cpp']).includes(l)).map(l => (
               <button
                 key={l}
                 onClick={() => handleLangChange(l)}
-                title={l === 'cpp' ? 'C++17' : 'Go 1.21+'}
+                title={(LANG_META[l] || {}).title || l}
                 style={{
                   padding: '2px 8px',
                   borderRadius: 6,
@@ -774,7 +808,7 @@ export default function ProblemView({ onProgressChange }) {
                   color: lang === l ? '#fff' : 'var(--color-text-tertiary)',
                 }}
               >
-                {l === 'cpp' ? 'C++' : 'Go'}
+                {(LANG_META[l] || {}).label || l}
               </button>
             ))}
           </div>
@@ -987,7 +1021,7 @@ export default function ProblemView({ onProgressChange }) {
                   <CodeEditor
                     value={code}
                     onChange={handleCodeChange}
-                    language={lang === 'go' ? 'go' : 'cpp'}
+                    language={monacoLang(lang)}
                     onSave={handleSaveCode}
                     onSubmit={handleSubmit}
                     onMount={(editor) => { editorRef.current = editor; }}
@@ -1072,7 +1106,7 @@ export default function ProblemView({ onProgressChange }) {
                             <button
                               onClick={handleSubmit}
                               disabled={submitting || !runnerAvail}
-                              title={!runnerAvail ? (lang === 'go' ? 'go required \u2014 install Go or use Skip' : 'g++ required \u2014 install g++ or use Skip') : ''}
+                              title={!runnerAvail ? ((LANG_META[lang] || {}).missing || 'runner required or use Skip') : ''}
                               className="flex-1 py-2.5 text-sm font-semibold rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               style={{
                                 background: submitting

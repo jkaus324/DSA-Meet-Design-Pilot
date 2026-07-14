@@ -1,0 +1,19 @@
+problem_id: "012-elevator-system"
+
+types:
+  ElevOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: i1,   type: int, default: 0 }
+      - { name: i2,   type: int, default: 0 }
+
+functions:
+  - name: elevator_simulate
+    params:
+      - { name: ops, type: "list<ElevOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Single elevator with SCAN ordering", functions: [elevator_simulate] }
+  2: { name: "Multiple elevators + dispatch",       functions: [elevator_simulate] }

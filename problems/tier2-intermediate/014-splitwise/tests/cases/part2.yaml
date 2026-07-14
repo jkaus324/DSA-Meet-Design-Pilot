@@ -1,0 +1,74 @@
+- name: equal_split_strategy
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_user", s1: "charlie" }
+      - { kind: "add_eq_strat", s1: "E1", s2: "alice", s3: "alice,bob,charlie", i1: 300 }
+      - { kind: "balance", s1: "bob",     s2: "alice" }
+      - { kind: "balance", s1: "charlie", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "100.00", "100.00"]
+
+- name: exact_split_strategy
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_user", s1: "charlie" }
+      - { kind: "add_exact", s1: "E1", s2: "alice", s3: "alice,bob,charlie", i1: 300, s4: "100,150,50" }
+      - { kind: "balance", s1: "bob",     s2: "alice" }
+      - { kind: "balance", s1: "charlie", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "150.00", "50.00"]
+
+- name: percent_split_strategy
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_user", s1: "charlie" }
+      - { kind: "add_pct", s1: "E1", s2: "alice", s3: "alice,bob,charlie", i1: 1000, s4: "50,30,20" }
+      - { kind: "balance", s1: "bob",     s2: "alice" }
+      - { kind: "balance", s1: "charlie", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "300.00", "200.00"]
+
+- name: exact_split_invalid_sum
+  call: splitwise_simulate
+  args:
+    - - { kind: "validate_exact", i1: 300, s3: "a,b,c", s4: "100,100,50" }
+  expect: ["no"]
+
+- name: percent_split_invalid_sum
+  call: splitwise_simulate
+  args:
+    - - { kind: "validate_pct", i1: 1000, s3: "a,b", s4: "60,60" }
+  expect: ["no"]
+
+- name: exact_split_wrong_param_count
+  call: splitwise_simulate
+  args:
+    - - { kind: "validate_exact", i1: 300, s3: "a,b,c", s4: "150,150" }
+  expect: ["no"]
+
+- name: mixed_strategies
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_eq_strat", s1: "E1", s2: "alice", s3: "alice,bob", i1: 200 }
+      - { kind: "add_exact",    s1: "E2", s2: "bob",   s3: "alice,bob", i1: 150, s4: "90,60" }
+      - { kind: "balance", s1: "bob", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "10.00"]
+
+- name: invalid_strategy_no_expense
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_exact", s1: "E1", s2: "alice", s3: "alice,bob", i1: 100, s4: "60,60" }
+      - { kind: "balance", s1: "bob", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "0.00"]

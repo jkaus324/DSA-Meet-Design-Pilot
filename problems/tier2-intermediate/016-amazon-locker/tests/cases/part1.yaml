@@ -1,0 +1,70 @@
+- name: deposit_exact_size
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "add_locker", s1: "M1", s2: "M" }
+      - { kind: "add_locker", s1: "L1", s2: "L" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "CODE-1"]
+
+- name: retrieve_valid_code
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i2: 0 }
+      - { kind: "retrieve", i2: 0 }
+  expect: ["ok", "ok", "CODE-1", "ok"]
+
+- name: retrieve_invalid_code
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i2: 0 }
+      - { kind: "retrieve_id", s1: "INVALID-CODE" }
+  expect: ["ok", "ok", "CODE-1", "fail"]
+
+- name: smallest_fit_allocation
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "M1", s2: "M" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "add_locker", s1: "L1", s2: "L" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i2: 0 }
+      - { kind: "deposit", s1: "pkg2", s2: "S", i2: 1 }
+      - { kind: "deposit", s1: "pkg3", s2: "S", i2: 2 }
+      - { kind: "deposit", s1: "pkg4", s2: "S", i2: 3 }
+  expect: ["ok", "ok", "ok", "ok", "CODE-1", "CODE-2", "CODE-3", ""]
+
+- name: large_package_no_small_locker
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "add_locker", s1: "S2", s2: "S" }
+      - { kind: "deposit", s1: "bigpkg", s2: "L", i2: 0 }
+  expect: ["ok", "ok", "ok", ""]
+
+- name: retrieve_frees_locker
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i2: 0 }
+      - { kind: "deposit", s1: "pkg2", s2: "S", i2: 1 }
+      - { kind: "retrieve", i2: 0 }
+      - { kind: "deposit", s1: "pkg3", s2: "S", i2: 2 }
+  expect: ["ok", "ok", "CODE-1", "", "ok", "CODE-2"]
+
+- name: code_single_use
+  call: locker_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_locker", s1: "S1", s2: "S" }
+      - { kind: "deposit", s1: "pkg1", s2: "S", i2: 0 }
+      - { kind: "retrieve", i2: 0 }
+      - { kind: "retrieve", i2: 0 }
+  expect: ["ok", "ok", "CODE-1", "ok", "fail"]

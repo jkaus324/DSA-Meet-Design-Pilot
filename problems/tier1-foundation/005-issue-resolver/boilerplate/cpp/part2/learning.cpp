@@ -4,116 +4,40 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class Priority { LOW, MEDIUM, HIGH, CRITICAL };
-enum class IssueState { OPEN, IN_PROGRESS, RESOLVED, CLOSED };
-enum class Category { BILLING, TECHNICAL, GENERAL, ACCOUNT };
+// Data class (given � do not modify).
 
-struct Issue {
-    int id;
-    string description;
-    Category category;
-    Priority priority;
-    IssueState state;
-    int assignedAgentId;
-};
-
-struct Agent {
-    int id;
-    string name;
-    int currentLoad;
-    vector<Category> specializations;
-};
-
-// ─── Assignment Interface ───────────────────────────────────────────────────
-
-class AssignmentStrategy {
-public:
-    virtual int selectAgent(vector<Agent>& agents, const Issue& issue) = 0;
-    virtual ~AssignmentStrategy() = default;
-};
-
-// ─── Concrete Strategies ────────────────────────────────────────────────────
-
-class RoundRobinStrategy : public AssignmentStrategy {
-    int nextIndex = 0;
-public:
-    int selectAgent(vector<Agent>& agents, const Issue& issue) override {
-        // TODO: Return ID of next agent in rotation, wrapping around
-        return -1;
-    }
-};
-
-class LeastLoadedStrategy : public AssignmentStrategy {
-public:
-    int selectAgent(vector<Agent>& agents, const Issue& issue) override {
-        // TODO: Find agent with lowest currentLoad
-        // Break ties by lowest agent ID
-        return -1;
-    }
-};
-
-class SpecialistStrategy : public AssignmentStrategy {
-    LeastLoadedStrategy fallback;
-public:
-    int selectAgent(vector<Agent>& agents, const Issue& issue) override {
-        // TODO: Find agents whose specializations include issue.category
-        // Among specialists, pick least-loaded (tiebreak by ID)
-        // If no specialist found, delegate to fallback.selectAgent()
-        return -1;
-    }
-};
-
-// ─── Resolver ───────────────────────────────────────────────────────────────
-
-class IssueResolver {
-    AssignmentStrategy* strategy;
-public:
-    IssueResolver(AssignmentStrategy* s) : strategy(s) {}
-    void setStrategy(AssignmentStrategy* s) { strategy = s; }
-
-    Issue assign(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-        // TODO: Use strategy->selectAgent() to pick an agent
-        // Set issue.assignedAgentId, increment agent's currentLoad
-        // Push issue into issues vector and return it
-        return issue;
-    }
-
-    vector<Issue> getAgentIssues(const vector<Issue>& issues, int agentId) {
-        // TODO: Return all issues assigned to the given agentId
-        return {};
-    }
-};
-
-// ─── Test Entry Points ──────────────────────────────────────────────────────
-
-static RoundRobinStrategy globalRoundRobin;
-static IssueResolver globalResolver(&globalRoundRobin);
-
-Issue assign_issue(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-    return globalResolver.assign(agents, issues, issue);
+void reset_service() {
+    // TODO: implement this
+    // nothing to return
 }
 
-vector<Issue> get_agent_issues(const vector<Issue>& issues, int agentId) {
-    return globalResolver.getAgentIssues(issues, agentId);
+void ir_add_agent(int id, string name, string specialization) {
+    // TODO: implement this
+    // nothing to return
 }
 
-Issue assign_least_loaded(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-    LeastLoadedStrategy s;
-    IssueResolver resolver(&s);
-    return resolver.assign(agents, issues, issue);
+int ir_assign_issue_round_robin(string description, string category, string priority) {
+    // TODO: implement this
+    return {};
 }
 
-Issue assign_by_specialist(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-    SpecialistStrategy s;
-    IssueResolver resolver(&s);
-    return resolver.assign(agents, issues, issue);
+int ir_agent_issue_count(int agentId) {
+    // TODO: implement this
+    return {};
 }
 
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "Part 2: Multiple strategies — all scaffolding provided, implement selectAgent() methods." << endl;
-    return 0;
+int ir_agent_load(int agentId) {
+    // TODO: implement this
+    return {};
 }
-#endif
+
+int ir_assign_issue_least_loaded(string description, string category, string priority) {
+    // TODO: implement this
+    return {};
+}
+
+int ir_assign_issue_specialist(string description, string category, string priority) {
+    // TODO: implement this
+    return {};
+}

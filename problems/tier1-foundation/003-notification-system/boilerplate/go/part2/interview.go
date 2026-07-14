@@ -1,35 +1,30 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// Data class (given).
 
-type Notification struct {
-	UserID  string
-	Message string
-	Channel string
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func notify_event(event string, userIds []string, subscribedChannels []string)
+//   func notify_priority(event string, priority string, userIds []string, subscribedChannels []string, minPriority string)
+//   func notify_priority_level(priority string) int
+
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type User struct {
-	ID                 string
-	Email              string
-	Phone              string
-	SubscribedChannels []string
+func notify_event(event string, userIds []string, subscribedChannels []string) {
+	// TODO: write your solution
+	return
 }
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The product team wants notification PRIORITIES and FILTERING:
-//   - Each event now has a priority: "critical", "info", "promotional"
-//   - Users can set minimum priority per channel
-//     (e.g., only receive SMS for "critical" events, not "promotional")
-//   - The system must respect these per-user, per-channel preferences
-//
-// Think about:
-//   - Where does priority filtering belong in your Observer design?
-//   - Is filtering a responsibility of the subject, the observer, or a decorator?
-//   - How do you store per-user preferences without coupling User to channels?
-//
-// Entry point (must exist for tests):
-//   func Notify(event, priority string, users []User, userMinPriority map[string]string)
-//   // userMinPriority: userID -> min priority for their channel
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func notify_priority(event string, priority string, userIds []string, subscribedChannels []string, minPriority string) {
+	// TODO: write your solution
+	return
+}
+
+func notify_priority_level(priority string) int {
+	// TODO: write your solution
+	return 0
+}

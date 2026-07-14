@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -168,6 +169,104 @@ public:
     const User& getUser(const string& name) const { return users.at(name); }
     const Ride& getRide(const string& id) const { return rides.at(id); }
 };
+
+// ─── Ops simulator (used by spec-based tests) ──────────────────────────────
+//
+// Drives one RideService through a sequence of ops. ride_*  ops store rideId
+// in slot i1; later ops can refer to the slot.
+//
+// Op fields:
+//   "new"                                                              -> "ok"
+//   "add_user"   s1=name                                                -> "ok"
+//   "add_veh"    s1=user s2=model s3=reg                                -> "ok"
+//   "offer"      s1=user s2=origin s3=dest s4=reg i1=seats i2=slot       -> rideId or ""
+//   "ride_active" i2=slot                                                -> "yes"/"no"
+//   "ride_origin" i2=slot                                                -> origin string
+//   "ride_dest"   i2=slot                                                -> dest string
+//   "ride_total"  i2=slot                                                -> int
+//   "ride_avail"  i2=slot                                                -> int
+//   "ride_driver" i2=slot                                                -> driver name
+//   "select_mv"   s1=passenger s2=origin s3=dest i1=seats i2=outSlot      -> rideId or ""
+//   "select_pv"   s1=passenger s2=origin s3=dest s4=preferredModel i1=seats i2=outSlot -> rideId or ""
+//   "end"         i2=slot                                                 -> "ok"
+//   "end_id"      s1=rideId                                               -> "ok"
+//   "user_offered" s1=name                                                -> int
+//   "user_taken"   s1=name                                                -> int
+//   "has_user"    s1=name                                                 -> "yes"/"no"
+//   "has_vehicle" s1=reg                                                  -> "yes"/"no"
+//   "has_ride"    i2=slot                                                 -> "yes"/"no"
+
+struct RideOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int    i1;
+    int    i2;
+};
+
+vector<string> ride_simulate(vector<RideOp> ops) {
+    vector<string> out;
+    unique_ptr<RideService> svc(new RideService());
+    vector<string> rideSlots(32, "");
+    for (const auto& op : ops) {
+        const string& k = op.kind;
+        if (k == "new") {
+            svc.reset(new RideService());
+            for (auto& s : rideSlots) s.clear();
+            out.push_back("ok");
+        } else if (k == "add_user") {
+            svc->addUser(op.s1); out.push_back("ok");
+        } else if (k == "add_veh") {
+            svc->addVehicle(op.s1, op.s2, op.s3); out.push_back("ok");
+        } else if (k == "offer") {
+            string rid = svc->offerRide(op.s1, op.s2, op.s3, op.i1, op.s4);
+            if (op.i2 >= 0 && op.i2 < (int)rideSlots.size()) rideSlots[op.i2] = rid;
+            out.push_back(rid);
+        } else if (k == "ride_active") {
+            const string& rid = rideSlots[op.i2];
+            out.push_back(svc->hasRide(rid) && svc->getRide(rid).active ? "yes" : "no");
+        } else if (k == "ride_origin") {
+            out.push_back(svc->hasRide(rideSlots[op.i2]) ? svc->getRide(rideSlots[op.i2]).origin : "");
+        } else if (k == "ride_dest") {
+            out.push_back(svc->hasRide(rideSlots[op.i2]) ? svc->getRide(rideSlots[op.i2]).destination : "");
+        } else if (k == "ride_total") {
+            out.push_back(to_string(svc->hasRide(rideSlots[op.i2]) ? svc->getRide(rideSlots[op.i2]).totalSeats : -1));
+        } else if (k == "ride_avail") {
+            out.push_back(to_string(svc->hasRide(rideSlots[op.i2]) ? svc->getRide(rideSlots[op.i2]).availableSeats : -1));
+        } else if (k == "ride_driver") {
+            out.push_back(svc->hasRide(rideSlots[op.i2]) ? svc->getRide(rideSlots[op.i2]).driverId : "");
+        } else if (k == "select_mv") {
+            MostVacantStrategy mv;
+            string rid = svc->selectRide(op.s1, op.s2, op.s3, op.i1, &mv);
+            if (op.i2 >= 0 && op.i2 < (int)rideSlots.size()) rideSlots[op.i2] = rid;
+            out.push_back(rid);
+        } else if (k == "select_pv") {
+            PreferredVehicleStrategy pv(svc->getVehicles());
+            string rid = svc->selectRide(op.s1, op.s2, op.s3, op.i1, &pv, op.s4);
+            if (op.i2 >= 0 && op.i2 < (int)rideSlots.size()) rideSlots[op.i2] = rid;
+            out.push_back(rid);
+        } else if (k == "end") {
+            svc->endRide(rideSlots[op.i2]); out.push_back("ok");
+        } else if (k == "end_id") {
+            svc->endRide(op.s1); out.push_back("ok");
+        } else if (k == "user_offered") {
+            out.push_back(svc->hasUser(op.s1) ? to_string(svc->getUser(op.s1).ridesOffered) : "0");
+        } else if (k == "user_taken") {
+            out.push_back(svc->hasUser(op.s1) ? to_string(svc->getUser(op.s1).ridesTaken) : "0");
+        } else if (k == "has_user") {
+            out.push_back(svc->hasUser(op.s1) ? "yes" : "no");
+        } else if (k == "has_vehicle") {
+            out.push_back(svc->hasVehicle(op.s1) ? "yes" : "no");
+        } else if (k == "has_ride") {
+            out.push_back(svc->hasRide(rideSlots[op.i2]) ? "yes" : "no");
+        } else {
+            out.push_back("unknown:" + k);
+        }
+    }
+    return out;
+}
 
 #ifndef RUNNING_TESTS
 int main() {

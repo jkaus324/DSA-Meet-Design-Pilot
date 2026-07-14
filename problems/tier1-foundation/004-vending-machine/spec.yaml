@@ -1,0 +1,57 @@
+problem_id: "004-vending-machine"
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: reset
+    params: []
+    returns: void
+
+  - name: getState
+    params: []
+    returns: string
+
+  - name: selectItem
+    params:
+      - { name: item, type: string }
+    returns: void
+
+  - name: insertMoney
+    params:
+      - { name: amount, type: float }
+    returns: void
+
+  - name: dispense
+    params: []
+    returns: void
+
+  - name: cancel
+    params: []
+    returns: void
+
+  - name: enterMaintenance
+    params:
+      - { name: pin, type: string }
+    returns: void
+
+  - name: exitMaintenance
+    params:
+      - { name: pin, type: string }
+    returns: void
+
+  - name: restock
+    params:
+      - { name: item, type: string }
+      - { name: qty,  type: int }
+    returns: void
+
+  - name: vm_get_quantity
+    params:
+      - { name: item, type: string }
+    returns: int
+
+parts:
+  1: { name: "State machine + purchases", functions: [reset_service, reset, getState, selectItem, insertMoney, dispense, cancel] }
+  2: { name: "Maintenance mode + restock", functions: [enterMaintenance, exitMaintenance, restock, vm_get_quantity] }

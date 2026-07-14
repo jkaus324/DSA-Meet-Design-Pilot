@@ -19,9 +19,29 @@ Each problem simulates a real LLD interview: a base requirement followed by 2-4 
 
 - **Dashboard:** React + Vite + Tailwind CSS + shadcn/ui
 - **Backend:** Express.js (server.js in dashboard/)
-- **Code Execution:** Local g++ with C++17 + GoogleTest (cloud judge planned for full launch)
+- **Languages supported:** C++17, Go, Java, Python, JavaScript — all five run through a single
+  spec-driven harness (see Architecture below). The dashboard auto-detects which language runners
+  are installed and disables submit for missing ones.
+- **Code Execution:** Local runners under `harness/<lang>/`. Interpreted languages (Python, JS,
+  Java) read `spec.yaml` + `tests/cases/*.yaml` at submit time; compiled languages (C++, Go)
+  codegen a per-part runner that compiles against the user's solution. (Cloud judge planned for full launch.)
 - **Future Migration:** Next.js for the production website
-- **Future Language Support:** Java (in addition to C++)
+
+## Architecture — spec-driven, one contract per problem
+
+Each problem is defined once by **`spec.yaml`** (types, function signatures, progressive parts)
+and **`tests/cases/partN.yaml`** (language-agnostic test cases). There are NO per-problem,
+per-language test files. To add a language you write exactly two things:
+
+1. A generic runner at `harness/<lang>/` (runtime YAML for interpreted langs; a codegen script that
+   emits a compilable runner for compiled langs — see `harness/cpp/codegen.py` and `harness/go/codegen.py`).
+2. A boilerplate emitter in `scripts/gen_stubs.py` (`emit_<lang>`), then
+   `python3 scripts/gen_stubs.py --all --lang <lang> --force`.
+
+Then register the language in `dashboard/server.js` (`LANGS` + a submit branch) and in
+`dashboard/src/pages/ProblemView.jsx` (`LANG_META`). Verify with `python3 scripts/stress_test.py`.
+
+**Reference solutions** live at `solution.{cpp,go,java,py,js}` per problem and must pass every case.
 
 ## Project Structure
 

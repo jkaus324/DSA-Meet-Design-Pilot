@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -188,6 +189,86 @@ public:
         return "UNKNOWN";
     }
 };
+
+// ─── Ops simulator (used by spec-based tests) ──────────────────────────────
+//
+// Drives one AuctionSystem through a sequence of operations. Created users
+// and auctions are stored in slots i1/i2 so subsequent ops can refer to them.
+//
+// Op fields:
+//   "new"                                                                  -> "ok"
+//   "register"     s1=name s2="SELLER"|"BUYER"  i1=user_slot              -> userId as string
+//   "create"       i1=seller_slot s2=item       i3=basePrice s3=strategy(""|"ASCENDING"|"SEALED"|"BUYNOW") i2=auction_slot
+//                                                                           -> auctionId as string
+//   "bid"          i1=auction_slot i2=buyer_slot i3=amount                  -> "ok"/"fail"
+//   "close"        i1=auction_slot                                           -> "ok"/"fail"
+//   "winning"      i1=auction_slot                                           -> int as string ("-1" if none / hidden)
+//   "status"       i1=auction_slot                                           -> "OPEN"|"CLOSED"|"NO_SALE"|"UNKNOWN"
+//   "user_id_eq"   i1=user_slot i2=expected                                  -> "yes"/"no"
+
+#include <unordered_map>
+
+struct AuctionOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int    i1;
+    int    i2;
+    int    i3;
+};
+
+vector<string> auction_simulate(vector<AuctionOp> ops) {
+    vector<string> out;
+    unique_ptr<AuctionSystem> sys(new AuctionSystem());
+    unordered_map<int,int> userSlot, auctionSlot;
+    for (const auto& op : ops) {
+        const string& k = op.kind;
+        if (k == "new") {
+            sys.reset(new AuctionSystem());
+            userSlot.clear();
+            auctionSlot.clear();
+            out.push_back("ok");
+        } else if (k == "register") {
+            int id = sys->registerUser(op.s1, op.s2);
+            userSlot[op.i1] = id;
+            out.push_back(to_string(id));
+        } else if (k == "create") {
+            int sid = userSlot.count(op.i1) ? userSlot[op.i1] : op.i1;
+            string strat = op.s3.empty() ? "ASCENDING" : op.s3;
+            int aid = sys->createAuction(sid, op.s2, (double)op.i3, strat);
+            auctionSlot[op.i2] = aid;
+            out.push_back(to_string(aid));
+        } else if (k == "bid") {
+            int aid = auctionSlot.count(op.i1) ? auctionSlot[op.i1] : op.i1;
+            int bid = userSlot.count(op.i2) ? userSlot[op.i2] : op.i2;
+            out.push_back(sys->placeBid(aid, bid, (double)op.i3) ? "ok" : "fail");
+        } else if (k == "close") {
+            int aid = auctionSlot.count(op.i1) ? auctionSlot[op.i1] : op.i1;
+            out.push_back(sys->closeAuction(aid) ? "ok" : "fail");
+        } else if (k == "winning") {
+            int aid = auctionSlot.count(op.i1) ? auctionSlot[op.i1] : op.i1;
+            double w = sys->getWinningBid(aid);
+            // Use integer formatting if integral, else .2f
+            if (w < 0) out.push_back("-1");
+            else {
+                char buf[32];
+                if (w == (long long)w) snprintf(buf, sizeof(buf), "%lld", (long long)w);
+                else                   snprintf(buf, sizeof(buf), "%.2f", w);
+                out.push_back(buf);
+            }
+        } else if (k == "status") {
+            int aid = auctionSlot.count(op.i1) ? auctionSlot[op.i1] : op.i1;
+            out.push_back(sys->getAuctionStatus(aid));
+        } else if (k == "user_id_eq") {
+            int uid = userSlot.count(op.i1) ? userSlot[op.i1] : op.i1;
+            out.push_back(uid == op.i2 ? "yes" : "no");
+        } else {
+            out.push_back("unknown:" + k);
+        }
+    }
+    return out;
+}
 
 #ifndef RUNNING_TESTS
 int main() {

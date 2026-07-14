@@ -1,100 +1,29 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <set>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class SeatStatus { AVAILABLE, LOCKED, BOOKED };
-
-struct Seat {
-    int row;
-    int col;
-    SeatStatus status;
-    string lockedBy;
-    long lockExpiry;
-    string bookedBy;
+// Data class (given).
+struct ShowOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int i1;
+    int i2;
+    int i3;
+    ShowOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", const string& s4_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), s4(s4_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Show {
-    string id;
-    string theaterId;
-    string movie;
-    string time;
-    int rows;
-    int cols;
-    vector<vector<Seat>> seats;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Theater {
-    string id;
-    string name;
-    string city;
-};
-
-struct Booking {
-    string id;
-    string showId;
-    string userId;
-    vector<pair<int,int>> seatPositions;
-};
-
-struct SeatLock {
-    string id;
-    string showId;
-    string userId;
-    vector<pair<int,int>> seatPositions;
-    long expiry;
-    bool confirmed;
-    bool released;
-};
-
-// ─── Booking System ────────────────────────────────────────────────────────
-// HINT: Add an expireSeat(seat, currentTime) helper that resets LOCKED seats
-//       whose lockExpiry <= currentTime back to AVAILABLE.
-// HINT: Call expireSeat before checking any seat's status.
-// HINT: For lockSeats — check all seats available, generate a lockId,
-//       set each seat to LOCKED with lockedBy and lockExpiry.
-// HINT: For confirmBooking — check lock exists, not expired, not already
-//       confirmed/released. Then set seats to BOOKED.
-// HINT: For releaseLock — set seats back to AVAILABLE, mark lock as released.
-
-// class BookingSystem {
-//     unordered_map<string, Theater> theaters;
-//     unordered_map<string, Show> shows;
-//     unordered_map<string, Booking> bookings;
-//     unordered_map<string, SeatLock> locks;
-//     unordered_map<string, set<string>> cityMovies;
-//     int lockCounter = 0;
-//
-//     void expireSeat(Seat& seat, long currentTime);
-// public:
-//     void addTheater(...);
-//     void addShow(...);
-//     vector<string> searchMovies(const string& city);
-//     vector<pair<int,int>> getAvailableSeats(const string& showId, long currentTime);
-//     bool bookSeats(const string& bookingId, const string& showId,
-//                    const vector<pair<int,int>>& seatPositions,
-//                    const string& userId, long currentTime);
-//     string lockSeats(const string& showId,
-//                      const vector<pair<int,int>>& seatPositions,
-//                      const string& userId, int ttlMinutes, long currentTime);
-//     bool confirmBooking(const string& lockId, long currentTime);
-//     bool releaseLock(const string& lockId, long currentTime);
-// };
-
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-//   void add_theater(...);
-//   void add_show(...);
-//   vector<string> search_movies(const string& city);
-//   vector<pair<int,int>> get_available_seats(const string& showId, long currentTime);
-//   bool book_seats(..., long currentTime);
-//   string lock_seats(const string& showId, ..., int ttlMinutes, long currentTime);
-//   bool confirm_booking(const string& lockId, long currentTime);
-//   bool release_lock(const string& lockId, long currentTime);
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> show_simulate(vector<ShowOp> ops) {
+    // TODO: write your solution
+    return {};
+}

@@ -1,48 +1,26 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <map>
-#include <queue>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class LockerSize { SMALL, MEDIUM, LARGE };
-
-struct Package {
-    string packageId;
-    LockerSize size;
+// Data class (given).
+struct LockerOp {
+    string kind;
+    string s1;
+    string s2;
+    int i1;
+    int i2;
+    LockerOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), i1(i1_), i2(i2_) {}
 };
 
-struct Locker {
-    string lockerId;
-    LockerSize size;
-    bool occupied;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> locker_simulate(vector<LockerOp> ops);
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement an Amazon Locker System that:
-//   1. Manages lockers of different sizes (Small, Medium, Large)
-//   2. Allocates the smallest fitting locker for a package
-//   3. Generates a unique pickup code on deposit
-//   4. Allows retrieval using the pickup code, freeing the locker
-//
-// Allocation rule:
-//   SMALL packages → try SMALL, then MEDIUM, then LARGE
-//   MEDIUM packages → try MEDIUM, then LARGE
-//   LARGE packages → try LARGE only
-//   Return "" if no locker is available.
-//
-// Think about:
-//   - How do you make locker allocation swappable (e.g., smallest-fit vs nearest)?
-//   - How do you ensure O(1) allocation per size?
-//   - How would you add a new locker size (XL) with zero changes to existing code?
-//
-// Entry points:
-//   void addLocker(const string& lockerId, LockerSize size);
-//   string depositPackage(const string& packageId, LockerSize size);
-//   bool retrievePackage(const string& code);
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
+vector<string> locker_simulate(vector<LockerOp> ops) {
+    // TODO: write your solution
+    return {};
+}

@@ -1,0 +1,40 @@
+- name: no_surge_normal_conditions
+  comment: "low demand + clear + morning => max 1.2"
+  call: calculateSurge
+  args:
+    - { baseFare: 10.0, availableDrivers: 20, activeRideRequests: 5, timeOfDay: "morning", weather: "clear" }
+  expect_close: 1.2
+  epsilon: 0.01
+
+- name: high_demand_causes_surge
+  comment: "5:1 demand ratio in evening + clear => 2.0"
+  call: calculateSurge
+  args:
+    - { baseFare: 10.0, availableDrivers: 2, activeRideRequests: 10, timeOfDay: "evening", weather: "clear" }
+  expect_close: 2.0
+  epsilon: 0.01
+
+- name: storm_increases_surge
+  comment: "storm + morning => 1.8"
+  call: calculateSurge
+  args:
+    - { baseFare: 10.0, availableDrivers: 10, activeRideRequests: 10, timeOfDay: "morning", weather: "storm" }
+  expect_close: 1.8
+  epsilon: 0.01
+
+- name: fare_calculation
+  comment: "fare = baseFare * surge (100 * 1.2 = 120)"
+  call: calculateFare
+  args:
+    - { userId: "u1", pickup: "A", dropoff: "B", rideType: "economy" }
+    - { baseFare: 100.0, availableDrivers: 5, activeRideRequests: 5, timeOfDay: "morning", weather: "clear" }
+  expect_close: 120.0
+  epsilon: 0.01
+
+- name: surge_minimum_one
+  comment: "plenty of drivers, morning => 1.2 (still above 1.0)"
+  call: calculateSurge
+  args:
+    - { baseFare: 50.0, availableDrivers: 100, activeRideRequests: 1, timeOfDay: "morning", weather: "clear" }
+  expect_close: 1.2
+  epsilon: 0.01

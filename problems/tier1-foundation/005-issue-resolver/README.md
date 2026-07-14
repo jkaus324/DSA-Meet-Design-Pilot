@@ -60,9 +60,7 @@ struct Agent {
 
 ---
 
-## Part 1
-
-**Base requirement — Round-robin agent assignment**
+## Base Requirement — Round-robin agent assignment
 
 Implement an `IssueResolver` that assigns incoming issues to agents using a round-robin policy. The first issue goes to agent 0, the second to agent 1, and so on, wrapping around when all agents have been visited.
 
@@ -101,9 +99,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Multiple assignment strategies**
+## Extension 1 — Multiple assignment strategies
 
 The ops team now wants **pluggable assignment policies**. In addition to round-robin, support:
 
@@ -125,9 +121,7 @@ Issue assign_by_specialist(vector<Agent>& agents, vector<Issue>& issues, Issue i
 
 ---
 
-## Part 3
-
-**Extension 2 — Issue state tracking + priority**
+## Extension 2 — Issue state tracking + priority
 
 The product team now requires:
 

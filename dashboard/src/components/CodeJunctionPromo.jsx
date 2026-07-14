@@ -2,23 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { CODEJUNCTION_URL } from '../lib/constants.js';
 
-const STORAGE_KEY = 'cj-promo-dismissed';
-
 /**
- * Floating promo card on problem pages. Appears immediately on mount
- * (and re-appears on a failed submit if not yet dismissed). One global
- * dismiss persists across all sessions.
+ * Floating promo card on problem pages. Appears once each time a new question
+ * is opened — ProblemView mounts this with `key={problemId}`, so navigating to
+ * a different problem remounts the component and it shows again. Dismissing it
+ * hides it only for the current question (not persisted across problems).
  */
 export default function CodeJunctionPromo() {
   const [visible, setVisible] = useState(false);
   const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
-    // If user previously dismissed, never show.
-    try {
-      if (localStorage.getItem(STORAGE_KEY) === 'true') return;
-    } catch {}
-
     const reveal = () => {
       setVisible(true);
       // Allow the slide-in animation to play after first paint
@@ -37,7 +31,6 @@ export default function CodeJunctionPromo() {
   }, []);
 
   const dismiss = () => {
-    try { localStorage.setItem(STORAGE_KEY, 'true'); } catch {}
     setAnimateIn(false);
     // Match the transition duration before unmounting
     setTimeout(() => setVisible(false), 200);

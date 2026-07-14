@@ -1,59 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class LogLevel { DEBUG = 0, INFO = 1, WARN = 2, ERROR = 3, FATAL = 4 };
+// Data class (given).
+struct LogOp {
+    string kind;
+    string s1;
+    string s2;
+    int i1;
+    LogOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", int i1_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), i1(i1_) {}
+};
 
-static string levelToString(LogLevel level) {
-    static unordered_map<int, string> names = {
-        {0, "DEBUG"}, {1, "INFO"}, {2, "WARN"}, {3, "ERROR"}, {4, "FATAL"}
-    };
-    return names[static_cast<int>(level)];
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> logger_simulate(vector<LogOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-
-struct LogEntry {
-    LogLevel level;
-    string message;
-    string timestamp;
-};
-
-// ─── Formatter Interface ─────────────────────────────────────────────────────
-// HINT: Each formatter converts a LogEntry into a string.
-// The Logger delegates formatting to whichever formatter is active.
-
-class LogFormatter {
-public:
-    virtual string format(const LogEntry& entry) = 0;
-    virtual ~LogFormatter() = default;
-};
-
-// ─── Concrete Formatters ─────────────────────────────────────────────────────
-// TODO: Implement format() for each:
-//   - PlainText: [timestamp] [LEVEL] message
-//   - JSON: {"timestamp":"...","level":"...","message":"..."}
-//   - CSV: timestamp,LEVEL,message
-
-class PlainTextFormatter : public LogFormatter {
-    // HINT: Concatenate with brackets around timestamp and level
-};
-
-class JsonFormatter : public LogFormatter {
-    // HINT: Build a JSON object string with three keys
-};
-
-class CsvFormatter : public LogFormatter {
-    // HINT: Comma-separated values, no brackets
-};
-
-// ─── Logger (Singleton) ─────────────────────────────────────────────────────
-// HINT: Add a LogFormatter* member to the Logger.
-// HINT: The default formatter should be PlainTextFormatter.
-// HINT: setFormatter() swaps the active formatter at runtime.
-// HINT: log() now uses formatter->format(entry) instead of hardcoded formatting.
-
-// class Logger { ... };
-

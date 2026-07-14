@@ -1,156 +1,90 @@
 # Problem 014 — Splitwise Expense-Sharing System
 
-**Tier:** 2 (Intermediate) | **Pattern:** Strategy + Factory + Observer | **DSA:** HashMap + Graph + Greedy
-**Companies:** ShareChat, Razorpay, Flipkart, Paytm | **Time:** 45 minutes
+**Tier:** 2 (Intermediate) | **Pattern:** Strategy + Observer | **DSA:** Graph + HashMap + Greedy
+**Companies:** Flipkart, PhonePe, Razorpay, ShareChat | **Time:** 60 minutes
 
 ---
 
 ## Problem Statement
 
-You're building an expense-sharing system similar to Splitwise. Users create shared expenses (one person pays, multiple people split the cost), and the system tracks who owes whom. The system must support multiple split strategies and optimize debt settlement.
+You are building an expense-sharing system. One user pays a group expense; the system splits the cost among participants and tracks who owes whom. The system supports multiple split strategies and can simplify a complex web of debts into the minimum number of transactions needed to settle up.
 
-**Your task:** Design and implement an `ExpenseManager` that tracks users, creates expenses with configurable split strategies, computes net balances, and simplifies debts to minimize transactions.
-
----
-
-## Before You Code
-
-> Read this section carefully. This is where the design thinking happens.
-
-**Ask yourself:**
-1. When a user pays for a group expense, how do you represent who owes whom? A single expense creates multiple debts — what data structure captures this efficiently?
-2. If the product manager asks you to add a new split type (e.g., split by shares, split by weight), should you modify the expense creation logic? Or should the split calculation be a separate, swappable component?
-3. After many expenses, user A might owe B $10 and B might owe A $5. How do you simplify this to "A owes B $5"? What if there are circular debts among 5 users?
-
-**The key insight:** The split calculation varies by type (equal, exact, percentage) — this is the **Strategy** pattern. Each strategy takes the total amount and participants, then returns how much each person owes. The core `ExpenseManager` delegates to the strategy without knowing the split logic. For debt simplification, **net out** all credits and debits per user, then greedily match the largest creditor with the largest debtor.
+**Constraints:**
+- Up to 10^3 users and 10^4 expenses
+- Balances are netted: if A owes B $50 and B owes A $30, only A owes B $20 is stored
+- Floating-point amounts; use double precision
+- Debt simplification is greedy and minimizes transaction count, not total amount
 
 ---
 
-## Data Structures
+## Base Requirement — Equal Splitting and Balance Tracking
 
-```cpp
-struct User {
-    string id;
-    string name;
-};
+Implement an `ExpenseManager` that adds users and records expenses. When an expense is added, the total is split equally among all participants (including the payer). The payer's share is subtracted from what others owe them.
 
-struct Split {
-    string userId;
-    double amount;  // how much this user owes from a single expense
-};
+**Example:**
+```
+addUser("alice"), addUser("bob"), addUser("charlie")
+addExpense("E1", paidBy="alice", amount=300.0, participants=["alice","bob","charlie"])
+// Each owes $100. Alice paid, so: bob→alice $100, charlie→alice $100
 
-struct Expense {
-    string id;
-    string paidBy;      // userId of the person who paid
-    double totalAmount;
-    vector<Split> splits;  // how the expense is divided
-};
+getBalances()
+→  { "bob": {"alice": 100.0}, "charlie": {"alice": 100.0} }
+
+// New expense: bob pays $60 for bob and alice
+addExpense("E2", paidBy="bob", amount=60.0, participants=["bob","alice"])
+// alice→bob $30, but alice was already owed $100 by bob
+// Net: bob→alice $70
+
+getBalances()["bob"]["alice"]  →  70.0
 ```
 
----
-
-## Part 1
-
-**Base requirement — Equal expense splitting and balance tracking**
-
-Implement an `ExpenseManager` that manages users and expenses. When an expense is created, the payer pays the full amount and it is split equally among all participants (including the payer).
-
-**Balance rule:** If Alice pays $300 for Alice, Bob, and Charlie, then Bob owes Alice $100 and Charlie owes Alice $100. Alice's share cancels out since she paid.
-
-**Entry points (tests will call these):**
-```cpp
-void add_user(const string& userId, const string& name);
-void add_expense(const string& expenseId, const string& paidBy,
-                 double amount, const vector<string>& participants);
-unordered_map<string, unordered_map<string, double>> get_balances();
-// Returns balances[A][B] = amount A owes B (positive means A owes B)
-```
-
-**What to implement:**
-```cpp
-class ExpenseManager {
-    unordered_map<string, User> users;
-    vector<Expense> expenses;
-    // balances[A][B] > 0 means A owes B that amount
-    unordered_map<string, unordered_map<string, double>> balances;
-public:
-    void addUser(const string& userId, const string& name);
-    void addExpense(const string& expenseId, const string& paidBy,
-                    double amount, const vector<string>& participants);
-    unordered_map<string, unordered_map<string, double>> getBalances() const;
-};
-```
-
-**Design goal:** Balance tracking must correctly net out mutual debts. If A owes B $50 and B owes A $30, the result should show A owes B $20 (not both directions).
+**Public methods:**
+- `void addUser(const string& userId, const string& name)`
+- `void addExpense(const string& expenseId, const string& paidBy, double amount, const vector<string>& participants)`
+- `unordered_map<string, unordered_map<string, double>> getBalances()`
 
 ---
 
-## Part 2
+## Extension 1 — Multiple Split Strategies
 
-**Extension 1 — Multiple split strategies**
-
-The product manager wants different ways to split expenses. Instead of always splitting equally, the system should support swappable strategies:
+Add pluggable split strategies. Adding a new strategy must require zero changes to `ExpenseManager`.
 
 | Strategy | Rule |
-|----------|------|
-| EqualSplit | Divide total equally among all participants |
-| ExactSplit | Each participant's share is specified explicitly (amounts must sum to total) |
-| PercentSplit | Each participant's share is a percentage of the total (percentages must sum to 100) |
+|---|---|
+| EqualSplit | Divide total equally; params ignored |
+| ExactSplit | Each participant's share is given explicitly; amounts must sum to total |
+| PercentSplit | Each participant's share as a percentage of total; percentages must sum to 100 |
 
-**Design challenge:** How do you add a new split strategy **without modifying** the ExpenseManager?
-
-**New entry point:**
-```cpp
-void add_expense_with_strategy(const string& expenseId, const string& paidBy,
-                               double amount, const vector<string>& participants,
-                               SplitStrategy* strategy,
-                               const vector<double>& strategyParams);
-// strategyParams: for ExactSplit = exact amounts; for PercentSplit = percentages; for EqualSplit = empty
+**Example:**
+```
+// PercentSplit: alice 50%, bob 30%, charlie 20% of $200
+addExpenseWithStrategy("E3", paidBy="alice", amount=200.0,
+    participants=["alice","bob","charlie"],
+    strategy=new PercentSplit(), params=[50.0, 30.0, 20.0])
+// bob→alice $60, charlie→alice $40
 ```
 
-**What to implement:**
-```cpp
-class SplitStrategy {
-public:
-    virtual vector<Split> split(double totalAmount,
-                                const vector<string>& participants,
-                                const vector<double>& params) = 0;
-    virtual bool validate(double totalAmount,
-                          const vector<string>& participants,
-                          const vector<double>& params) = 0;
-    virtual ~SplitStrategy() = default;
-};
-
-class EqualSplit  : public SplitStrategy { ... };
-class ExactSplit  : public SplitStrategy { ... };
-class PercentSplit : public SplitStrategy { ... };
-```
-
-**Hint:** Each strategy validates its inputs (exact amounts sum to total, percentages sum to 100), then returns a vector of Splits.
+**Public method:**
+- `void addExpenseWithStrategy(const string& expenseId, const string& paidBy, double amount, const vector<string>& participants, SplitStrategy* strategy, const vector<double>& params)`
 
 ---
 
-## Part 3
+## Extension 2 — Debt Simplification
 
-**Extension 2 — Debt simplification**
+After many expenses, the balance graph may have many edges. Simplify all debts to the minimum number of transactions needed to settle everyone to zero.
 
-After many expenses, the balance graph can have many edges. Simplify all debts to minimize the number of transactions needed to settle up.
+**Algorithm:** Compute each user's net balance (total owed to them minus total they owe). Greedily match the largest creditor with the largest debtor. Transaction amount = min(|creditor net|, |debtor net|). Repeat until all balances are zero.
 
-**Algorithm:**
-1. Compute net balance for each user (total owed to them minus total they owe).
-2. Separate users into creditors (net positive) and debtors (net negative).
-3. Greedily match the largest creditor with the largest debtor. The transaction amount is the minimum of the two absolute values.
-4. Repeat until all debts are settled.
-
-**Example:** If net balances are A=+50, B=-30, C=-20, then: B pays A $30, C pays A $20. Two transactions instead of potentially many more.
-
-**New entry point:**
-```cpp
-vector<tuple<string, string, double>> simplify_debts();
-// Returns list of (from, to, amount) — minimized transactions
+**Example:**
+```
+// Net balances: alice=+50, bob=-30, charlie=-20
+simplifyDebts()
+→  [("bob", "alice", 30.0), ("charlie", "alice", 20.0)]
+// 2 transactions settle everyone — no matter how many original expenses existed
 ```
 
-**Design challenge:** The greedy approach works because we only care about net positions, not the original expense graph. Think of it as netting out a directed graph.
+**Public method:**
+- `vector<tuple<string, string, double>> simplifyDebts()`
 
 ---
 

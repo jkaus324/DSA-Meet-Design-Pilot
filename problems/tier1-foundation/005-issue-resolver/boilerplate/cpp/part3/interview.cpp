@@ -4,50 +4,74 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class Priority { LOW, MEDIUM, HIGH, CRITICAL };
-enum class IssueState { OPEN, IN_PROGRESS, RESOLVED, CLOSED };
-enum class Category { BILLING, TECHNICAL, GENERAL, ACCOUNT };
+// Data class (given).
 
-struct Issue {
-    int id;
-    string description;
-    Category category;
-    Priority priority;
-    IssueState state;
-    int assignedAgentId;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void ir_add_agent(int id, string name, string specialization);
+//   int ir_assign_issue_round_robin(string description, string category, string priority);
+//   int ir_agent_issue_count(int agentId);
+//   int ir_agent_load(int agentId);
+//   int ir_assign_issue_least_loaded(string description, string category, string priority);
+//   int ir_assign_issue_specialist(string description, string category, string priority);
+//   bool ir_transition(int issueId, string newState);
+//   string ir_get_issue_state(int issueId);
+//   int ir_log_size();
+//   string ir_log_entry(int idx);
 
-struct Agent {
-    int id;
-    string name;
-    int currentLoad;
-    vector<Category> specializations;
-};
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── NEW in Extension 2 ─────────────────────────────────────────────────────
-//
-// The product team now requires:
-//   1. State machine: OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED
-//      Invalid transitions must be rejected (return false).
-//   2. Notifications: When state changes, all registered observers are notified.
-//   3. Priority queue: assign_next_priority() picks the highest-priority
-//      unassigned issue first. Tiebreak by lowest issue ID.
-//
-// Think about:
-//   - How do you decouple notifications from the state machine?
-//   - What interface lets you add new observers without modifying the resolver?
-//   - How do you efficiently find the highest-priority unassigned issue?
-//
-// Entry points (must exist for tests):
-//   Issue assign_issue(vector<Agent>&, vector<Issue>&, Issue);
-//   vector<Issue> get_agent_issues(const vector<Issue>&, int);
-//   Issue assign_least_loaded(vector<Agent>&, vector<Issue>&, Issue);
-//   Issue assign_by_specialist(vector<Agent>&, vector<Issue>&, Issue);
-//   bool transition_issue(vector<Issue>&, int, IssueState, vector<string>&);
-//   Issue assign_next_priority(vector<Agent>&, vector<Issue>&);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void ir_add_agent(int id, string name, string specialization) {
+    // TODO: write your solution
+    // nothing to return
+}
 
+int ir_assign_issue_round_robin(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
+}
 
+int ir_agent_issue_count(int agentId) {
+    // TODO: write your solution
+    return {};
+}
+
+int ir_agent_load(int agentId) {
+    // TODO: write your solution
+    return {};
+}
+
+int ir_assign_issue_least_loaded(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
+}
+
+int ir_assign_issue_specialist(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
+}
+
+bool ir_transition(int issueId, string newState) {
+    // TODO: write your solution
+    return {};
+}
+
+string ir_get_issue_state(int issueId) {
+    // TODO: write your solution
+    return {};
+}
+
+int ir_log_size() {
+    // TODO: write your solution
+    return {};
+}
+
+string ir_log_entry(int idx) {
+    // TODO: write your solution
+    return {};
+}

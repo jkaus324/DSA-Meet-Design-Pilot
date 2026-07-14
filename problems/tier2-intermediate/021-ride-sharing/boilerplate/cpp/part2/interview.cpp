@@ -1,60 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct User {
-    string id;
-    string name;
-    int ridesOffered;
-    int ridesTaken;
+// Data class (given).
+struct RideOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int i1;
+    int i2;
+    RideOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", const string& s4_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), s4(s4_), i1(i1_), i2(i2_) {}
 };
 
-struct Vehicle {
-    string id;
-    string ownerId;
-    string model;
-    string regNumber;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> ride_simulate(vector<RideOp> ops);
 
-struct Ride {
-    string id;
-    string driverId;
-    string vehicleId;
-    string origin;
-    string destination;
-    int totalSeats;
-    int availableSeats;
-    bool active;
-};
-
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Extend your RideService to support pluggable ride selection strategies:
-//   - MostVacant: Select the ride with the most available seats
-//   - PreferredVehicle: Select the ride whose vehicle model matches preference
-//
-// Think about:
-//   - What abstraction lets you swap selection logic at runtime?
-//   - How do you filter candidates (origin, dest, active, enough seats)?
-//   - How does PreferredVehicleStrategy access vehicle model information?
-//   - What happens when no ride matches the criteria?
-//
-// Entry points (must exist for tests):
-//   All Part 1 entry points PLUS:
-//   string RideService::selectRide(const string& passengerName,
-//                                  const string& origin, const string& dest,
-//                                  int seats, RideSelectionStrategy* strategy,
-//                                  const string& preference);
-//
-// You also need:
-//   RideSelectionStrategy interface
-//   MostVacantStrategy
-//   PreferredVehicleStrategy
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> ride_simulate(vector<RideOp> ops) {
+    // TODO: write your solution
+    return {};
+}

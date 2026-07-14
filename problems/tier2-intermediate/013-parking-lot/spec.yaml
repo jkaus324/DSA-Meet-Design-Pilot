@@ -1,0 +1,22 @@
+problem_id: "013-parking-lot"
+
+types:
+  ParkOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: s3,   type: string, default: "" }
+      - { name: i1,   type: int, default: 0 }
+      - { name: i2,   type: int, default: 0 }
+      - { name: i3,   type: int, default: 0 }
+
+functions:
+  - name: parking_simulate
+    params:
+      - { name: ops, type: "list<ParkOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Multi-floor parking + spot matching", functions: [parking_simulate] }
+  2: { name: "Pricing strategies + gates",          functions: [parking_simulate] }

@@ -1,0 +1,104 @@
+- name: most_vacant_strategy
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_user", s1: "Amit" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV",   s3: "KA-02-5678" }
+      - { kind: "add_veh", s1: "Amit",  s2: "Swift", s3: "KA-03-9012" }
+      - { kind: "offer", s1: "Rohan", s2: "Bangalore", s3: "Mysore",  s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "offer", s1: "Deepa", s2: "Bangalore", s3: "Mysore",  s4: "KA-02-5678", i1: 5, i2: 1 }
+      - { kind: "offer", s1: "Amit",  s2: "Bangalore", s3: "Chennai", s4: "KA-03-9012", i1: 2, i2: 2 }
+      - { kind: "select_mv", s1: "Priya", s2: "Bangalore", s3: "Mysore", i1: 1, i2: 3 }
+      - { kind: "ride_driver", i2: 3 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "RIDE-1", "RIDE-2", "RIDE-3", "RIDE-2", "Deepa"]
+
+- name: preferred_vehicle_strategy
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV",   s3: "KA-02-5678" }
+      - { kind: "offer", s1: "Rohan", s2: "Bangalore", s3: "Mysore", s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "offer", s1: "Deepa", s2: "Bangalore", s3: "Mysore", s4: "KA-02-5678", i1: 5, i2: 1 }
+      - { kind: "select_pv", s1: "Priya", s2: "Bangalore", s3: "Mysore", s4: "Swift", i1: 1, i2: 2 }
+      - { kind: "ride_driver", i2: 2 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "RIDE-1", "RIDE-2", "RIDE-1", "Rohan"]
+
+- name: no_matching_route
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "offer", s1: "Rohan", s2: "Bangalore", s3: "Mysore", s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "select_mv", s1: "Priya", s2: "Delhi", s3: "Mumbai", i1: 1, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "RIDE-1", ""]
+
+- name: seats_decremented
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV", s3: "KA-02-5678" }
+      - { kind: "offer", s1: "Deepa", s2: "Bangalore", s3: "Mysore", s4: "KA-02-5678", i1: 5, i2: 0 }
+      - { kind: "select_mv", s1: "Priya", s2: "Bangalore", s3: "Mysore", i1: 2, i2: 1 }
+      - { kind: "ride_avail", i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "RIDE-1", "RIDE-1", "3"]
+
+- name: rides_taken_incremented
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV", s3: "KA-02-5678" }
+      - { kind: "offer", s1: "Deepa", s2: "B", s3: "M", s4: "KA-02-5678", i1: 5, i2: 0 }
+      - { kind: "user_taken", s1: "Priya" }
+      - { kind: "select_mv", s1: "Priya", s2: "B", s3: "M", i1: 1, i2: 1 }
+      - { kind: "user_taken", s1: "Priya" }
+  expect: ["ok", "ok", "ok", "ok", "RIDE-1", "0", "RIDE-1", "1"]
+
+- name: cannot_select_own_ride
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Rohan" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_veh", s1: "Rohan", s2: "Swift", s3: "KA-01-1234" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV",   s3: "KA-02-5678" }
+      - { kind: "offer", s1: "Rohan", s2: "B", s3: "M", s4: "KA-01-1234", i1: 3, i2: 0 }
+      - { kind: "offer", s1: "Deepa", s2: "B", s3: "M", s4: "KA-02-5678", i1: 5, i2: 1 }
+      - { kind: "select_mv", s1: "Deepa", s2: "B", s3: "M", i1: 1, i2: 2 }
+      - { kind: "ride_driver", i2: 2 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "RIDE-1", "RIDE-2", "RIDE-1", "Rohan"]
+
+- name: not_enough_seats
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV", s3: "KA-02-5678" }
+      - { kind: "offer", s1: "Deepa", s2: "B", s3: "M", s4: "KA-02-5678", i1: 5, i2: 0 }
+      - { kind: "select_mv", s1: "Priya", s2: "B", s3: "M", i1: 10, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "RIDE-1", ""]
+
+- name: no_matching_vehicle_model
+  call: ride_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "Deepa" }
+      - { kind: "add_user", s1: "Priya" }
+      - { kind: "add_veh", s1: "Deepa", s2: "XUV", s3: "KA-02-5678" }
+      - { kind: "offer", s1: "Deepa", s2: "B", s3: "M", s4: "KA-02-5678", i1: 5, i2: 0 }
+      - { kind: "select_pv", s1: "Priya", s2: "B", s3: "M", s4: "BMW", i1: 1, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "RIDE-1", ""]

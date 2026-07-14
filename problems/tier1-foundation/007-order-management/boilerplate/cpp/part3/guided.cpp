@@ -1,72 +1,89 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <chrono>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered, Cancelled };
+// Data class (given).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-struct StateTransition {
-    OrderState fromState;
-    OrderState toState;
-    long long timestamp;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void set_inventory(string productId, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── Observer Interface ─────────────────────────────────────────────────────
-// HINT: This is the Observer pattern. OrderManager is the subject.
-// Observers register themselves and get notified on state changes.
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int get_inventory(string productId) {
+    // TODO: write your solution
+    return {};
+}
 
-class OrderObserver {
-public:
-    virtual void onStateChange(const string& orderId,
-                               OrderState from, OrderState to) = 0;
-    virtual ~OrderObserver() = default;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: write your solution
+    return {};
+}
 
-// ─── OrderManager ───────────────────────────────────────────────────────────
-// HINT: You now need THREE HashMaps:
-//   - orders: unordered_map<string, Order>
-//   - inventory: unordered_map<string, int>
-//   - history: unordered_map<string, vector<StateTransition>>
-//
-// Plus a vector<OrderObserver*> for registered observers.
-//
-// On every successful transition:
-//   1. Record a StateTransition with timestamp
-//   2. Notify all observers
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string get_order_state_str(string orderId) {
+    // TODO: write your solution
+    return {};
+}
 
-// class OrderManager {
-//     unordered_map<string, Order> orders;
-//     unordered_map<string, int> inventory;
-//     unordered_map<string, vector<StateTransition>> history;
-//     vector<OrderObserver*> observers;
-//     int nextId = 1;
-// public:
-//     // ... all Part 1 + Part 2 methods ...
-//     vector<StateTransition> getOrderHistory(const string& orderId);
-//     void addObserver(OrderObserver* obs);
-// };
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool confirm_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
 
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-//
-//   All Part 1 + Part 2 entry points, plus:
-//   vector<StateTransition> get_order_history(const string& orderId);
-//   void add_observer(OrderObserver* obs);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool ship_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
 
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool deliver_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool cancel_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int get_history_size(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void om_attach_observer() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int om_observer_count() {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string om_observer_last_to() {
+    // TODO: write your solution
+    return {};
+}

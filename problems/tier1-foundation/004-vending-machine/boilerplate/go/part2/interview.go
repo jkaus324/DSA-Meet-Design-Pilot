@@ -1,35 +1,72 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// Data class (given).
 
-type Item struct {
-	Name     string
-	Price    float64
-	Quantity int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func reset()
+//   func getState() string
+//   func selectItem(item string)
+//   func insertMoney(amount float64)
+//   func dispense()
+//   func cancel()
+//   func enterMaintenance(pin string)
+//   func exitMaintenance(pin string)
+//   func restock(item string, qty int)
+//   func vm_get_quantity(item string) int
+
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The vending machine now needs a MAINTENANCE mode:
-//   - Operator can switch the machine into maintenance mode
-//   - In maintenance mode: restock items, adjust prices, clear errors
-//   - User-facing operations (select, pay, dispense) are blocked during maintenance
-//   - Only the operator can exit maintenance mode
-//
-// Think about:
-//   - Where does "maintenance" fit in your existing state diagram?
-//   - Is it a state like Idle/PaymentPending, or a separate mode overlay?
-//   - How do you prevent users from entering maintenance mode?
-//
-// Entry points (all from Part 1, plus):
-//   func SelectItem(itemName string)
-//   func InsertMoney(amount float64)
-//   func Dispense()
-//   func Cancel()
-//   func GetState() string
-//   func Reset()
-//   func EnterMaintenance(operatorPin string)
-//   func ExitMaintenance(operatorPin string)
-//   func Restock(itemName string, quantity int)
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func reset() {
+	// TODO: write your solution
+	return
+}
+
+func getState() string {
+	// TODO: write your solution
+	return ""
+}
+
+func selectItem(item string) {
+	// TODO: write your solution
+	return
+}
+
+func insertMoney(amount float64) {
+	// TODO: write your solution
+	return
+}
+
+func dispense() {
+	// TODO: write your solution
+	return
+}
+
+func cancel() {
+	// TODO: write your solution
+	return
+}
+
+func enterMaintenance(pin string) {
+	// TODO: write your solution
+	return
+}
+
+func exitMaintenance(pin string) {
+	// TODO: write your solution
+	return
+}
+
+func restock(item string, qty int) {
+	// TODO: write your solution
+	return
+}
+
+func vm_get_quantity(item string) int {
+	// TODO: write your solution
+	return 0
+}

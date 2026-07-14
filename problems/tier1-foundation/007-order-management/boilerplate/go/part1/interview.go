@@ -1,68 +1,36 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type OrderState int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func set_inventory(productId string, qty int)
+//   func get_inventory(productId string) int
+//   func create_order_simple(productId string, quantity int, totalAmount float64) string
+//   func get_order_state_str(orderId string) string
 
-const (
-	Created   OrderState = iota
-	Confirmed OrderState = iota
-	Shipped   OrderState = iota
-	Delivered OrderState = iota
-)
-
-type OrderItem struct {
-	ProductId string
-	Quantity  int
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Order struct {
-	Id          string
-	Items       []OrderItem
-	TotalAmount float64
-	State       OrderState
+func set_inventory(productId string, qty int) {
+	// TODO: write your solution
+	return
 }
 
-// ─── Your Design Starts Here ──────────────────────────────────────────────────
-//
-// Design and implement an OrderManager that:
-//   1. Creates orders and stores them in a map
-//   2. Enforces valid state transitions:
-//      Created -> Confirmed -> Shipped -> Delivered
-//   3. Rejects any invalid transition (no skipping, no backward)
-//
-// Think about:
-//   - How do you validate that a transition is legal?
-//   - What data structure gives O(1) order lookup by ID?
-//   - What happens when Extension 1 (cancellation) is added?
-//
-// Entry points (must exist for tests):
-//   func CreateOrder(items []OrderItem, totalAmount float64) string
-//   func ConfirmOrder(orderId string) bool
-//   func ShipOrder(orderId string) bool
-//   func DeliverOrder(orderId string) bool
-//   func GetOrderState(orderId string) OrderState
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func get_inventory(productId string) int {
+	// TODO: write your solution
+	return 0
+}
 
-func CreateOrder(items []OrderItem, totalAmount float64) string {
+func create_order_simple(productId string, quantity int, totalAmount float64) string {
+	// TODO: write your solution
 	return ""
 }
 
-func ConfirmOrder(orderId string) bool {
-	return false
+func get_order_state_str(orderId string) string {
+	// TODO: write your solution
+	return ""
 }
-
-func ShipOrder(orderId string) bool {
-	return false
-}
-
-func DeliverOrder(orderId string) bool {
-	return false
-}
-
-func GetOrderState(orderId string) OrderState {
-	return Created
-}
-
-func ResetManager() {}

@@ -1,0 +1,70 @@
+- name: under_min_no_discount
+  comment: "Cart total below min — no discount applied"
+  call: apply_percentage_with_eligibility
+  args:
+    - - { name: "A", price: 100.0, quantity: 1, category: "" }
+    - 10.0
+    - 500.0
+    - false
+    - false
+    - ""
+  expect_close: 100.0
+
+- name: above_min_with_discount
+  call: apply_percentage_with_eligibility
+  args:
+    - - { name: "A", price: 1000.0, quantity: 1, category: "" }
+    - 10.0
+    - 500.0
+    - false
+    - false
+    - ""
+  expect_close: 900.0
+
+- name: first_time_required_not_first
+  comment: "Requires first-time user; user is returning"
+  call: apply_percentage_with_eligibility
+  args:
+    - - { name: "A", price: 1000.0, quantity: 1, category: "" }
+    - 10.0
+    - 500.0
+    - true
+    - false
+    - ""
+  expect_close: 1000.0
+
+- name: first_time_required_is_first
+  call: apply_percentage_with_eligibility
+  args:
+    - - { name: "A", price: 1000.0, quantity: 1, category: "" }
+    - 10.0
+    - 500.0
+    - true
+    - true
+    - ""
+  expect_close: 900.0
+
+- name: category_specific
+  comment: "10% off only electronics; accessories pay full"
+  call: apply_percentage_with_eligibility
+  args:
+    - - { name: "Laptop", price: 1000.0, quantity: 1, category: "electronics" }
+      - { name: "Bag",    price:  200.0, quantity: 1, category: "accessories" }
+    - 10.0
+    - 0.0
+    - false
+    - false
+    - "electronics"
+  expect_close: 1100.0
+
+- name: category_no_match
+  comment: "Non-matching category — discount applied to empty list (0)"
+  call: apply_percentage_with_eligibility
+  args:
+    - - { name: "Bag", price: 200.0, quantity: 1, category: "accessories" }
+    - 10.0
+    - 0.0
+    - false
+    - false
+    - "electronics"
+  expect_close: 200.0

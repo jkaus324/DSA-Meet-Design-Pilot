@@ -1,112 +1,76 @@
 # Problem 018 — Simplified Twitter System
 
-**Tier:** 2 (Intermediate) | **Patterns:** Observer, Factory, Singleton | **DSA:** HashMap, HashSet, Heap, LinkedList
-**Companies:** AngelOne | **Time:** 50 minutes
+**Tier:** 2 (Intermediate) | **Pattern:** Observer + Strategy | **DSA:** HashMap + Heap (Merge K Sorted)
+**Companies:** Twitter, Amazon, Flipkart, AngelOne | **Time:** 60 minutes
 
 ---
 
 ## Problem Statement
 
-You are building a simplified version of Twitter. The system must support users posting tweets, following and unfollowing other users, and retrieving a personalized news feed.
-
-Each user has a unique integer `userId`. Each tweet has a unique integer `tweetId`. Tweets are ordered by recency — the most recently posted tweet appears first.
-
-**Your task:** Design and implement a `Twitter` class that supports the core social media operations described below, and then optimize the news feed generation using a k-way merge algorithm.
-
----
-
-## Before You Code
-
-> Read this section carefully. This is where the design thinking happens.
-
-**Ask yourself:**
-1. How do you store the relationship between users and their tweets efficiently?
-2. When generating a news feed, you need tweets from potentially many followed users — how do you avoid sorting *all* tweets every time?
-3. What data structure lets you efficiently extract the top K elements from multiple sorted streams?
-
-**Naive approach:** Collect all tweets from user + followed users into one list, sort by timestamp, return top 10. This is O(N log N) where N is total tweets across all followed users.
-
-**Pattern approach:** Each user's tweet list is already sorted by time (newest first). Treat each user's tweets as a sorted stream. Use a **max-heap** (priority queue) to perform a **k-way merge** — push the newest tweet from each user, pop the max, push that user's next tweet. This gives O(10 * log K) where K is the number of followed users.
-
-**The key insight:** A news feed is a merge of K sorted lists, limited to 10 results. This is the classic "merge K sorted lists" problem disguised as a system design question.
-
----
-
-## Data Structures
-
-```cpp
-struct Tweet {
-    int tweetId;
-    int timestamp;  // auto-assigned, higher = more recent
-};
-```
-
----
-
-## Part 1
-
-**Base requirement — Core Twitter functionality**
-
-Implement a `Twitter` class that supports the following operations:
-
-| Operation | Description |
-|-----------|-------------|
-| `Twitter()` | Initialize the system |
-| `postTweet(userId, tweetId)` | User posts a new tweet. If the user does not exist, auto-create them. |
-| `getNewsFeed(userId)` | Return the 10 most recent tweet IDs from the user's feed. The feed includes the user's own tweets and tweets from users they follow, ordered by most recent first. If fewer than 10 tweets exist, return all of them. |
-| `follow(followerId, followeeId)` | `followerId` starts following `followeeId`. A user cannot follow themselves. |
-| `unfollow(followerId, followeeId)` | `followerId` stops following `followeeId`. Unfollowing a user you don't follow is a no-op. |
+You are building a simplified Twitter. Users post tweets, follow and unfollow other users, and retrieve a personalized news feed. The feed returns the 10 most recent tweets from the user and everyone they follow, in reverse chronological order. The naive approach collects and sorts all tweets — Part 2 optimizes this to O(10 log K) using a k-way heap merge.
 
 **Constraints:**
 - `1 <= userId, tweetId <= 10^4`
-- Each call to `postTweet` uses a unique `tweetId`
-- At most 3 * 10^4 calls total to `postTweet`, `getNewsFeed`, `follow`, `unfollow`
-
-**Entry points (tests will call these):**
-```cpp
-Twitter();
-void postTweet(int userId, int tweetId);
-vector<int> getNewsFeed(int userId);
-void follow(int followerId, int followeeId);
-void unfollow(int followerId, int followeeId);
-```
-
-**Design goal:** The naive approach (collect all tweets, sort, return top 10) is acceptable for Part 1. Focus on correct data modeling.
+- At most 3 * 10^4 total calls across all operations
+- Feed returns at most 10 tweet IDs; if fewer exist, return all
+- A user cannot follow themselves; unfollowing someone you don't follow is a no-op
+- Timestamp is auto-assigned; higher timestamp = more recent
 
 ---
 
-## Part 2
+## Base Requirement — Core Social Media Operations
 
-**Extension — Optimized news feed with k-way merge**
+Implement a `Twitter` class supporting posting, following, unfollowing, and feed generation. Users are auto-created on first interaction. The feed must include the user's own tweets.
 
-The product team reports that power users follow thousands of accounts. The naive `getNewsFeed` is too slow.
+**Example:**
+```
+Twitter tw
+tw.postTweet(1, 101)   // user 1 posts tweet 101
+tw.postTweet(2, 201)   // user 2 posts tweet 201
+tw.postTweet(1, 102)   // user 1 posts tweet 102
 
-Optimize `getNewsFeed` using a **min-heap** based k-way merge:
+tw.getNewsFeed(1)  →  [102, 101]   // own tweets, newest first, no follows yet
 
-1. For the user and each user they follow, take the most recent tweet as the head of that user's stream.
-2. Push all stream heads into a max-heap (priority queue ordered by timestamp).
-3. Pop the top element (most recent overall). If that user has more tweets, push their next tweet.
-4. Repeat until you have 10 tweets or the heap is empty.
+tw.follow(1, 2)
+tw.getNewsFeed(1)  →  [102, 201, 101]   // user 2's tweet inserted in order
 
-**Complexity target:**
-- `getNewsFeed`: O(10 * log K) where K = number of followed users
+tw.unfollow(1, 2)
+tw.getNewsFeed(1)  →  [102, 101]   // back to own tweets only
+```
+
+**Public methods:**
+- `Twitter()`
+- `void postTweet(int userId, int tweetId)`
+- `vector<int> getNewsFeed(int userId)`
+- `void follow(int followerId, int followeeId)`
+- `void unfollow(int followerId, int followeeId)`
+
+---
+
+## Extension 1 — Optimized Feed with K-Way Heap Merge
+
+The naive approach (collect all tweets, sort, take top 10) is O(N log N) where N is total tweets. Optimize `getNewsFeed` using a max-heap k-way merge.
+
+**Algorithm:**
+1. For each followed user (including self), push their most recent tweet onto a max-heap keyed by timestamp.
+2. Pop the top (most recent overall). If that user has more tweets, push their next one.
+3. Repeat until 10 tweets collected or heap empty.
+
+**Complexity targets:**
+- `getNewsFeed`: O(10 * log K), K = number of followed users
 - `postTweet`: O(1)
 - `follow` / `unfollow`: O(1)
 
-**Entry points:** Same as Part 1, but with optimized implementation.
-
-```cpp
-Twitter();
-void postTweet(int userId, int tweetId);
-vector<int> getNewsFeed(int userId);
-void follow(int followerId, int followeeId);
-void unfollow(int followerId, int followeeId);
+**Example:**
+```
+// User 1 follows 500 users, each with 1000 tweets
+tw.getNewsFeed(1)
+// Heap starts with 501 entries (1 per user's latest tweet)
+// Pops 10 times, each pop does at most log(501) comparisons
+// Total: ~10 * 9 ≈ 90 comparisons vs. 500,000 sort comparisons
 ```
 
-**Discussion points for the interviewer:**
-- Why does each user's tweet list need to be in reverse chronological order?
-- What happens if a user unfollows someone — do their tweets disappear from future feeds?
-- How would you extend this to support "liked" tweets or retweets in the feed?
+**Public methods:** Same interface as Part 1; only the internal implementation of `getNewsFeed` changes.
 
 ---
 

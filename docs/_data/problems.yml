@@ -1,399 +1,545 @@
-﻿- id: "001-payment-ranker"
-  name: "Payment Method Ranker"
+- id: 001-payment-ranker
+  name: Payment Method Ranker
   tier: 1
-  patterns: ["Strategy", "Comparator"]
-  dsa: "Sorting"
-  companies: ["Amazon", "Flipkart"]
+  category: design-heavy
+  patterns:
+  - Strategy
+  - Comparator
+  dsa: Sorting
+  dsa_core: Comparator-based sorting — trivial in base, enhance with weighted scoring + top-K partial sort
+  dsa_depth: shallow
+  companies:
+  - Amazon
+  - Flipkart
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier1-foundation/001-payment-ranker"
-  parts:
-    - name: "Base — Rank by criteria"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Composite ranking"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — Easy-refund eligibility"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
-- id: "003-notification-system"
-  name: "Notification System"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: low
+  path: problems/tier1-foundation/001-payment-ranker
+- id: 003-notification-system
+  name: Notification System
   tier: 1
-  patterns: ["Observer"]
-  dsa: "Queue"
-  companies: ["Flipkart", "Swiggy"]
+  category: design-heavy
+  patterns:
+  - Observer
+  dsa: Queue
+  dsa_core: Basic FIFO queue — enhance with priority queue + token bucket rate limiting
+  dsa_depth: shallow
+  companies:
+  - Flipkart
+  - Swiggy
+  - Amazon
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "observer"
-  path: "problems/tier1-foundation/003-notification-system"
-  parts:
-    - name: "Base — Multi-channel notifications"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Priority filtering"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-
-- id: "004-vending-machine"
-  name: "Vending Machine"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: low
+  path: problems/tier1-foundation/003-notification-system
+- id: 004-vending-machine
+  name: Vending Machine
   tier: 1
-  patterns: ["State"]
-  dsa: "HashMap"
-  companies: ["Amazon", "Flipkart"]
+  category: design-heavy
+  patterns:
+  - State
+  dsa: HashMap
+  dsa_core: HashMap lookup — enhance with greedy/DP coin change for optimal change return
+  dsa_depth: shallow
+  companies:
+  - Amazon
+  - Flipkart
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "state"
-  path: "problems/tier1-foundation/004-vending-machine"
-  parts:
-    - name: "Base — State transitions"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Maintenance mode"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-
-- id: "005-issue-resolver"
-  name: "Customer Issue Resolution System"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: low
+  path: problems/tier1-foundation/004-vending-machine
+- id: 005-issue-resolver
+  name: Customer Issue Resolution System
   tier: 1
-  patterns: ["Strategy", "Observer"]
-  dsa: "HashMap + Priority Queue"
-  companies: ["PhonePe", "Flipkart"]
+  category: junction
+  patterns:
+  - Strategy
+  - Observer
+  dsa: HashMap + Priority Queue
+  dsa_core: Priority queue for issue ordering, HashMap for agent lookup
+  dsa_depth: moderate
+  companies:
+  - PhonePe
+  - Flipkart
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier1-foundation/005-issue-resolver"
-  parts:
-    - name: "Base — Round-robin agent assignment"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Multiple assignment strategies"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — Issue state tracking + priority"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
-- id: "006-discount-engine"
-  name: "Billing & Discount Engine"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: medium
+  path: problems/tier1-foundation/005-issue-resolver
+- id: 006-discount-engine
+  name: Billing & Discount Engine
   tier: 1
-  patterns: ["Strategy", "Decorator"]
-  dsa: "HashMap"
-  companies: ["Flipkart", "Amazon", "Meesho"]
+  category: junction
+  patterns:
+  - Strategy
+  - Decorator
+  dsa: HashMap
+  dsa_core: HashMap lookup — enhance with knapsack variant for best discount combo under constraints
+  dsa_depth: shallow
+  companies:
+  - Flipkart
+  - Amazon
+  - Meesho
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier1-foundation/006-discount-engine"
-  parts:
-    - name: "Base — Apply single discount type"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Stack multiple discounts"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — Discount eligibility rules"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
-- id: "007-order-management"
-  name: "Order Management System"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: medium
+  path: problems/tier1-foundation/006-discount-engine
+- id: 007-order-management
+  name: Order Management System
   tier: 1
-  patterns: ["State"]
-  dsa: "HashMap"
-  companies: ["Meesho", "PhonePe", "Amazon"]
+  category: design-heavy
+  patterns:
+  - State
+  dsa: HashMap
+  dsa_core: HashMap storage — enhance with dependency-aware fulfillment via topological sort
+  dsa_depth: shallow
+  companies:
+  - Meesho
+  - PhonePe
+  - Amazon
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "state"
-  path: "problems/tier1-foundation/007-order-management"
-  parts:
-    - name: "Base — Order lifecycle with state transitions"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Cancellation + inventory release"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — Transition history tracking"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
-- id: "008-file-search"
-  name: "File Search System"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: low
+  path: problems/tier1-foundation/007-order-management
+- id: 008-file-search
+  name: File Search System
   tier: 1
-  patterns: ["Strategy", "Composite"]
-  dsa: "Tree (DFS/BFS)"
-  companies: ["Amazon", "Microsoft"]
+  category: code-heavy
+  patterns:
+  - Strategy
+  - Composite
+  dsa: Tree (DFS/BFS)
+  dsa_core: Tree DFS/BFS traversal with composite filter evaluation at each node
+  dsa_depth: deep
+  companies:
+  - Amazon
+  - Microsoft
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier1-foundation/008-file-search"
-  parts:
-    - name: "Base — Search by single criterion"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Combine criteria with AND/OR"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — Sort results independently"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
-- id: "011-rate-limiter"
-  name: "API Rate Limiter"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
+  path: problems/tier1-foundation/008-file-search
+- id: 011-rate-limiter
+  name: API Rate Limiter
   tier: 1
-  patterns: ["Strategy", "Factory"]
-  dsa: "Queue + HashMap"
-  companies: ["Amazon", "Razorpay", "Uber"]
+  category: code-heavy
+  patterns:
+  - Strategy
+  - Factory
+  dsa: Queue + HashMap
+  dsa_core: Sliding window / token bucket algorithms for rate tracking
+  dsa_depth: moderate
+  companies:
+  - Amazon
+  - Razorpay
+  - Uber
   time_minutes: 45
-  languages: ["cpp", "go"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier1-foundation/011-rate-limiter"
-  parts:
-    - name: "Base — Fixed-window rate limiting"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Multiple algorithms per endpoint"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — User tier-based rate limits"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
-- id: "009-meeting-scheduler"
-  name: "Meeting Room Scheduler"
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
+  path: problems/tier1-foundation/011-rate-limiter
+- id: 009-meeting-scheduler
+  name: Meeting Room Scheduler
   tier: 2
-  patterns: ["Strategy", "Observer"]
-  dsa: "Interval Checking + HashMap + Priority Queue"
-  companies: ["Flipkart", "Razorpay", "Groww", "Microsoft"]
+  category: junction
+  patterns:
+  - Strategy
+  - Observer
+  dsa: Interval Checking + HashMap + Priority Queue
+  dsa_core: Interval scheduling — sweep line / greedy for conflict detection and slot allocation
+  dsa_depth: deep
+  companies:
+  - Flipkart
+  - Razorpay
+  - Groww
+  - Microsoft
   time_minutes: 60
-  languages: ["cpp", "go"]
-  prerequisite_primer: "strategy"
-  path: "problems/tier2-intermediate/009-meeting-scheduler"
-  parts:
-    - name: "Base — Room booking with conflict detection"
-      description_marker: "## Part 1"
-      test_file: "part1_test.cpp"
-    - name: "Extension 1 — Multiple allocation strategies"
-      description_marker: "## Part 2"
-      test_file: "part2_test.cpp"
-    - name: "Extension 2 — Attendee notifications"
-      description_marker: "## Part 3"
-      test_file: "part3_test.cpp"
-
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
+  path: problems/tier2-intermediate/009-meeting-scheduler
 - id: 010-ride-surge-pricing
   name: Ride Surge Pricing Engine
   tier: 2
-  patterns: [Strategy, Observer]
+  category: code-heavy
+  patterns:
+  - Strategy
+  - Observer
   dsa: Priority Queue
-  companies: [Uber, Ola]
+  dsa_core: Priority queue for demand-based driver ranking and surge calculation
+  dsa_depth: deep
+  companies:
+  - Uber
+  - Ola
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
   path: problems/tier2-intermediate/010-ride-surge-pricing
-  parts:
-    - name: Base — Surge calculation
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Surge notifications
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-
 - id: 012-elevator-system
   name: Elevator System
   tier: 2
-  patterns: [State, Strategy, Observer]
+  category: design-heavy
+  patterns:
+  - State
+  - Strategy
+  - Observer
   dsa: Priority Queue + State Machine
-  companies: [Amazon, Microsoft, Flipkart]
+  dsa_core: State machine + basic PQ — enhance with SCAN/LOOK disk scheduling algorithm
+  dsa_depth: moderate
+  companies:
+  - Amazon
+  - Microsoft
+  - Flipkart
+  - Adobe
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: state
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: medium
   path: problems/tier2-intermediate/012-elevator-system
-  parts:
-    - name: Base — Single elevator with request queue
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Multiple elevators with scheduling
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-
 - id: 013-parking-lot
   name: Parking Lot System
   tier: 2
-  patterns: [Strategy, Factory]
+  category: design-heavy
+  patterns:
+  - Strategy
+  - Factory
   dsa: HashMap + Heap
-  companies: [Amazon, Flipkart, Walmart]
+  dsa_core: Heap for nearest-spot allocation — enhance with BFS spatial search and bin packing
+  dsa_depth: moderate
+  companies:
+  - Amazon
+  - Flipkart
+  - Walmart
+  - Salesforce
+  - GoTo Financial
+  - Wayfair
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: medium
   path: problems/tier2-intermediate/013-parking-lot
-  parts:
-    - name: Base — Park and unpark vehicles
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Multiple vehicle types and spot allocation
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-
 - id: 014-splitwise
   name: Splitwise Expense Sharing
   tier: 2
-  patterns: [Strategy, Observer]
+  category: junction
+  patterns:
+  - Strategy
+  - Observer
   dsa: Graph + HashMap
-  companies: [Flipkart, PhonePe, Razorpay]
+  dsa_core: Graph + greedy algorithm for debt simplification (minimize transactions)
+  dsa_depth: deep
+  companies:
+  - Flipkart
+  - PhonePe
+  - Razorpay
+  - ShareChat
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: medium
   path: problems/tier2-intermediate/014-splitwise
-  parts:
-    - name: Base — Equal split expenses
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Percentage and exact splits
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-    - name: Extension 2 — Debt simplification
-      description_marker: ## Part 3
-      test_file: part3_test.cpp
-
 - id: 015-bookmyshow
   name: BookMyShow Ticket Booking
   tier: 2
-  patterns: [Strategy, Observer, State]
+  category: junction
+  patterns:
+  - Strategy
+  - Observer
+  - State
   dsa: HashMap + Concurrency
-  companies: [BookMyShow, Flipkart, Amazon]
+  dsa_core: Seat matrix management — enhance with sliding window for contiguous seat finding
+  dsa_depth: moderate
+  companies:
+  - BookMyShow
+  - Flipkart
+  - Amazon
+  - DoorDash
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
   path: problems/tier2-intermediate/015-bookmyshow
-  parts:
-    - name: Base — Browse and book seats
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Seat locking and timeout
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-    - name: Extension 2 — Discount and pricing tiers
-      description_marker: ## Part 3
-      test_file: part3_test.cpp
-
 - id: 016-amazon-locker
   name: Amazon Locker System
   tier: 2
-  patterns: [Strategy, State]
+  category: design-heavy
+  patterns:
+  - Strategy
+  - State
   dsa: HashMap + Queue
-  companies: [Amazon]
+  dsa_core: Best-fit allocation strategy — enhance with bin packing for optimal locker assignment
+  dsa_depth: moderate
+  companies:
+  - Amazon
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: medium
   path: problems/tier2-intermediate/016-amazon-locker
-  parts:
-    - name: Base — Assign locker and retrieve package
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Size-based allocation and expiry
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-
 - id: 017-lru-cache
   name: LRU Cache
   tier: 2
-  patterns: [Strategy]
+  category: code-heavy
+  patterns:
+  - Strategy
   dsa: HashMap + Doubly Linked List
-  companies: [Amazon, Google, Microsoft, Flipkart]
+  dsa_core: HashMap + doubly linked list for O(1) get/put/evict — the classic DSA interview combo
+  dsa_depth: deep
+  companies:
+  - Amazon
+  - Google
+  - Microsoft
+  - Flipkart
+  - Kutumb
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: low
+  code_weight: high
   path: problems/tier2-intermediate/017-lru-cache
-  parts:
-    - name: Base — Fixed-size cache with LRU eviction
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — TTL-based expiration
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-    - name: Extension 2 — Multiple eviction policies
-      description_marker: ## Part 3
-      test_file: part3_test.cpp
-
 - id: 018-twitter
   name: Twitter/X Feed System
   tier: 2
-  patterns: [Observer, Strategy]
+  category: junction
+  patterns:
+  - Observer
+  - Strategy
   dsa: HashMap + Heap (Merge K Sorted)
-  companies: [Twitter, Amazon, Flipkart]
+  dsa_core: Min-heap for k-way merge of sorted tweet lists — feed generation IS the algorithm
+  dsa_depth: deep
+  companies:
+  - Twitter
+  - Amazon
+  - Flipkart
+  - AngelOne
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: observer
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 2
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
   path: problems/tier2-intermediate/018-twitter
-  parts:
-    - name: Base — Post tweets and follow users
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — News feed generation
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-
 - id: 019-auction-system
   name: Online Auction System
   tier: 2
-  patterns: [Observer, Strategy, State]
+  category: junction
+  patterns:
+  - Observer
+  - Strategy
+  - State
   dsa: Priority Queue + HashMap
-  companies: [Flipkart, Amazon, eBay]
+  dsa_core: Priority queue for bid ordering, state machine for auction lifecycle
+  dsa_depth: moderate
+  companies:
+  - Flipkart
+  - Amazon
+  - eBay
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: observer
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: medium
   path: problems/tier2-intermediate/019-auction-system
-  parts:
-    - name: Base — Create auction and place bids
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Auto-bidding and bid notifications
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-    - name: Extension 2 — Auction closing strategies
-      description_marker: ## Part 3
-      test_file: part3_test.cpp
-
 - id: 020-logger-system
   name: Logging Framework
   tier: 2
-  patterns: [Strategy, Observer, Singleton]
+  category: design-heavy
+  patterns:
+  - Strategy
+  - Observer
+  - Singleton
   dsa: HashMap + Queue
-  companies: [Amazon, Microsoft, Razorpay]
+  dsa_core: HashMap + Queue storage — enhance with time-window bucketing and pattern matching
+  dsa_depth: shallow
+  companies:
+  - Amazon
+  - Microsoft
+  - Razorpay
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: high
+  code_weight: medium
   path: problems/tier2-intermediate/020-logger-system
-  parts:
-    - name: Base — Log to console with levels
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Multiple sinks (file, DB)
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-    - name: Extension 2 — Log filtering and formatting
-      description_marker: ## Part 3
-      test_file: part3_test.cpp
-
 - id: 021-ride-sharing
   name: Ride Sharing Service
   tier: 2
-  patterns: [Strategy, Observer, State]
+  category: junction
+  patterns:
+  - Strategy
+  - Observer
+  - State
   dsa: HashMap + Priority Queue + Graph
-  companies: [Uber, Ola, Lyft]
+  dsa_core: Graph BFS/Dijkstra for routing + priority queue for driver-rider matching
+  dsa_depth: deep
+  companies:
+  - Uber
+  - Ola
+  - Lyft
+  - Flipkart
   time_minutes: 60
-  languages: [cpp, go]
-  prerequisite_primer: strategy
+  languages:
+  - cpp
+  - go
+  - java
+  - python
+  - javascript
+  parts: 3
+  status: built
+  source: free-repo
+  design_weight: medium
+  code_weight: high
   path: problems/tier2-intermediate/021-ride-sharing
-  parts:
-    - name: Base — Request ride and match driver
-      description_marker: ## Part 1
-      test_file: part1_test.cpp
-    - name: Extension 1 — Ride pricing strategies
-      description_marker: ## Part 2
-      test_file: part2_test.cpp
-    - name: Extension 2 — Ride pooling and shared rides
-      description_marker: ## Part 3
-      test_file: part3_test.cpp
-

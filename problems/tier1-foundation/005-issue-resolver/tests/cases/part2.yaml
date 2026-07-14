@@ -1,0 +1,66 @@
+- name: reset_p2
+  call: reset_service
+  args: []
+
+- name: add_a0
+  call: ir_add_agent
+  args: [0, "Alice", "BILLING"]
+
+- name: add_a1
+  call: ir_add_agent
+  args: [1, "Bob", "TECHNICAL"]
+
+- name: add_a2
+  call: ir_add_agent
+  args: [2, "Carol", "GENERAL"]
+
+- name: rr_to_alice
+  call: ir_assign_issue_round_robin
+  args: ["I1", "BILLING", "HIGH"]
+  expect_equals: 0
+
+- name: least_loaded_picks_bob
+  comment: "Bob and Carol both have 0 load; lowest id = 1"
+  call: ir_assign_issue_least_loaded
+  args: ["I2", "TECHNICAL", "MEDIUM"]
+  expect_equals: 1
+
+- name: rr_again_picks_bob
+  comment: "Round-robin advances independently — next = bob"
+  call: ir_assign_issue_round_robin
+  args: ["I3", "TECHNICAL", "MEDIUM"]
+  expect_equals: 1
+
+- name: least_loaded_picks_carol
+  comment: "Now carol has 0, others have 1+"
+  call: ir_assign_issue_least_loaded
+  args: ["I4", "GENERAL", "LOW"]
+  expect_equals: 2
+
+- name: reset_p2_b
+  call: reset_service
+  args: []
+
+- name: add_billing_specialist
+  call: ir_add_agent
+  args: [0, "Alice", "BILLING"]
+
+- name: add_tech_specialist
+  call: ir_add_agent
+  args: [1, "Bob", "TECHNICAL"]
+
+- name: specialist_billing_picks_alice
+  call: ir_assign_issue_specialist
+  args: ["B1", "BILLING", "HIGH"]
+  expect_equals: 0
+
+- name: specialist_tech_picks_bob
+  call: ir_assign_issue_specialist
+  args: ["T1", "TECHNICAL", "HIGH"]
+  expect_equals: 1
+
+- name: specialist_no_match_falls_back
+  comment: "No GENERAL specialist; falls back to least-loaded (Alice with load 1)"
+  call: ir_assign_issue_specialist
+  args: ["G1", "GENERAL", "LOW"]
+  expect_equals: 0

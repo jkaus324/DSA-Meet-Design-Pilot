@@ -1,45 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Room {
-    string id;
-    string name;
-    int capacity;
-    bool hasAV;
+// Data class (given).
+struct Op {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    Op(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Meeting {
-    string id;
-    string title;
-    int startTime;  // minutes since midnight
-    int endTime;
-    string roomId;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> meeting_simulate(vector<Op> ops);
 
-// ─── Your Design Starts Here ────────────────────────────────────────────────
-//
-// Design and implement a MeetingScheduler that:
-//   1. Manages rooms and their meeting schedules
-//   2. Detects conflicts when booking (two meetings cannot overlap on the
-//      same room)
-//   3. Returns a room's schedule sorted by start time
-//
-// Think about:
-//   - How do you check if two time intervals overlap?
-//   - What data structure maps roomId -> meetings efficiently?
-//   - How will this extend to support automatic room allocation later?
-//
-// Entry points (must exist for tests):
-//   bool book_meeting(const Meeting& meeting);
-//   vector<Meeting> get_room_schedule(const string& roomId);
-//   bool is_available(const string& roomId, int startTime, int endTime);
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> meeting_simulate(vector<Op> ops) {
+    // TODO: write your solution
+    return {};
+}

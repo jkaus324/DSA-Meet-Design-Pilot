@@ -1,0 +1,31 @@
+problem_id: "003-notification-system"
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: notify_event
+    params:
+      - { name: event,             type: string }
+      - { name: userIds,           type: "list<string>" }
+      - { name: subscribedChannels, type: "list<string>" }
+    returns: void
+
+  - name: notify_priority
+    params:
+      - { name: event,             type: string }
+      - { name: priority,          type: string }
+      - { name: userIds,           type: "list<string>" }
+      - { name: subscribedChannels, type: "list<string>" }
+      - { name: minPriority,       type: string }
+    returns: void
+
+  - name: notify_priority_level
+    params:
+      - { name: priority, type: string }
+    returns: int
+
+parts:
+  1: { name: "Basic notify (no throw)", functions: [reset_service, notify_event] }
+  2: { name: "Priority filtering",      functions: [notify_priority, notify_priority_level] }

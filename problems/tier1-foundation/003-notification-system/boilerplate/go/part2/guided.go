@@ -1,96 +1,29 @@
 package main
 
-import "fmt"
+// Data class (given).
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// HINT: introduce an abstraction so new rules don't change existing code.
 
-type Notification struct{ UserID, Message, Channel string }
-type User struct {
-	ID                 string
-	Email              string
-	Phone              string
-	SubscribedChannels []string
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-// Priority order: critical > info > promotional
-var priorityOrder = []string{"promotional", "info", "critical"}
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func notify_event(event string, userIds []string, subscribedChannels []string) {
+	// TODO: write your solution
+	return
+}
 
-func priorityLevel(p string) int {
-	for i, v := range priorityOrder {
-		if v == p {
-			return i
-		}
-	}
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func notify_priority(event string, priority string, userIds []string, subscribedChannels []string, minPriority string) {
+	// TODO: write your solution
+	return
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func notify_priority_level(priority string) int {
+	// TODO: write your solution
 	return 0
-}
-
-// ─── Observer Interface ───────────────────────────────────────────────────────
-
-type NotificationObserver interface {
-	Update(event, priority string, user User)
-	GetChannel() string
-}
-
-// ─── Existing Channels (copy from Part 1) ────────────────────────────────────
-
-type EmailObserver struct{}
-
-func (e *EmailObserver) GetChannel() string { return "email" }
-func (e *EmailObserver) Update(event, priority string, user User) {
-	// TODO: implement
-	_ = fmt.Sprintf
-}
-
-type SMSObserver struct{}
-
-func (s *SMSObserver) GetChannel() string { return "sms" }
-func (s *SMSObserver) Update(event, priority string, user User) {
-	// TODO: implement
-	_ = fmt.Sprintf
-}
-
-type PushObserver struct{}
-
-func (p *PushObserver) GetChannel() string { return "push" }
-func (p *PushObserver) Update(event, priority string, user User) {
-	// TODO: implement
-	_ = fmt.Sprintf
-}
-
-// ─── NEW: PriorityFilteredObserver Decorator ─────────────────────────────────
-// HINT: Wraps any observer and filters by priority.
-// If event priority < user's minPriority for this channel, skip the notification.
-
-type PriorityFilteredObserver struct {
-	inner       NotificationObserver
-	minPriority string
-}
-
-func NewPriorityFilteredObserver(obs NotificationObserver, minP string) *PriorityFilteredObserver {
-	return &PriorityFilteredObserver{inner: obs, minPriority: minP}
-}
-
-func (f *PriorityFilteredObserver) GetChannel() string { return f.inner.GetChannel() }
-func (f *PriorityFilteredObserver) Update(event, priority string, user User) {
-	// TODO: Only call f.inner.Update() if priorityLevel(priority) >= priorityLevel(f.minPriority)
-}
-
-// ─── Notification Manager ─────────────────────────────────────────────────────
-
-type NotificationManager struct {
-	observers []NotificationObserver
-}
-
-func (m *NotificationManager) Subscribe(obs NotificationObserver) {
-	m.observers = append(m.observers, obs)
-}
-
-func (m *NotificationManager) NotifyAll(event, priority string, users []User) {
-	// TODO: for each user, for each observer matching user's channel, call Update()
-}
-
-// ─── Test Entry Point ────────────────────────────────────────────────────────
-
-func Notify(event, priority string, users []User, userMinPriority map[string]string) {
-	// TODO: Build manager with PriorityFilteredObserver wrappers
 }

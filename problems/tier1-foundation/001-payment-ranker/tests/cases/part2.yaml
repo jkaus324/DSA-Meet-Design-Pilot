@@ -1,0 +1,34 @@
+- name: composite_cashback_then_fee
+  comment: "Tied cashback breaks by lower fee"
+  call: rank_composite
+  args:
+    - - { name: "Card A", cashbackRate: 0.10, transactionFee: 8.0, usageCount: 300 }
+      - { name: "Card B", cashbackRate: 0.10, transactionFee: 3.0, usageCount: 400 }
+      - { name: "Card C", cashbackRate: 0.05, transactionFee: 1.0, usageCount: 200 }
+    - [rewards, low_fee]
+  expect_size: 3
+  expect_field: name
+  expect: ["Card B", "Card A", "Card C"]
+
+- name: composite_trust_then_cashback
+  comment: "Tied trust breaks by higher cashback"
+  call: rank_composite
+  args:
+    - - { name: "UPI",    cashbackRate: 0.01, transactionFee: 0.0, usageCount: 1000 }
+      - { name: "Card A", cashbackRate: 0.10, transactionFee: 5.0, usageCount: 200  }
+      - { name: "Card B", cashbackRate: 0.05, transactionFee: 3.0, usageCount: 1000 }
+    - [trust, rewards]
+  expect_size: 3
+  expect_field: name
+  expect: ["Card B", "UPI", "Card A"]
+
+- name: single_criterion_composite
+  comment: "Composite with one criterion equals direct ranker"
+  call: rank_composite
+  args:
+    - - { name: "Card X", cashbackRate: 0.02, transactionFee: 5.0, usageCount: 100 }
+      - { name: "Card Y", cashbackRate: 0.08, transactionFee: 3.0, usageCount: 200 }
+    - [rewards]
+  expect_size: 2
+  expect_field: name
+  expect: ["Card Y", "Card X"]

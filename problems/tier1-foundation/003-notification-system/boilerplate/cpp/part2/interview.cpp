@@ -1,43 +1,35 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Notification {
-    string userId;
-    string message;
-    string channel;
-};
+// Data class (given).
 
-struct User {
-    string id;
-    string email;
-    string phone;
-    vector<string> subscribedChannels;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void notify_event(string event, vector<string> userIds, vector<string> subscribedChannels);
+//   void notify_priority(string event, string priority, vector<string> userIds, vector<string> subscribedChannels, string minPriority);
+//   int notify_priority_level(string priority);
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The product team wants notification PRIORITIES and FILTERING:
-//   - Each event now has a priority: "critical", "info", "promotional"
-//   - Users can set minimum priority per channel
-//     (e.g., only receive SMS for "critical" events, not "promotional")
-//   - The system must respect these per-user, per-channel preferences
-//
-// Think about:
-//   - Where does priority filtering belong in your Observer design?
-//   - Is filtering a responsibility of the subject, the observer, or a decorator?
-//   - How do you store per-user preferences without coupling User to channels?
-//
-// Entry points:
-//   void notify(const string& event, const string& priority,
-//               const vector<User>& users,
-//               const unordered_map<string, string>& userMinPriority);
-//               // userMinPriority: userId -> min priority for their channel
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void notify_event(string event, vector<string> userIds, vector<string> subscribedChannels) {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void notify_priority(string event, string priority, vector<string> userIds, vector<string> subscribedChannels, string minPriority) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+int notify_priority_level(string priority) {
+    // TODO: write your solution
+    return {};
+}

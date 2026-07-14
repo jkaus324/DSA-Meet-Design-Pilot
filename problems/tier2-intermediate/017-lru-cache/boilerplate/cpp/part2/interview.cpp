@@ -1,70 +1,26 @@
 #include <iostream>
-#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    long expiresAt;  // 0 means no TTL
-    Node* prev;
-    Node* next;
-    Node(int k, int v, long exp = 0)
-        : key(k), value(v), expiresAt(exp), prev(nullptr), next(nullptr) {}
+// Data class (given).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Extend your LRU Cache from Part 1 with:
-//   1. TTL (time-to-live) per entry — expired entries treated as non-existent
-//   2. delete(key) — explicitly remove an entry
-//   3. size() — return number of non-expired entries
-//
-// Think about:
-//   - Should expired entries be evicted eagerly or lazily?
-//   - How does TTL interact with LRU eviction order?
-//   - What happens when put() is called with a key that has expired?
-//
-// Entry points:
-//   LRUCache(int capacity);
-//   void put(int key, int value, long currentTime, int ttl = 0);
-//   int get(int key, long currentTime);  // returns -1 if not found or expired
-//   bool deleteKey(int key);
-//   int size();
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> lru_simulate(vector<LruOp> ops);
 
-class LRUCache {
-public:
-    LRUCache(int capacity) {
-        // TODO: Implement
-    }
-
-    void put(int key, int value, long currentTime, int ttl = 0) {
-        // TODO: Implement
-    }
-
-    int get(int key, long currentTime) {
-        // TODO: Implement
-        return -1;
-    }
-
-    bool deleteKey(int key) {
-        // TODO: Implement
-        return false;
-    }
-
-    int size() {
-        // TODO: Implement
-        return 0;
-    }
-};
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache Part 2 — design and implement the class above." << endl;
-    return 0;
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-#endif
-

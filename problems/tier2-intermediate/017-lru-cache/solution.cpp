@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
@@ -174,6 +175,113 @@ public:
             listeners.end());
     }
 };
+
+// ─── Ops simulator (used by spec-based tests) ───────────────────────────────
+//
+// LRUCache is a stateful "design" problem. The simulator drives a single
+// LRUCache instance through a list of operations and returns one string per
+// operation describing its outcome.
+//
+// Op fields (ints in i1..i4, string in s1):
+//   "new"            — create cache(capacity=i1)              -> "ok"
+//   "put"            — put(i1, i2)                            -> "ok"
+//   "put_t"          — put(i1, i2, i3=now, i4=ttl)            -> "ok"
+//   "get"            — get(i1)                                -> int as string
+//   "get_t"          — get(i1, i2=now)                        -> int as string
+//   "delete"         — deleteKey(i1)                          -> "ok"/"fail"
+//   "size"           —                                         -> int as string
+//   "add_listener"   — i1 = listener slot index                -> "ok"
+//   "remove_listener"— i1 = listener slot index                -> "ok"
+//   "events_count"   — i1 = listener slot index                -> int as string
+//   "event_key"      — i1 = listener slot, i2 = event index    -> int as string
+//   "event_value"    — i1 = listener slot, i2 = event index    -> int as string
+//   "event_reason"   — i1 = listener slot, i2 = event index    -> "CAPACITY"|"TTL_EXPIRED"|"EXPLICIT_DELETE"
+
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+};
+
+struct CapturedEvent { int key; int value; EvictionReason reason; };
+
+class CapturingListener : public EvictionListener {
+public:
+    vector<CapturedEvent> events;
+    void onEviction(int key, int value, EvictionReason r) override {
+        events.push_back({key, value, r});
+    }
+};
+
+static const char* reason_str(EvictionReason r) {
+    switch (r) {
+        case EvictionReason::CAPACITY:        return "CAPACITY";
+        case EvictionReason::TTL_EXPIRED:     return "TTL_EXPIRED";
+        case EvictionReason::EXPLICIT_DELETE: return "EXPLICIT_DELETE";
+    }
+    return "UNKNOWN";
+}
+
+vector<string> lru_simulate(vector<LruOp> ops) {
+    vector<string> out;
+    unique_ptr<LRUCache> cache;
+    vector<unique_ptr<CapturingListener>> listeners;
+    auto ensure_listener = [&](int idx) {
+        while ((int)listeners.size() <= idx)
+            listeners.push_back(unique_ptr<CapturingListener>(new CapturingListener()));
+    };
+    for (const auto& op : ops) {
+        const string& k = op.kind;
+        if (k == "new") {
+            cache.reset(new LRUCache(op.i1));
+            listeners.clear();
+            out.push_back("ok");
+        } else if (k == "put") {
+            cache->put(op.i1, op.i2);
+            out.push_back("ok");
+        } else if (k == "put_t") {
+            cache->put(op.i1, op.i2, (long)op.i3, op.i4);
+            out.push_back("ok");
+        } else if (k == "get") {
+            out.push_back(to_string(cache->get(op.i1)));
+        } else if (k == "get_t") {
+            out.push_back(to_string(cache->get(op.i1, (long)op.i2)));
+        } else if (k == "delete") {
+            out.push_back(cache->deleteKey(op.i1) ? "ok" : "fail");
+        } else if (k == "size") {
+            out.push_back(to_string(cache->size()));
+        } else if (k == "add_listener") {
+            ensure_listener(op.i1);
+            cache->addEvictionListener(listeners[op.i1].get());
+            out.push_back("ok");
+        } else if (k == "remove_listener") {
+            if (op.i1 < (int)listeners.size())
+                cache->removeEvictionListener(listeners[op.i1].get());
+            out.push_back("ok");
+        } else if (k == "events_count") {
+            out.push_back(op.i1 < (int)listeners.size()
+                          ? to_string((int)listeners[op.i1]->events.size())
+                          : "0");
+        } else if (k == "event_key") {
+            if (op.i1 < (int)listeners.size() && op.i2 < (int)listeners[op.i1]->events.size())
+                out.push_back(to_string(listeners[op.i1]->events[op.i2].key));
+            else out.push_back("");
+        } else if (k == "event_value") {
+            if (op.i1 < (int)listeners.size() && op.i2 < (int)listeners[op.i1]->events.size())
+                out.push_back(to_string(listeners[op.i1]->events[op.i2].value));
+            else out.push_back("");
+        } else if (k == "event_reason") {
+            if (op.i1 < (int)listeners.size() && op.i2 < (int)listeners[op.i1]->events.size())
+                out.push_back(reason_str(listeners[op.i1]->events[op.i2].reason));
+            else out.push_back("");
+        } else {
+            out.push_back("unknown:" + k);
+        }
+    }
+    return out;
+}
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 

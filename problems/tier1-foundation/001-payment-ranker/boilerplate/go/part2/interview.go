@@ -1,28 +1,42 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
-
+// Data class (given).
 type PaymentMethod struct {
-	Name           string
-	CashbackRate   float64 // e.g. 0.05 = 5%
-	TransactionFee float64 // in rupees
-	UsageCount     int
+	name string
+	cashbackRate float64
+	transactionFee float64
+	usageCount int
+	easyRefundEligible bool
 }
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The product team now wants COMPOSITE ranking:
-// rank by cashback first, then use transaction fee as tiebreaker.
-//
-// Think about:
-//   - How do you chain ranking criteria without modifying existing strategies?
-//   - What if the product team adds a 4th criterion tomorrow?
-//   - Is your Part 1 design extensible enough to handle this?
-//
-// Entry points (must exist for tests):
-//   func RankByRewards(methods []PaymentMethod) []PaymentMethod
-//   func RankByLowFee(methods []PaymentMethod) []PaymentMethod
-//   func RankByTrust(methods []PaymentMethod) []PaymentMethod
-//   func RankComposite(methods []PaymentMethod, criteria []RankingStrategy) []PaymentMethod
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// RankingStrategy � implement this interface with your own strategy types.
+type RankingStrategy interface {
+	// TODO: define the method(s) your strategies share.
+}
+
+// TODO: design and implement your solution.
+// Required free functions:
+//   func rank_by_rewards(methods []PaymentMethod) []PaymentMethod
+//   func rank_by_low_fee(methods []PaymentMethod) []PaymentMethod
+//   func rank_by_trust(methods []PaymentMethod) []PaymentMethod
+//   func rank_composite(methods []PaymentMethod, criteria []RankingStrategy) []PaymentMethod
+
+func rank_by_rewards(methods []PaymentMethod) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_by_low_fee(methods []PaymentMethod) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_by_trust(methods []PaymentMethod) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_composite(methods []PaymentMethod, criteria []RankingStrategy) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}

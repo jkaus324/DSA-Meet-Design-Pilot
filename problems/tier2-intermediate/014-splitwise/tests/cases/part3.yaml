@@ -1,0 +1,80 @@
+- name: simple_two_person
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "alice,bob", i1: 200 }
+      - { kind: "simplify_count" }
+      - { kind: "simplify_unique_pair", s1: "bob", s2: "alice" }
+  expect: ["ok", "ok", "ok", "ok", "1", "100.00"]
+
+- name: three_person_simplification
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "A" }
+      - { kind: "add_user", s1: "B" }
+      - { kind: "add_user", s1: "C" }
+      - { kind: "add_expense", s1: "E1", s2: "A", s3: "A,B,C", i1: 300 }
+      - { kind: "simplify_count" }
+      - { kind: "simplify_total_to", s1: "A" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "2", "200.00"]
+
+- name: circular_debt_simplification
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "A" }
+      - { kind: "add_user", s1: "B" }
+      - { kind: "add_user", s1: "C" }
+      - { kind: "add_expense", s1: "E1", s2: "A", s3: "A,B,C", i1: 300 }
+      - { kind: "add_expense", s1: "E2", s2: "B", s3: "A,B,C", i1: 300 }
+      - { kind: "simplify_count" }
+      - { kind: "simplify_total_from", s1: "C" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "2", "200.00"]
+
+- name: no_debts_empty
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "simplify_count" }
+  expect: ["ok", "ok", "0"]
+
+- name: cancelling_debts
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "alice" }
+      - { kind: "add_user", s1: "bob" }
+      - { kind: "add_expense", s1: "E1", s2: "alice", s3: "alice,bob", i1: 200 }
+      - { kind: "add_expense", s1: "E2", s2: "bob",   s3: "alice,bob", i1: 200 }
+      - { kind: "simplify_count" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "0"]
+
+- name: four_person_simplification
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "A" }
+      - { kind: "add_user", s1: "B" }
+      - { kind: "add_user", s1: "C" }
+      - { kind: "add_user", s1: "D" }
+      - { kind: "add_expense", s1: "E1", s2: "A", s3: "A,B,C,D", i1: 400 }
+      - { kind: "simplify_count" }
+      - { kind: "simplify_total_to", s1: "A" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "3", "300.00"]
+
+- name: simplification_preserves_net
+  call: splitwise_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_user", s1: "A" }
+      - { kind: "add_user", s1: "B" }
+      - { kind: "add_user", s1: "C" }
+      - { kind: "add_expense", s1: "E1", s2: "A", s3: "A,B,C", i1: 600 }
+      - { kind: "add_expense", s1: "E2", s2: "B", s3: "A,B,C", i1: 300 }
+      - { kind: "simplify_total_from", s1: "C" }
+      - { kind: "simplify_total_to",   s1: "A" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "300.00", "300.00"]

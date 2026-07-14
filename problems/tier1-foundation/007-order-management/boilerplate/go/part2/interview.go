@@ -1,59 +1,66 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type OrderState int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func set_inventory(productId string, qty int)
+//   func get_inventory(productId string) int
+//   func create_order_simple(productId string, quantity int, totalAmount float64) string
+//   func get_order_state_str(orderId string) string
+//   func confirm_order(orderId string) bool
+//   func ship_order(orderId string) bool
+//   func deliver_order(orderId string) bool
+//   func cancel_order(orderId string) bool
+//   func get_history_size(orderId string) int
 
-const (
-	Created   OrderState = iota
-	Confirmed OrderState = iota
-	Shipped   OrderState = iota
-	Delivered OrderState = iota
-	Cancelled OrderState = iota
-)
-
-type OrderItem struct {
-	ProductId string
-	Quantity  int
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Order struct {
-	Id          string
-	Items       []OrderItem
-	TotalAmount float64
-	State       OrderState
+func set_inventory(productId string, qty int) {
+	// TODO: write your solution
+	return
 }
 
-// ─── NEW in Extension 1 ───────────────────────────────────────────────────────
-//
-// Orders can now be CANCELLED from Created or Confirmed state.
-// Cancellation from Shipped or Delivered is NOT allowed.
-// When cancelled, inventory must be released (restored).
-//
-// Think about:
-//   - How do you track inventory per product? (map)
-//   - When should inventory be decremented? On order creation.
-//   - When should inventory be restored? On cancellation.
-//   - What if the order has multiple items?
-//
-// Entry points (must exist for tests):
-//   func CreateOrder(items []OrderItem, totalAmount float64) string
-//   func ConfirmOrder(orderId string) bool
-//   func ShipOrder(orderId string) bool
-//   func DeliverOrder(orderId string) bool
-//   func CancelOrder(orderId string) bool
-//   func GetOrderState(orderId string) OrderState
-//   func SetInventory(productId string, quantity int)
-//   func GetInventory(productId string) int
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func get_inventory(productId string) int {
+	// TODO: write your solution
+	return 0
+}
 
-func CreateOrder(items []OrderItem, totalAmount float64) string { return "" }
-func ConfirmOrder(orderId string) bool                          { return false }
-func ShipOrder(orderId string) bool                             { return false }
-func DeliverOrder(orderId string) bool                          { return false }
-func CancelOrder(orderId string) bool                           { return false }
-func GetOrderState(orderId string) OrderState                   { return Created }
-func SetInventory(productId string, quantity int)               {}
-func GetInventory(productId string) int                         { return 0 }
-func ResetManager()                                             {}
+func create_order_simple(productId string, quantity int, totalAmount float64) string {
+	// TODO: write your solution
+	return ""
+}
+
+func get_order_state_str(orderId string) string {
+	// TODO: write your solution
+	return ""
+}
+
+func confirm_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func ship_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func deliver_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func cancel_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func get_history_size(orderId string) int {
+	// TODO: write your solution
+	return 0
+}

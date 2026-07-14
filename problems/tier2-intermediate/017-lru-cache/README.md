@@ -1,144 +1,94 @@
 # Problem 017 — LRU Cache
 
-**Tier:** 2 (Intermediate) | **Patterns:** Singleton, Observer, Strategy | **DSA:** HashMap, Doubly Linked List
-**Companies:** Kutumb | **Time:** 60 minutes
+**Tier:** 2 (Intermediate) | **Pattern:** Strategy + Observer | **DSA:** HashMap + Doubly Linked List
+**Companies:** Amazon, Google, Microsoft, Flipkart, Kutumb | **Time:** 60 minutes
 
 ---
 
 ## Problem Statement
 
-Build a Least Recently Used (LRU) Cache with O(1) time complexity for both `get` and `put` operations. The system must:
+Build a Least Recently Used (LRU) Cache with O(1) average time complexity for all operations. The cache has a fixed capacity; when it is full, the least recently used entry is evicted to make room. Entries support optional TTL (time-to-live). Registered listeners are notified whenever an entry is evicted — whether due to capacity overflow, TTL expiry, or explicit deletion.
 
-1. Store key-value pairs with a fixed capacity
-2. Evict the **least recently used** entry when capacity is exceeded
-3. Support TTL (time-to-live) per entry
-4. Notify registered listeners when entries are evicted
-
----
-
-## Before You Code
-
-**The naive approach:** Use a vector of key-value pairs. On every `get`, scan the vector to find the key (O(n)). On every `put`, scan to check if key exists, then shift elements to maintain order (O(n)). Eviction is O(1) from the front, but lookups kill performance.
-
-**The pattern approach:**
-- **HashMap + Doubly Linked List**: The core DSA insight. HashMap gives O(1) lookup by key. Doubly Linked List gives O(1) move-to-front and O(1) eviction from the tail. Together, every operation is O(1).
-- **Singleton**: The cache is a shared resource — in production, you want exactly one instance per cache namespace. The Singleton pattern ensures this.
-- **Observer**: Eviction events (due to capacity overflow or TTL expiry) need to reach multiple listeners — logging, metrics, backup systems. Observer decouples the cache from its consumers.
-- **Strategy**: The eviction policy itself is a strategy. LRU is one policy; LFU, FIFO, or random eviction are others. Making the policy swappable keeps the cache core generic.
-
-**The DSA angle:** The HashMap stores `key → Node*` pointers into the doubly linked list. Moving a node to the front is O(1) pointer manipulation. Evicting the tail node is O(1). This is the classic interview data structure combination.
+**Constraints:**
+- Capacity: 1 <= capacity <= 10^4
+- Keys and values are integers
+- All get/put/delete operations must run in O(1) average time
+- TTL of 0 means no expiry; TTL > 0 means entry expires at `insertTime + ttl` seconds
+- Expired entries are lazily evicted (removed on access, not proactively scanned)
 
 ---
 
-## Data Structures
+## Base Requirement — LRU Cache with O(1) Operations
 
-```cpp
-struct Node {
-    int key;
-    int value;
-    long expiresAt;  // 0 means no TTL
-    Node* prev;
-    Node* next;
-};
+Implement an `LRUCache` supporting `get` and `put` in O(1) time. On capacity overflow, evict the least recently used entry. Any access (get or put) counts as a "use" and moves the entry to the most-recently-used position.
+
+**Example:**
 ```
+LRUCache cache(3)
+cache.put(1, 10)
+cache.put(2, 20)
+cache.put(3, 30)
+cache.get(1)      →  10    // 1 is now most recently used
+cache.put(4, 40)           // evicts 2 (least recently used)
+cache.get(2)      →  -1    // evicted
+cache.get(3)      →  30
+cache.get(4)      →  40
+```
+
+**Public methods:**
+- `LRUCache(int capacity)`
+- `int get(int key)`
+- `void put(int key, int value)`
 
 ---
 
-## Part 1
+## Extension 1 — Per-Entry TTL
 
-**Base requirement — LRU Cache with O(1) operations**
+Each entry can now have an optional TTL in seconds. `get` and `put` accept a `currentTime` parameter. An entry whose `expiresAt <= currentTime` is treated as non-existent and evicted lazily on access.
 
-Implement an LRU Cache that supports `get` and `put` in O(1) time.
+**Example:**
+```
+cache.put(1, 100, currentTime=0, ttl=60)   // expires at t=60
+cache.put(2, 200, currentTime=0, ttl=0)    // no expiry
 
-**Rules:**
-- `get(key)` — Return the value if the key exists, otherwise return -1. Mark the key as recently used.
-- `put(key, value)` — Insert or update the key-value pair. If the cache exceeds capacity, evict the least recently used entry.
-- Both operations must be O(1) average time.
+cache.get(1, currentTime=59)  →  100   // still valid
+cache.get(1, currentTime=61)  →  -1    // expired and lazily removed
+cache.get(2, currentTime=999) →  200   // no TTL, still alive
 
-**Entry points (tests will call these):**
-```cpp
-LRUCache(int capacity);
-int get(int key);
-void put(int key, int value);
+cache.deleteKey(2)   →  true
+cache.deleteKey(2)   →  false   // already removed
+cache.size()         →  0       // all entries gone
 ```
 
-**What to implement:**
-```cpp
-class LRUCache {
-    int capacity;
-    unordered_map<int, Node*> cache;  // key → Node*
-    Node* head;  // most recently used (sentinel)
-    Node* tail;  // least recently used (sentinel)
-
-    void addToFront(Node* node);
-    void removeNode(Node* node);
-    void moveToFront(Node* node);
-    void evictLRU();
-public:
-    LRUCache(int capacity);
-    int get(int key);
-    void put(int key, int value);
-};
-```
-
-**Key insight:** Use sentinel head and tail nodes to avoid null-pointer edge cases in linked list operations.
+**Public methods:**
+- `void put(int key, int value, long currentTime, int ttl = 0)`
+- `int get(int key, long currentTime)`
+- `bool deleteKey(int key)`
+- `int size()`
 
 ---
 
-## Part 2
+## Extension 2 — Eviction Listeners
 
-**Extension 1 — TTL support**
+Register listeners that are notified synchronously whenever an entry is evicted, along with the reason.
 
-Each entry can now have an optional time-to-live (TTL). Expired entries are treated as non-existent.
+| Eviction Reason | When |
+|---|---|
+| CAPACITY | Cache is full; LRU entry bumped to make room |
+| TTL_EXPIRED | Entry's TTL elapsed; evicted on lazy access |
+| EXPLICIT_DELETE | Caller invoked `deleteKey` |
 
-**Rules:**
-- `put(key, value, ttl)` — Set TTL in seconds. The entry expires at `currentTime + ttl`. If `ttl` is 0, the entry never expires.
-- `get(key)` now takes a `currentTime` parameter. If the entry has expired, remove it and return -1.
-- `delete(key)` — Explicitly remove an entry. Return true if the key existed, false otherwise.
-- `size()` — Return the number of non-expired entries.
-
-**New entry points:**
-```cpp
-void put(int key, int value, long currentTime, int ttl = 0);
-int get(int key, long currentTime);
-bool deleteKey(int key);
-int size();
+**Example:**
+```
+cache.addEvictionListener(&logger)
+cache.put(5, 50, currentTime=0, ttl=10)
+cache.get(5, currentTime=20)  →  -1
+// logger.onEviction(5, 50, TTL_EXPIRED) was called during the get
 ```
 
-**Design challenge:** Expired entries are lazily evicted (only on access). This means `size()` must either eagerly clean up or accept approximate counts. Choose a strategy and justify it.
-
----
-
-## Part 3
-
-**Extension 2 — Eviction listeners**
-
-Register callback listeners that are notified whenever an entry is evicted — whether due to capacity overflow, TTL expiry, or explicit deletion.
-
-**Listener interface:**
-```cpp
-enum class EvictionReason { CAPACITY, TTL_EXPIRED, EXPLICIT_DELETE };
-
-class EvictionListener {
-public:
-    virtual void onEviction(int key, int value, EvictionReason reason) = 0;
-    virtual ~EvictionListener() = default;
-};
-```
-
-**New entry points:**
-```cpp
-void addEvictionListener(EvictionListener* listener);
-void removeEvictionListener(EvictionListener* listener);
-```
-
-**Rules:**
-- Listeners are notified synchronously in registration order
-- Capacity eviction: notified with `EvictionReason::CAPACITY`
-- TTL expiry: notified with `EvictionReason::TTL_EXPIRED`
-- Explicit delete: notified with `EvictionReason::EXPLICIT_DELETE`
-
-**Design challenge:** Listeners should not be able to modify the cache during notification (no re-entrant calls). How do you prevent or handle this?
+**Public methods:**
+- `void addEvictionListener(EvictionListener* listener)`
+- `void removeEvictionListener(EvictionListener* listener)`
 
 ---
 

@@ -1,143 +1,71 @@
 # Problem 012 — Elevator System
 
-**Tier:** 2 (Intermediate) | **Pattern:** State + Strategy + Command | **DSA:** Queue + PriorityQueue + HashMap
-**Companies:** Adobe | **Time:** 45 minutes
+**Tier:** 2 (Intermediate) | **Pattern:** State + Strategy | **DSA:** Priority Queue + State Machine
+**Companies:** Amazon, Microsoft, Flipkart, Adobe | **Time:** 60 minutes
 
 ---
 
 ## Problem Statement
 
-You're designing an elevator control system for a commercial building. The system must manage elevator states, process floor requests in an efficient order, and scale to multiple elevators with pluggable dispatching strategies.
+You are designing an elevator control system for a commercial building. A single elevator processes floor requests using the SCAN algorithm — it serves all floors in the current direction before reversing. The system then scales to multiple elevators, with a pluggable strategy determining which elevator handles each incoming request.
 
-**Your task:** Design and implement an `ElevatorSystem` that handles floor requests, moves elevators using the SCAN algorithm, and dispatches requests across multiple elevators using swappable strategies.
-
----
-
-## Before You Code
-
-> Read this section carefully. This is where the design thinking happens.
-
-**Ask yourself:**
-1. An elevator can be IDLE, MOVING_UP, MOVING_DOWN, or DOOR_OPEN. How do you model transitions between these states cleanly? What happens if you use a chain of if-else statements instead?
-2. When processing requests, a naive approach serves them in FIFO order. But real elevators use SCAN — serve all floors in one direction before reversing. What data structure lets you efficiently find the next floor in the current direction?
-3. When you add multiple elevators, how do you decide which elevator handles a request? Should the dispatching logic live inside the elevator? Or should it be a separate, swappable component?
-
-**The key insight:** The **State** pattern models elevator behavior per state (idle elevators accept requests differently than moving ones). The **Strategy** pattern decouples the dispatching algorithm from the elevator itself. A priority queue (or sorted set) per direction enables efficient SCAN ordering.
+**Constraints:**
+- Floors are non-negative integers; building has at most 100 floors
+- Each `step()` call advances the simulation by one unit: move one floor, or open/close doors
+- An elevator in `DOOR_OPEN` state closes and resumes on the next step
+- External requests specify a direction (UP or DOWN); internal requests specify only a destination floor
 
 ---
 
-## Data Structures
+## Base Requirement — Single Elevator with SCAN Ordering
 
-```cpp
-enum class ElevatorState {
-    IDLE,
-    MOVING_UP,
-    MOVING_DOWN,
-    DOOR_OPEN
-};
+Implement an `Elevator` that starts at floor 0 in IDLE state. It accepts external requests (UP/DOWN button pressed on a floor) and internal requests (floor button inside the cabin). Requests are served in SCAN order: all pending floors in the current direction first, then reverse.
 
-enum class Direction {
-    UP,
-    DOWN,
-    NONE
-};
+**SCAN rule:** Moving UP — serve pending floors in ascending order. When none remain, reverse to serve pending floors in descending order. If idle, the first request sets the initial direction.
 
-struct Request {
-    int floor;
-    Direction direction;  // Direction the passenger wants to go (for external requests)
-};
+**Example:**
+```
+elevator at floor 0, IDLE
+addRequest(3, UP), addRequest(7, UP), addRequest(1, DOWN)
+step() → moves to floor 1 (nearest in current UP direction would be 1, but UP means ascending: goes to 3)
+// After UP pass: stops at 3 (DOOR_OPEN), then 7 (DOOR_OPEN)
+// Then reverses DOWN: stops at 1 (DOOR_OPEN)
+getCurrentFloor()  →  3 after first stop
+getState()         →  DOOR_OPEN when at a requested floor
 ```
 
----
-
-## Part 1
-
-**Base requirement — Single elevator with SCAN ordering**
-
-Implement an `Elevator` that starts at floor 0 in IDLE state. It accepts external requests (someone pressed UP/DOWN on a floor) and internal requests (someone pressed a floor button inside the elevator). Requests are processed in SCAN order: the elevator serves all pending floors in its current direction before reversing.
-
-**SCAN rule:** If the elevator is moving up, it serves all upward requests in ascending order. When no more upward requests remain, it reverses to serve downward requests in descending order. If idle, the direction is determined by the first incoming request.
-
-**Entry points (tests will call these):**
-```cpp
-void addRequest(int floor, Direction direction);
-void step();              // Advance one step: move one floor or open/close doors
-int getCurrentFloor();
-ElevatorState getState();
-```
-
-**What to implement:**
-```cpp
-class Elevator {
-    int currentFloor;
-    ElevatorState state;
-    Direction currentDirection;
-    // Pending floors in each direction
-public:
-    Elevator();
-    void addRequest(int floor, Direction direction);
-    void step();
-    int getCurrentFloor() const;
-    ElevatorState getState() const;
-};
-```
-
-**Behavior per step():**
-- If IDLE and requests exist: set direction based on nearest request logic, transition to MOVING_UP or MOVING_DOWN.
-- If MOVING_UP or MOVING_DOWN: move one floor in that direction. If the current floor has a pending request, transition to DOOR_OPEN and remove that request.
-- If DOOR_OPEN: close doors and resume moving (or go IDLE if no more requests).
-
-**Design goal:** The state transitions must be clean. Each state should have well-defined behavior. The SCAN algorithm should use a sorted structure (e.g., `set<int>`) for each direction to efficiently determine the next stop.
+**Public methods:**
+- `void addRequest(int floor, Direction direction)`
+- `void step()`
+- `int getCurrentFloor() const`
+- `ElevatorState getState() const`
 
 ---
 
-## Part 2
+## Extension 1 — Multiple Elevators with Dispatch Strategies
 
-**Extension — Multiple elevators with dispatch strategies**
-
-Scale to N elevators. When an external request arrives, the system must dispatch it to the best elevator using a pluggable strategy.
+Scale to N elevators managed by an `ElevatorSystem`. Each incoming external request is dispatched to the best elevator according to a pluggable strategy. Adding a new dispatch strategy must require zero changes to `ElevatorSystem`.
 
 | Strategy | Rule |
-|----------|------|
-| NearestFirst | Assign to the nearest elevator that is idle or moving toward the request floor in the correct direction |
+|---|---|
+| NearestFirst | Assign to the nearest idle elevator, or one already moving toward the request in the correct direction |
 | LeastLoaded | Assign to the elevator with the fewest pending requests |
 
-**Design challenge:** How do you add a new dispatching strategy without modifying the `ElevatorSystem` class?
-
-**New entry points:**
-```cpp
-void addElevator(int id);
-void setDispatchStrategy(DispatchStrategy* strategy);
-// addRequest now dispatches to the best elevator
-void addRequest(int floor, Direction direction);
-void step();  // Steps ALL elevators
+**Example:**
+```
+// 2 elevators: E1 at floor 0 (IDLE), E2 at floor 6 (MOVING_DOWN)
+// Strategy: NearestFirst
+addRequest(4, UP)
+// E1 is IDLE at floor 0, distance=4
+// E2 is MOVING_DOWN at floor 6, wrong direction for UP at 4
+// → dispatched to E1
 ```
 
-**What to implement:**
-```cpp
-class DispatchStrategy {
-public:
-    virtual int selectElevator(const vector<Elevator*>& elevators,
-                               int requestFloor,
-                               Direction requestDirection) = 0;
-    virtual ~DispatchStrategy() = default;
-};
-
-class NearestFirst : public DispatchStrategy { ... };
-class LeastLoaded : public DispatchStrategy { ... };
-
-class ElevatorSystem {
-    vector<Elevator*> elevators;
-    DispatchStrategy* strategy;
-public:
-    void addElevator(int id);
-    void setDispatchStrategy(DispatchStrategy* strategy);
-    void addRequest(int floor, Direction direction);
-    void step();
-};
-```
-
-**Hint:** NearestFirst considers both distance and direction compatibility. An elevator moving UP at floor 3 is a good candidate for an UP request at floor 5, but not for a DOWN request at floor 1.
+**Public methods:**
+- `void addElevator(int id)`
+- `void setDispatchStrategy(DispatchStrategy* strategy)`
+- `void addRequest(int floor, Direction direction)`
+- `void step()`  — advances all elevators one step
 
 ---
 

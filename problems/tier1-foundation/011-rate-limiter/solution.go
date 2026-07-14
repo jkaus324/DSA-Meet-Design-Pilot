@@ -1,223 +1,194 @@
+// Rate limiter — Strategy + Factory reference solution (Go).
 package main
 
-// ─── Data Model ──────────────────────────────────────────────────────────────
-
 type Request struct {
-	ClientId  string
-	Timestamp int64
-	Endpoint  string
+	clientId  string
+	timestamp int
+	endpoint  string
 }
-
-type UserTier int
-
-const (
-	FREE UserTier = iota
-	PRO
-	ENTERPRISE
-)
-
-// ─── Strategy Interface ──────────────────────────────────────────────────────
 
 type RateLimiter interface {
-	AllowRequest(req Request) bool
-	GetRequestCount(clientId string) int
+	allowRequest(req Request) bool
+	getRequestCount(clientId string) int
 }
-
-// ─── Fixed-Window (Part 1) ───────────────────────────────────────────────────
 
 type FixedWindowLimiter struct {
 	maxRequests       int
-	windowSizeSeconds int64
-	requestCounts     map[string]int
-	windowStarts      map[string]int64
+	windowSizeSeconds int
+	counts            map[string]int
+	starts            map[string]int
 }
 
-func NewFixedWindowLimiter(maxReq int, windowSize int) *FixedWindowLimiter {
+func newFixedWindowLimiter(maxRequests, windowSize int) *FixedWindowLimiter {
 	return &FixedWindowLimiter{
-		maxRequests:       maxReq,
-		windowSizeSeconds: int64(windowSize),
-		requestCounts:     make(map[string]int),
-		windowStarts:      make(map[string]int64),
+		maxRequests:       maxRequests,
+		windowSizeSeconds: windowSize,
+		counts:            map[string]int{},
+		starts:            map[string]int{},
 	}
 }
 
-func (l *FixedWindowLimiter) AllowRequest(req Request) bool {
-	if start, ok := l.windowStarts[req.ClientId]; !ok || req.Timestamp >= start+l.windowSizeSeconds {
-		l.windowStarts[req.ClientId] = req.Timestamp
-		l.requestCounts[req.ClientId] = 0
+func (l *FixedWindowLimiter) allowRequest(req Request) bool {
+	start, ok := l.starts[req.clientId]
+	if !ok || req.timestamp >= start+l.windowSizeSeconds {
+		l.starts[req.clientId] = req.timestamp
+		l.counts[req.clientId] = 0
 	}
-	if l.requestCounts[req.ClientId] >= l.maxRequests {
+	if l.counts[req.clientId] >= l.maxRequests {
 		return false
 	}
-	l.requestCounts[req.ClientId]++
+	l.counts[req.clientId]++
 	return true
 }
 
-func (l *FixedWindowLimiter) GetRequestCount(clientId string) int {
-	return l.requestCounts[clientId]
+func (l *FixedWindowLimiter) getRequestCount(clientId string) int {
+	return l.counts[clientId]
 }
-
-// ─── Sliding-Window (Part 2) ─────────────────────────────────────────────────
 
 type SlidingWindowLimiter struct {
 	maxRequests       int
-	windowSizeSeconds int64
-	requestQueues     map[string][]int64
+	windowSizeSeconds int
+	queues            map[string][]int
 }
 
-func NewSlidingWindowLimiter(maxReq int, windowSize int) *SlidingWindowLimiter {
+func newSlidingWindowLimiter(maxRequests, windowSize int) *SlidingWindowLimiter {
 	return &SlidingWindowLimiter{
-		maxRequests:       maxReq,
-		windowSizeSeconds: int64(windowSize),
-		requestQueues:     make(map[string][]int64),
+		maxRequests:       maxRequests,
+		windowSizeSeconds: windowSize,
+		queues:            map[string][]int{},
 	}
 }
 
-func (l *SlidingWindowLimiter) AllowRequest(req Request) bool {
-	q := l.requestQueues[req.ClientId]
-	expiry := req.Timestamp - l.windowSizeSeconds
-	kept := q[:0]
-	for _, ts := range q {
-		if ts > expiry {
-			kept = append(kept, ts)
-		}
+func (l *SlidingWindowLimiter) allowRequest(req Request) bool {
+	q := l.queues[req.clientId]
+	for len(q) > 0 && q[0] <= req.timestamp-l.windowSizeSeconds {
+		q = q[1:]
 	}
-	l.requestQueues[req.ClientId] = kept
-	if len(kept) >= l.maxRequests {
+	if len(q) >= l.maxRequests {
+		l.queues[req.clientId] = q
 		return false
 	}
-	l.requestQueues[req.ClientId] = append(l.requestQueues[req.ClientId], req.Timestamp)
+	q = append(q, req.timestamp)
+	l.queues[req.clientId] = q
 	return true
 }
 
-func (l *SlidingWindowLimiter) GetRequestCount(clientId string) int {
-	return len(l.requestQueues[clientId])
+func (l *SlidingWindowLimiter) getRequestCount(clientId string) int {
+	return len(l.queues[clientId])
 }
-
-// ─── Token-Bucket (Part 2) ───────────────────────────────────────────────────
 
 type TokenBucketLimiter struct {
 	maxTokens  int
 	refillRate float64
 	tokens     map[string]float64
-	lastRefill map[string]int64
+	lastRefill map[string]int
+	seen       map[string]bool
 }
 
-func NewTokenBucketLimiter(maxTokens int, windowSize int) *TokenBucketLimiter {
+func newTokenBucketLimiter(maxTokens, windowSize int) *TokenBucketLimiter {
 	return &TokenBucketLimiter{
 		maxTokens:  maxTokens,
 		refillRate: float64(maxTokens) / float64(windowSize),
-		tokens:     make(map[string]float64),
-		lastRefill: make(map[string]int64),
+		tokens:     map[string]float64{},
+		lastRefill: map[string]int{},
+		seen:       map[string]bool{},
 	}
 }
 
-func (l *TokenBucketLimiter) AllowRequest(req Request) bool {
-	if _, ok := l.tokens[req.ClientId]; !ok {
-		l.tokens[req.ClientId] = float64(l.maxTokens)
-		l.lastRefill[req.ClientId] = req.Timestamp
+func (l *TokenBucketLimiter) allowRequest(req Request) bool {
+	if !l.seen[req.clientId] {
+		l.seen[req.clientId] = true
+		l.tokens[req.clientId] = float64(l.maxTokens)
+		l.lastRefill[req.clientId] = req.timestamp
 	}
-	elapsed := req.Timestamp - l.lastRefill[req.ClientId]
-	l.tokens[req.ClientId] += float64(elapsed) * l.refillRate
-	if l.tokens[req.ClientId] > float64(l.maxTokens) {
-		l.tokens[req.ClientId] = float64(l.maxTokens)
+	elapsed := req.timestamp - l.lastRefill[req.clientId]
+	tok := l.tokens[req.clientId] + float64(elapsed)*l.refillRate
+	if tok > float64(l.maxTokens) {
+		tok = float64(l.maxTokens)
 	}
-	l.lastRefill[req.ClientId] = req.Timestamp
-	if l.tokens[req.ClientId] < 1.0 {
+	l.tokens[req.clientId] = tok
+	l.lastRefill[req.clientId] = req.timestamp
+	if l.tokens[req.clientId] < 1.0 {
 		return false
 	}
-	l.tokens[req.ClientId] -= 1.0
+	l.tokens[req.clientId] -= 1.0
 	return true
 }
 
-func (l *TokenBucketLimiter) GetRequestCount(clientId string) int {
-	if _, ok := l.tokens[clientId]; !ok {
+func (l *TokenBucketLimiter) getRequestCount(clientId string) int {
+	if !l.seen[clientId] {
 		return 0
 	}
 	return l.maxTokens - int(l.tokens[clientId])
 }
 
-// ─── Factory (Part 2) ────────────────────────────────────────────────────────
-
-func CreateLimiter(algorithm string, maxRequests int, windowSize int) RateLimiter {
+func createLimiter(algorithm string, maxRequests, windowSize int) RateLimiter {
 	switch algorithm {
 	case "fixed-window":
-		return NewFixedWindowLimiter(maxRequests, windowSize)
+		return newFixedWindowLimiter(maxRequests, windowSize)
 	case "sliding-window":
-		return NewSlidingWindowLimiter(maxRequests, windowSize)
+		return newSlidingWindowLimiter(maxRequests, windowSize)
 	case "token-bucket":
-		return NewTokenBucketLimiter(maxRequests, windowSize)
+		return newTokenBucketLimiter(maxRequests, windowSize)
 	}
 	return nil
 }
 
-// ─── Part 1 + Part 2 Global Entry Points ─────────────────────────────────────
+// ─── Module state ────────────────────────────────────────────────────────────
 
 var gLimiter RateLimiter
-var gStrategyLimiters = make(map[string]RateLimiter)
+var gStrategy map[string]RateLimiter
+var gTier map[string]RateLimiter
 
-func InitLimiter(maxRequests int, windowSize int) {
-	gLimiter = NewFixedWindowLimiter(maxRequests, windowSize)
+func reset_service() {
+	gLimiter = nil
+	gStrategy = map[string]RateLimiter{}
+	gTier = map[string]RateLimiter{}
 }
 
-func AllowRequest(req Request) bool {
+func init_limiter(maxRequests int, windowSize int) {
+	gLimiter = newFixedWindowLimiter(maxRequests, windowSize)
+}
+
+func allow_request_simple(clientId string, timestamp int, endpoint string) bool {
 	if gLimiter == nil {
 		return false
 	}
-	return gLimiter.AllowRequest(req)
+	return gLimiter.allowRequest(Request{clientId, timestamp, endpoint})
 }
 
-func GetRequestCount(clientId string) int {
+func get_request_count(clientId string) int {
 	if gLimiter == nil {
 		return 0
 	}
-	return gLimiter.GetRequestCount(clientId)
+	return gLimiter.getRequestCount(clientId)
 }
 
-func AllowRequestWithStrategy(algorithm string, req Request) bool {
-	if _, ok := gStrategyLimiters[algorithm]; !ok {
-		gStrategyLimiters[algorithm] = CreateLimiter(algorithm, 100, 60)
+func allow_request_with_strategy_simple(algorithm string, clientId string, timestamp int, endpoint string) bool {
+	if gStrategy == nil {
+		gStrategy = map[string]RateLimiter{}
 	}
-	if gStrategyLimiters[algorithm] == nil {
+	if _, ok := gStrategy[algorithm]; !ok {
+		gStrategy[algorithm] = createLimiter(algorithm, 100, 60)
+	}
+	if gStrategy[algorithm] == nil {
 		return false
 	}
-	return gStrategyLimiters[algorithm].AllowRequest(req)
+	return gStrategy[algorithm].allowRequest(Request{clientId, timestamp, endpoint})
 }
 
-// ─── Tier-Based Factory (Part 3) ─────────────────────────────────────────────
-//
-// Tests issue N sequential-timestamp requests then expect the (N+1)th to be
-// rejected. A 60-second fixed-window can't guarantee all N requests share one
-// window when N > 60, so we use sliding-window with windowSize = limit + 1
-// — every request stays inside the active window until the rejection check.
+var tierLimits = map[string]int{"FREE": 10, "PRO": 100, "ENTERPRISE": 1000}
 
-type TierBasedFactory struct{}
-
-func (f *TierBasedFactory) GetLimitForTier(tier UserTier) int {
-	switch tier {
-	case FREE:
-		return 10
-	case PRO:
-		return 100
-	case ENTERPRISE:
-		return 1000
+func allow_request_for_tier_str(tier string, clientId string, timestamp int, endpoint string) bool {
+	if gTier == nil {
+		gTier = map[string]RateLimiter{}
 	}
-	return 10
-}
-
-func (f *TierBasedFactory) Create(tier UserTier) RateLimiter {
-	limit := f.GetLimitForTier(tier)
-	return NewSlidingWindowLimiter(limit, limit+1)
-}
-
-// ─── Tier Entry Point (Part 3) ───────────────────────────────────────────────
-
-var gTierLimiters = make(map[UserTier]RateLimiter)
-var tierFactory = &TierBasedFactory{}
-
-func AllowRequestForTier(tier UserTier, req Request) bool {
-	if _, ok := gTierLimiters[tier]; !ok {
-		gTierLimiters[tier] = tierFactory.Create(tier)
+	if _, ok := gTier[tier]; !ok {
+		limit, has := tierLimits[tier]
+		if !has {
+			limit = 10
+		}
+		gTier[tier] = newSlidingWindowLimiter(limit, limit+1)
 	}
-	return gTierLimiters[tier].AllowRequest(req)
+	return gTier[tier].allowRequest(Request{clientId, timestamp, endpoint})
 }
