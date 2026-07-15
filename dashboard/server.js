@@ -418,7 +418,7 @@ function migrateProgress(data) {
 
   for (const [id, entry] of Object.entries(data.problems || {})) {
     const problem = problems.find(p => p.id === id);
-    const partCount = (problem && problem.parts) ? problem.parts.length : 1;
+    const partCount = problem ? normalizePartDefs(problem).length : 1;
 
     // Build parts object from old status
     const oldStatus = entry.status || 'unsolved';
@@ -1427,6 +1427,9 @@ app.post('/api/problems/:id/parts/:part/skip', (req, res) => {
   const progress = loadProgress();
   const entry    = progress.problems[id] || {};
   const totalParts = normalizePartDefs(problem).length;
+  if (!Number.isInteger(partNum) || partNum < 1 || partNum > totalParts) {
+    return res.status(400).json({ error: `Part ${part} does not exist. Problem has ${totalParts} parts.` });
+  }
   ensurePartsInitialized(entry, totalParts);
 
   entry.parts[String(partNum)] = {
