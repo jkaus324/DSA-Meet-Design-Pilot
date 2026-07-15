@@ -1,0 +1,94 @@
+- name: ascending_strategy
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "register", s1: "C", s2: "BUYER",  i1: 2 }
+      - { kind: "create", i1: 0, s2: "Laptop", i3: 500, i2: 0, s3: "ASCENDING" }
+      - { kind: "bid", i1: 0, i2: 1, i3: 600 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 550 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 700 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "3", "1", "ok", "fail", "ok", "700"]
+
+- name: sealed_bid_strategy
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "register", s1: "C", s2: "BUYER",  i1: 2 }
+      - { kind: "create", i1: 0, s2: "Art", i3: 100, i2: 0, s3: "SEALED" }
+      - { kind: "bid", i1: 0, i2: 1, i3: 500 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 200 }
+      - { kind: "winning", i1: 0 }
+      - { kind: "close", i1: 0 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "3", "1", "ok", "ok", "-1", "ok", "500"]
+
+- name: sealed_rejects_low_bids
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Vase", i3: 200, i2: 0, s3: "SEALED" }
+      - { kind: "bid", i1: 0, i2: 1, i3: 100 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 200 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 201 }
+  expect: ["ok", "1", "2", "1", "fail", "fail", "ok"]
+
+- name: buynow_strategy
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Guitar", i3: 100, i2: 0, s3: "BUYNOW" }
+      - { kind: "bid", i1: 0, i2: 1, i3: 120 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 150 }
+      - { kind: "status", i1: 0 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "1", "fail", "ok", "CLOSED", "150"]
+
+- name: buynow_no_bids_after_close
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "register", s1: "C", s2: "BUYER",  i1: 2 }
+      - { kind: "create", i1: 0, s2: "Drum", i3: 200, i2: 0, s3: "BUYNOW" }
+      - { kind: "bid", i1: 0, i2: 1, i3: 300 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 400 }
+  expect: ["ok", "1", "2", "3", "1", "ok", "fail"]
+
+- name: default_ascending
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Mouse", i3: 50, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 60 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "1", "ok", "60"]
+
+- name: mixed_strategies
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Item1", i3: 100, i2: 0, s3: "ASCENDING" }
+      - { kind: "create", i1: 0, s2: "Item2", i3: 100, i2: 1, s3: "SEALED" }
+      - { kind: "create", i1: 0, s2: "Item3", i3: 100, i2: 2, s3: "BUYNOW" }
+      - { kind: "bid", i1: 0, i2: 1, i3: 200 }
+      - { kind: "bid", i1: 1, i2: 1, i3: 200 }
+      - { kind: "bid", i1: 2, i2: 1, i3: 150 }
+      - { kind: "winning", i1: 0 }
+      - { kind: "winning", i1: 1 }
+      - { kind: "status", i1: 2 }
+      - { kind: "winning", i1: 2 }
+  expect: ["ok", "1", "2", "1", "2", "3", "ok", "ok", "ok", "200", "-1", "CLOSED", "150"]

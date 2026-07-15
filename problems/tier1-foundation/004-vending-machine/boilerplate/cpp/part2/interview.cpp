@@ -1,37 +1,77 @@
 #include <iostream>
+#include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-struct Item {
-    string name;
-    double price;
-    int    quantity;
-};
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The vending machine now needs a MAINTENANCE mode:
-//   - Operator can switch the machine into maintenance mode
-//   - In maintenance mode: restock items, adjust prices, clear errors
-//   - User-facing operations (select, pay, dispense) are blocked during maintenance
-//   - Only the operator can exit maintenance mode
-//
-// Think about:
-//   - Where does "maintenance" fit in your existing state diagram?
-//   - Is it a state like Idle/PaymentPending, or a separate mode overlay?
-//   - How do you prevent users from entering maintenance mode?
-//
-// Entry points (all from Part 1, plus):
-//   void selectItem(const string& itemName);
+// Data class (given).
+
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void reset();
+//   string getState();
+//   void selectItem(string item);
 //   void insertMoney(double amount);
 //   void dispense();
 //   void cancel();
-//   string getState();
-//   void enterMaintenance(const string& operatorPin);
-//   void exitMaintenance(const string& operatorPin);
-//   void restock(const string& itemName, int quantity);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+//   void enterMaintenance(string pin);
+//   void exitMaintenance(string pin);
+//   void restock(string item, int qty);
+//   int vm_get_quantity(string item);
 
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void reset() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+string getState() {
+    // TODO: write your solution
+    return {};
+}
+
+void selectItem(string item) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void insertMoney(double amount) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void dispense() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void cancel() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void enterMaintenance(string pin) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void exitMaintenance(string pin) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void restock(string item, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+int vm_get_quantity(string item) {
+    // TODO: write your solution
+    return {};
+}

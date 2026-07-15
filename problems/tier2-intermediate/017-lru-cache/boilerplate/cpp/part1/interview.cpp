@@ -1,56 +1,26 @@
 #include <iostream>
-#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    Node* prev;
-    Node* next;
-    Node(int k, int v) : key(k), value(v), prev(nullptr), next(nullptr) {}
+// Data class (given).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement an LRU Cache that:
-//   1. Stores key-value pairs with a fixed capacity
-//   2. Supports get(key) and put(key, value) in O(1) time
-//   3. Evicts the least recently used entry when capacity is exceeded
-//
-// Think about:
-//   - What combination of data structures gives O(1) for both lookup and reorder?
-//   - How do you avoid null-pointer edge cases in linked list operations?
-//   - How would you swap LRU for a different eviction policy (LFU, FIFO)?
-//
-// Entry points:
-//   LRUCache(int capacity);
-//   int get(int key);         // returns -1 if not found
-//   void put(int key, int value);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> lru_simulate(vector<LruOp> ops);
 
-class LRUCache {
-public:
-    LRUCache(int capacity) {
-        // TODO: Implement
-    }
-
-    int get(int key) {
-        // TODO: Implement
-        return -1;
-    }
-
-    void put(int key, int value) {
-        // TODO: Implement
-    }
-};
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache — design and implement the class above." << endl;
-    return 0;
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-#endif
-

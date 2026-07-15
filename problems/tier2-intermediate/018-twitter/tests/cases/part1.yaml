@@ -1,0 +1,100 @@
+- name: post_and_get_feed
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 101 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at",   i1: 1, i2: 0 }
+  expect: ["ok", "ok", "1", "101"]
+
+- name: follow_and_feed
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 101 }
+      - { kind: "post", i1: 2, i2: 201 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "2", "201", "101"]
+
+- name: unfollow_removes_from_feed
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 101 }
+      - { kind: "post", i1: 2, i2: 201 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "unfollow", i1: 1, i2: 2 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "101"]
+
+- name: feed_max_10
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 1 }
+      - { kind: "post", i1: 1, i2: 2 }
+      - { kind: "post", i1: 1, i2: 3 }
+      - { kind: "post", i1: 1, i2: 4 }
+      - { kind: "post", i1: 1, i2: 5 }
+      - { kind: "post", i1: 1, i2: 6 }
+      - { kind: "post", i1: 1, i2: 7 }
+      - { kind: "post", i1: 1, i2: 8 }
+      - { kind: "post", i1: 1, i2: 9 }
+      - { kind: "post", i1: 1, i2: 10 }
+      - { kind: "post", i1: 1, i2: 11 }
+      - { kind: "post", i1: 1, i2: 12 }
+      - { kind: "post", i1: 1, i2: 13 }
+      - { kind: "post", i1: 1, i2: 14 }
+      - { kind: "post", i1: 1, i2: 15 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 9 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "10", "15", "6"]
+
+- name: self_follow_noop
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 101 }
+      - { kind: "follow", i1: 1, i2: 1 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+  expect: ["ok", "ok", "ok", "1", "101"]
+
+- name: empty_feed
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "feed_size", i1: 1 }
+  expect: ["ok", "0"]
+
+- name: unfollow_noop
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 101 }
+      - { kind: "unfollow", i1: 1, i2: 2 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+  expect: ["ok", "ok", "ok", "1", "101"]
+
+- name: multi_follow_feed_order
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 10 }
+      - { kind: "post", i1: 2, i2: 20 }
+      - { kind: "post", i1: 3, i2: 30 }
+      - { kind: "post", i1: 2, i2: 21 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "follow", i1: 1, i2: 3 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+      - { kind: "feed_at", i1: 1, i2: 2 }
+      - { kind: "feed_at", i1: 1, i2: 3 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "4", "21", "30", "20", "10"]

@@ -1,0 +1,72 @@
+- name: observer_on_book
+  comment: "observer is notified once on booking"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "sub_obs", s1: "M1", i1: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "obs_booked", i1: 0 }
+  expect: ["ok", "ok", "ok", "ok", "1"]
+
+- name: observer_on_cancel
+  comment: "observer notified on cancel and slot is free again"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "sub_obs", s1: "M1", i1: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "cancel", s1: "M1" }
+      - { kind: "obs_cancelled", i1: 0 }
+      - { kind: "is_available", s1: "R1", i1: 540, i2: 570 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "yes"]
+
+- name: observer_on_reschedule
+  comment: "observer notified on reschedule; old slot freed, new slot occupied"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "sub_obs", s1: "M1", i1: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "reschedule", s1: "M1", i1: 600, i2: 630 }
+      - { kind: "obs_rescheduled", i1: 0 }
+      - { kind: "obs_new_start", i1: 0 }
+      - { kind: "obs_new_end", i1: 0 }
+      - { kind: "is_available", s1: "R1", i1: 540, i2: 570 }
+      - { kind: "is_available", s1: "R1", i1: 600, i2: 630 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "600", "630", "yes", "no"]
+
+- name: reschedule_conflict
+  comment: "reschedule into occupied slot fails; original kept"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "book", s1: "M2", s2: "R1", i1: 600, i2: 660 }
+      - { kind: "reschedule", s1: "M1", i1: 610, i2: 650 }
+      - { kind: "is_available", s1: "R1", i1: 540, i2: 570 }
+  expect: ["ok", "ok", "ok", "ok", "fail", "no"]
+
+- name: multiple_observers
+  comment: "all subscribed observers receive the booking event"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "sub_obs", s1: "M1", i1: 0 }
+      - { kind: "sub_obs", s1: "M1", i1: 1 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "obs_booked", i1: 0 }
+      - { kind: "obs_booked", i1: 1 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "1"]
+
+- name: cancel_nonexistent
+  comment: "cancelling unknown meeting fails"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "cancel", s1: "M99" }
+  expect: ["ok", "fail"]

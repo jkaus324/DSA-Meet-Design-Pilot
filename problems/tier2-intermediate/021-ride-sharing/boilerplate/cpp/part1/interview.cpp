@@ -1,57 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct User {
-    string id;
-    string name;
-    int ridesOffered;
-    int ridesTaken;
+// Data class (given).
+struct RideOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int i1;
+    int i2;
+    RideOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", const string& s4_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), s4(s4_), i1(i1_), i2(i2_) {}
 };
 
-struct Vehicle {
-    string id;
-    string ownerId;
-    string model;
-    string regNumber;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> ride_simulate(vector<RideOp> ops);
 
-struct Ride {
-    string id;
-    string driverId;
-    string vehicleId;
-    string origin;
-    string destination;
-    int totalSeats;
-    int availableSeats;
-    bool active;
-};
-
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement a RideService that:
-//   1. Registers users by name (name is the unique ID)
-//   2. Registers vehicles belonging to a user
-//   3. Allows users to offer rides (origin, dest, seats, vehicle)
-//   4. Prevents a vehicle from having multiple active rides
-//
-// Think about:
-//   - What data structures give O(1) lookup for users, vehicles, rides?
-//   - How do you check if a vehicle already has an active ride?
-//   - What happens if a user tries to offer a ride with someone else's vehicle?
-//
-// Entry points (must exist for tests):
-//   void RideService::addUser(const string& name);
-//   void RideService::addVehicle(const string& userName, const string& model,
-//                                const string& regNumber);
-//   string RideService::offerRide(const string& userName, const string& origin,
-//                                 const string& dest, int seats,
-//                                 const string& vehicleRegNumber);
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> ride_simulate(vector<RideOp> ops) {
+    // TODO: write your solution
+    return {};
+}

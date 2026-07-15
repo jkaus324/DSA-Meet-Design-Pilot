@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -78,6 +79,53 @@ public:
         follows[followerId].erase(followeeId);
     }
 };
+
+// ─── Ops simulator (used by spec-based tests) ──────────────────────────────
+//
+// Drives one Twitter through a sequence of operations.
+//
+// Op fields:
+//   "new"               -> "ok"
+//   "post"     i1=user i2=tweet                  -> "ok"
+//   "follow"   i1=follower i2=followee           -> "ok"
+//   "unfollow" i1=follower i2=followee           -> "ok"
+//   "feed_size" i1=user                          -> int as string
+//   "feed_at"   i1=user i2=index                 -> tweetId at index or "-1"
+
+struct TwitterOp {
+    string kind;
+    int    i1;
+    int    i2;
+};
+
+vector<string> twitter_simulate(vector<TwitterOp> ops) {
+    vector<string> out;
+    unique_ptr<Twitter> tw(new Twitter());
+    for (const auto& op : ops) {
+        const string& k = op.kind;
+        if (k == "new") {
+            tw.reset(new Twitter());
+            out.push_back("ok");
+        } else if (k == "post") {
+            tw->postTweet(op.i1, op.i2);
+            out.push_back("ok");
+        } else if (k == "follow") {
+            tw->follow(op.i1, op.i2);
+            out.push_back("ok");
+        } else if (k == "unfollow") {
+            tw->unfollow(op.i1, op.i2);
+            out.push_back("ok");
+        } else if (k == "feed_size") {
+            out.push_back(to_string((int)tw->getNewsFeed(op.i1).size()));
+        } else if (k == "feed_at") {
+            auto f = tw->getNewsFeed(op.i1);
+            out.push_back(op.i2 >= 0 && op.i2 < (int)f.size() ? to_string(f[op.i2]) : "-1");
+        } else {
+            out.push_back("unknown:" + k);
+        }
+    }
+    return out;
+}
 
 #ifndef RUNNING_TESTS
 int main() {

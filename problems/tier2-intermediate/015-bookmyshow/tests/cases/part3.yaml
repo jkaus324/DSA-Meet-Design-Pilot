@@ -1,0 +1,66 @@
+- name: find_2_contiguous_available
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "M", s4: "18:00", i1: 3, i2: 5 }
+      - { kind: "find_contig", s1: "S1", i1: 2, i2: 0 }
+      - { kind: "contig_at", i1: 0 }
+      - { kind: "contig_at", i1: 1 }
+  expect: ["ok", "ok", "ok", "2", "0,0", "0,1"]
+
+- name: returns_earliest_row
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "M", s4: "18:00", i1: 3, i2: 5 }
+      - { kind: "find_contig", s1: "S1", i1: 3, i2: 0 }
+      - { kind: "contig_at", i1: 0 }
+  expect: ["ok", "ok", "ok", "3", "0,0"]
+
+- name: returns_empty_n_exceeds_row_width
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "M", s4: "18:00", i1: 2, i2: 3 }
+      - { kind: "find_contig", s1: "S1", i1: 4, i2: 0 }
+  expect: ["ok", "ok", "ok", "0"]
+
+- name: unknown_show_returns_empty
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "find_contig", s1: "UNKNOWN", i1: 2, i2: 0 }
+  expect: ["ok", "0"]
+
+- name: n_equals_1_returns_single_seat
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "M", s4: "18:00", i1: 2, i2: 4 }
+      - { kind: "find_contig", s1: "S1", i1: 1, i2: 0 }
+  expect: ["ok", "ok", "ok", "1"]
+
+- name: skips_booked_seats
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "M", s4: "18:00", i1: 1, i2: 5 }
+      - { kind: "book", s1: "B1", s2: "S1", s3: "0,0", s4: "user1" }
+      - { kind: "find_contig", s1: "S1", i1: 2, i2: 0 }
+      - { kind: "contig_at", i1: 0 }
+  expect: ["ok", "ok", "ok", "ok", "2", "0,1"]
+
+- name: expired_lock_seat_available
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "M", s4: "18:00", i1: 1, i2: 2 }
+      - { kind: "lock", s1: "S1", s2: "0,0;0,1", s3: "user1", i1: 1, i2: 0, i3: 0 }
+      - { kind: "find_contig", s1: "S1", i1: 2, i2: 61 }
+  expect: ["ok", "ok", "ok", "LOCK_1", "2"]

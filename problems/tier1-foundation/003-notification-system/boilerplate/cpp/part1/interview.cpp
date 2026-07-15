@@ -1,37 +1,23 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Notification {
-    string userId;
-    string message;
-    string channel;  // "email", "sms", "push"
-};
+// Data class (given).
 
-struct User {
-    string id;
-    string email;
-    string phone;
-    vector<string> subscribedChannels;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void notify_event(string event, vector<string> userIds, vector<string> subscribedChannels);
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement a Notification System that:
-//   1. Lets users subscribe to notification channels (email, SMS, push)
-//   2. Sends notifications to all subscribed users when an event occurs
-//   3. Adding a new channel type requires NO changes to existing classes
-//
-// Think about:
-//   - How do you model the relationship between an event source and its listeners?
-//   - What if the same user is subscribed to multiple channels?
-//   - How would you add WhatsApp notifications with zero changes to existing code?
-//
-// Entry point (must exist for tests):
-//   void notify(const string& event, const vector<User>& users);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void notify_event(string event, vector<string> userIds, vector<string> subscribedChannels) {
+    // TODO: write your solution
+    // nothing to return
+}

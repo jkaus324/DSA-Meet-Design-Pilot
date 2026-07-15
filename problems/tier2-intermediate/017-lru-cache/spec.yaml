@@ -1,0 +1,24 @@
+problem_id: "017-lru-cache"
+
+# LRUCache is a "design"-style stateful problem. Tests drive a single cache
+# instance through a list of operations and check the trace of return values.
+
+types:
+  LruOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: i1,   type: int, default: 0 }
+      - { name: i2,   type: int, default: 0 }
+      - { name: i3,   type: int, default: 0 }
+      - { name: i4,   type: int, default: 0 }
+
+functions:
+  - name: lru_simulate
+    params:
+      - { name: ops, type: "list<LruOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Basic LRU get/put",                      functions: [lru_simulate] }
+  2: { name: "TTL expiry, delete, size",               functions: [lru_simulate] }
+  3: { name: "Eviction listeners (Observer)",          functions: [lru_simulate] }

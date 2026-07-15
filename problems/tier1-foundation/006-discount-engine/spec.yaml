@@ -1,0 +1,48 @@
+problem_id: "006-discount-engine"
+
+types:
+  CartItem:
+    fields:
+      - { name: name,     type: string }
+      - { name: price,    type: float }
+      - { name: quantity, type: int }
+      - { name: category, type: string, default: "" }
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: apply_percentage_discount
+    params:
+      - { name: cart,       type: "list<CartItem>" }
+      - { name: percentage, type: float }
+    returns: float
+
+  - name: apply_flat_discount
+    params:
+      - { name: cart,   type: "list<CartItem>" }
+      - { name: amount, type: float }
+    returns: float
+
+  - name: apply_bogo
+    params:
+      - { name: cart,      type: "list<CartItem>" }
+      - { name: buyCount,  type: int }
+      - { name: freeCount, type: int }
+    returns: float
+
+  - name: apply_percentage_with_eligibility
+    params:
+      - { name: cart,                 type: "list<CartItem>" }
+      - { name: percentage,           type: float }
+      - { name: minCartValue,         type: float }
+      - { name: requireFirstTimeUser, type: bool }
+      - { name: isFirstTimeUser,      type: bool }
+      - { name: eligibleCategory,     type: string }
+    returns: float
+
+parts:
+  1: { name: "Single discount strategies",  functions: [apply_percentage_discount, apply_flat_discount, apply_bogo] }
+  2: { name: "Stacking and chaining",        functions: [] }
+  3: { name: "Eligibility rules",            functions: [apply_percentage_with_eligibility] }

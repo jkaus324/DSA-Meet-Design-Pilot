@@ -1,53 +1,41 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered };
+// Data class (given).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── OrderManager ───────────────────────────────────────────────────────────
-// HINT: Use a HashMap (unordered_map) to store orders by ID.
-// Each transition method should check the current state before changing it.
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void set_inventory(string productId, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// class OrderManager {
-//     unordered_map<string, Order> orders;
-//     int nextId = 1;
-// public:
-//     string createOrder(vector<OrderItem> items, double totalAmount);
-//     bool confirmOrder(const string& orderId);  // Created -> Confirmed
-//     bool shipOrder(const string& orderId);      // Confirmed -> Shipped
-//     bool deliverOrder(const string& orderId);   // Shipped -> Delivered
-//     OrderState getOrderState(const string& orderId);
-// };
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int get_inventory(string productId) {
+    // TODO: write your solution
+    return {};
+}
 
-// HINT: Consider a private helper method like:
-//   bool transition(const string& orderId, OrderState expected, OrderState next);
-// This avoids duplicating the "check current state, then update" logic.
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: write your solution
+    return {};
+}
 
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-// Your solution must provide these functions:
-//
-//   string create_order(vector<OrderItem> items, double totalAmount);
-//   bool confirm_order(const string& orderId);
-//   bool ship_order(const string& orderId);
-//   bool deliver_order(const string& orderId);
-//   OrderState get_order_state(const string& orderId);
-//
-// How you implement them internally is up to you.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string get_order_state_str(string orderId) {
+    // TODO: write your solution
+    return {};
+}

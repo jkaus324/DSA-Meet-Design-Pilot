@@ -1,0 +1,88 @@
+- name: book_meeting
+  comment: "single booking succeeds"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small Room", i1: 4, i2: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+  expect: ["ok", "ok", "ok"]
+
+- name: conflict_detection
+  comment: "overlapping meeting on same room rejected"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "book", s1: "M2", s2: "R1", i1: 550, i2: 600 }
+  expect: ["ok", "ok", "ok", "fail"]
+
+- name: adjacent_no_conflict
+  comment: "back-to-back meetings (start == prev end) do not conflict"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "book", s1: "M2", s2: "R1", i1: 570, i2: 630 }
+  expect: ["ok", "ok", "ok", "ok"]
+
+- name: different_rooms_no_conflict
+  comment: "same time on different rooms is fine"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "add_room", s1: "R2", s2: "Large", i1: 20, i2: 1 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "book", s1: "M2", s2: "R2", i1: 540, i2: 570 }
+  expect: ["ok", "ok", "ok", "ok", "ok"]
+
+- name: is_available_free
+  comment: "empty room is available"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "is_available", s1: "R1", i1: 540, i2: 570 }
+  expect: ["ok", "ok", "yes"]
+
+- name: is_available_occupied
+  comment: "occupied room reports unavailable"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "is_available", s1: "R1", i1: 550, i2: 580 }
+  expect: ["ok", "ok", "ok", "no"]
+
+- name: schedule_sorted
+  comment: "schedule is returned sorted by start time"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "book", s1: "M2", s2: "R1", i1: 600, i2: 660 }
+      - { kind: "book", s1: "M1", s2: "R1", i1: 540, i2: 570 }
+      - { kind: "sched_size", s1: "R1" }
+      - { kind: "sched_at", s1: "R1", i1: 0 }
+      - { kind: "sched_at", s1: "R1", i1: 1 }
+  expect: ["ok", "ok", "ok", "ok", "2", "M1", "M2"]
+
+- name: nonexistent_room
+  comment: "booking into an unknown room fails"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "book", s1: "M1", s2: "R99", i1: 540, i2: 570 }
+  expect: ["ok", "fail"]
+
+- name: empty_schedule
+  comment: "fresh room has empty schedule"
+  call: meeting_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "add_room", s1: "R1", s2: "Small", i1: 4, i2: 0 }
+      - { kind: "sched_size", s1: "R1" }
+  expect: ["ok", "ok", "0"]

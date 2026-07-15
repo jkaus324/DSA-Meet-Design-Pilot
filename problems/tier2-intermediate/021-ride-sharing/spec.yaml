@@ -1,0 +1,23 @@
+problem_id: "021-ride-sharing"
+
+types:
+  RideOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: s3,   type: string, default: "" }
+      - { name: s4,   type: string, default: "" }
+      - { name: i1,   type: int,    default: 0 }
+      - { name: i2,   type: int,    default: 0 }
+
+functions:
+  - name: ride_simulate
+    params:
+      - { name: ops, type: "list<RideOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "User/vehicle/ride onboarding", functions: [ride_simulate] }
+  2: { name: "Pluggable selection strategies", functions: [ride_simulate] }
+  3: { name: "End rides + statistics",          functions: [ride_simulate] }

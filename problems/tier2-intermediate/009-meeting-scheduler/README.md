@@ -7,152 +7,75 @@
 
 ## Problem Statement
 
-You're building a meeting room booking system for an office. The system must handle room reservations, detect scheduling conflicts, support multiple room allocation strategies, and notify attendees of changes.
+You are building a meeting room booking system for a corporate office. The system manages rooms with varying capacities and AV equipment. Users book rooms by specifying a time window; the system detects conflicts and rejects double-bookings. The office manager can switch between room allocation policies without rewriting the scheduler.
 
-**Your task:** Design and implement a `MeetingScheduler` that can book rooms with conflict detection, allocate rooms using swappable strategies, and notify attendees when meetings change.
-
----
-
-## Before You Code
-
-> Read this section carefully. This is where the design thinking happens.
-
-**Ask yourself:**
-1. How do you check whether a new meeting conflicts with existing bookings? What data structure makes this efficient?
-2. When the office manager wants to switch from "first available room" to "best-fit room" allocation, should you modify the scheduler? Or should the allocation algorithm be a separate, swappable component?
-3. When a meeting is booked, cancelled, or rescheduled, how do all attendees find out? Should the scheduler know about every notification channel?
-
-**The key insight:** Two patterns compose here. **Strategy** handles the "which room?" decision. **Observer** handles the "who gets notified?" concern. The scheduler orchestrates both without implementing either directly.
+**Constraints:**
+- Up to 10^4 bookings per room
+- Time is represented as minutes since midnight (0–1439)
+- Two meetings overlap if `start1 < end2 && start2 < end1`
+- Rooms have a fixed capacity and optional AV equipment flag
 
 ---
 
-## Data Structures
+## Base Requirement — Room Booking with Conflict Detection
 
-```cpp
-struct Room {
-    string id;
-    string name;
-    int capacity;
-    bool hasAV;  // audio-visual equipment
-};
+Implement a `MeetingScheduler` that manages rooms and meetings. When a booking is requested, verify the room is free for the entire requested window. Reject the booking if any existing meeting on that room overlaps.
 
-struct Meeting {
-    string id;
-    string title;
-    int startTime;  // minutes since midnight (e.g., 540 = 9:00 AM)
-    int endTime;
-    string roomId;
-};
-
-struct Attendee {
-    string id;
-    string name;
-    string email;
-};
+**Example:**
+```
+addRoom("R1", capacity=10, hasAV=true)
+bookMeeting({id="M1", roomId="R1", start=540, end=600})  →  true   // 9:00–10:00 AM booked
+bookMeeting({id="M2", roomId="R1", start=570, end=630})  →  false  // overlaps M1
+isAvailable("R1", 600, 660)                               →  true   // 10:00–11:00 AM is free
+getRoomSchedule("R1")                                     →  [M1]
 ```
 
----
-
-## Part 1
-
-**Base requirement — Room booking with conflict detection**
-
-Implement a `MeetingScheduler` that manages rooms and meetings. Two meetings conflict if they overlap on the same room.
-
-**Overlap rule:** Meeting A (start1, end1) and Meeting B (start2, end2) overlap if `start1 < end2 && start2 < end1`.
-
-**Entry points (tests will call these):**
-```cpp
-bool book_meeting(const Meeting& meeting);
-vector<Meeting> get_room_schedule(const string& roomId);
-bool is_available(const string& roomId, int startTime, int endTime);
-```
-
-**What to implement:**
-```cpp
-class MeetingScheduler {
-    unordered_map<string, Room> rooms;
-    unordered_map<string, vector<Meeting>> schedule; // roomId -> meetings
-public:
-    void addRoom(const Room& room);
-    bool bookMeeting(const Meeting& meeting);
-    vector<Meeting> getRoomSchedule(const string& roomId);
-    bool isAvailable(const string& roomId, int startTime, int endTime);
-};
-```
-
-**Design goal:** Conflict detection must be correct and efficient. Think about how meetings are stored per room and how you check for overlaps.
+**Public methods:**
+- `void addRoom(const Room& room)`
+- `bool bookMeeting(const Meeting& meeting)`
+- `vector<Meeting> getRoomSchedule(const string& roomId)`
+- `bool isAvailable(const string& roomId, int startTime, int endTime)`
 
 ---
 
-## Part 2
+## Extension 1 — Multiple Allocation Strategies
 
-**Extension 1 — Multiple allocation strategies**
-
-The office manager wants different room allocation policies. Instead of the user picking a room, the system should **automatically select** a room based on a strategy:
+Add automatic room selection. Instead of the user specifying a room, the scheduler picks one based on a pluggable strategy. Adding a new strategy must require zero changes to the scheduler class.
 
 | Strategy | Rule |
-|----------|------|
-| First Available | Pick the first free room (by room ID order) |
-| Best Fit | Pick the smallest room (by capacity) that fits the attendee count |
-| Priority-Based | Prefer rooms with AV equipment; among those, pick smallest that fits |
+|---|---|
+| FirstAvailable | First free room by room ID lexicographic order |
+| BestFit | Smallest capacity room (by attendee count) that is free |
+| PriorityBased | Prefer AV-equipped rooms; among those, smallest capacity that fits |
 
-**Design challenge:** How do you add a new allocation strategy **without modifying** the scheduler?
-
-**New entry point:**
-```cpp
-string book_with_strategy(const string& meetingId, const string& title,
-                          int startTime, int endTime, int attendeeCount);
-// Returns the roomId of the allocated room, or "" if no room available
+**Example:**
+```
+// 3 rooms: R1 (cap=20, AV), R2 (cap=8, no AV), R3 (cap=8, AV)
+// Strategy: BestFit, attendeeCount=6
+bookWithStrategy("M3", "Design Review", start=480, end=540, attendees=6)
+→  "R2"   // smallest room that fits 6 people and is free
 ```
 
-**What to implement:**
-```cpp
-class AllocationStrategy {
-public:
-    virtual string selectRoom(const vector<Room>& rooms,
-                              const MeetingScheduler& scheduler,
-                              int startTime, int endTime,
-                              int attendeeCount) = 0;
-    virtual ~AllocationStrategy() = default;
-};
-
-class FirstAvailable : public AllocationStrategy { ... };
-class BestFit        : public AllocationStrategy { ... };
-class PriorityBased  : public AllocationStrategy { ... };
-```
-
-**Hint:** Each strategy iterates available rooms, filters by time availability, and picks according to its own rule.
+**Public method:**
+- `string bookWithStrategy(const string& meetingId, const string& title, int startTime, int endTime, int attendeeCount)`
 
 ---
 
-## Part 3
+## Extension 2 — Attendee Notifications
 
-**Extension 2 — Attendee notifications**
+When a meeting is booked, cancelled, or rescheduled, all subscribed observers are notified. The scheduler must not know about email, SMS, or Slack — it only fires events through the observer interface.
 
-When a meeting is booked, cancelled, or rescheduled, all subscribed attendees must be notified.
-
-**Observer interface:**
-```cpp
-class MeetingObserver {
-public:
-    virtual void onMeetingBooked(const Meeting& meeting) = 0;
-    virtual void onMeetingCancelled(const Meeting& meeting) = 0;
-    virtual void onMeetingRescheduled(const Meeting& oldMeeting,
-                                      const Meeting& newMeeting) = 0;
-    virtual ~MeetingObserver() = default;
-};
+**Example:**
+```
+subscribeAttendee("M1", &emailNotifier)
+cancelMeeting("M1")           // emailNotifier.onMeetingCancelled(M1) is called
+reschedule("M1", 660, 720)    // emailNotifier.onMeetingRescheduled(old, new) is called
 ```
 
-**New entry points:**
-```cpp
-void subscribe_attendee(const string& meetingId, MeetingObserver* observer);
-void notify_change(const string& meetingId, const string& changeType);
-bool cancel_meeting(const string& meetingId);
-bool reschedule_meeting(const string& meetingId, int newStart, int newEnd);
-```
-
-**Design challenge:** Should every attendee be a concrete observer? Or should there be an `AttendeeNotifier` that adapts the `Attendee` struct into the observer interface? How do you avoid the scheduler knowing about email, SMS, or Slack?
+**Public methods:**
+- `void subscribeAttendee(const string& meetingId, MeetingObserver* observer)`
+- `bool cancelMeeting(const string& meetingId)`
+- `bool rescheduleMeeting(const string& meetingId, int newStart, int newEnd)`
 
 ---
 

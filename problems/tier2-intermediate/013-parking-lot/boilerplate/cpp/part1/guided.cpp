@@ -1,88 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
-#include <cmath>
 using namespace std;
 
-// --- Data Model (given -- do not modify) ------------------------------------
 
-enum class VehicleType {
-    MOTORCYCLE,
-    CAR,
-    TRUCK
+// Data class (given).
+struct ParkOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    ParkOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-enum class SpotSize {
-    SMALL,
-    MEDIUM,
-    LARGE
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small — one rule per class.
 
-struct Vehicle {
-    string licensePlate;
-    VehicleType type;
-};
-
-struct ParkingSpot {
-    string spotId;
-    int floor;
-    SpotSize size;
-    bool isOccupied;
-    string vehicleLicensePlate;
-};
-
-struct Ticket {
-    string ticketId;
-    string licensePlate;
-    string spotId;
-    int floor;
-    long entryTime;
-};
-
-// --- Spot Factory -----------------------------------------------------------
-// HINT: Encapsulate spot creation. The factory takes an ID, floor, and size,
-//       and returns a ParkingSpot with isOccupied=false.
-
-// class SpotFactory {
-// public:
-//     static ParkingSpot createSpot(const string& spotId, int floor, SpotSize size);
-// };
-
-// --- Compatibility Helper ---------------------------------------------------
-// HINT: Map VehicleType to minimum SpotSize. A vehicle can park in any spot
-//       whose size >= its minimum. Use the enum's underlying int for comparison:
-//       (int)SpotSize::SMALL=0, MEDIUM=1, LARGE=2.
-
-// --- Parking Lot ------------------------------------------------------------
-// HINT: Use vector<vector<ParkingSpot>> for floors. Scan floor 0 first,
-//       then floor 1, etc. Within a floor, scan spots in index order.
-// HINT: Use unordered_map<string, Ticket> to track active tickets by ID.
-// HINT: Generate ticket IDs incrementally: "T1", "T2", etc.
-
-// class ParkingLot {
-// private:
-//     vector<vector<ParkingSpot>> floors;
-//     unordered_map<string, Ticket> activeTickets;
-//     int nextTicketId;
-// public:
-//     ParkingLot(int numFloors);
-//     void addSpot(int floor, SpotSize size);
-//     Ticket* parkVehicle(const Vehicle& vehicle, long entryTime);
-//     double unparkVehicle(const string& ticketId, long exitTime);
-//     int getAvailableSpots(SpotSize size);
-//     int getAvailableSpotsByFloor(int floor, SpotSize size);
-// };
-
-// --- Test Entry Points (must exist for tests to compile) --------------------
-// Your solution must provide these via a ParkingLot instance:
-//
-//   Ticket* parkVehicle(const Vehicle& vehicle, long entryTime);
-//   double unparkVehicle(const string& ticketId, long exitTime);
-//   int getAvailableSpots(SpotSize size);
-//   int getAvailableSpotsByFloor(int floor, SpotSize size);
-//
-// -------------------------------------------------------------------------
-
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> parking_simulate(vector<ParkOp> ops) {
+    // TODO: write your solution
+    return {};
+}

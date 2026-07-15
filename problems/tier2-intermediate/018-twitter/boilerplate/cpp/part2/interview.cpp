@@ -1,44 +1,24 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <queue>
 #include <algorithm>
-#include <tuple>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Tweet {
-    int tweetId;
-    int timestamp;
+// Data class (given).
+struct TwitterOp {
+    string kind;
+    int i1;
+    int i2;
+    TwitterOp(const string& kind_, int i1_ = 0, int i2_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_) {}
 };
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Optimize the Twitter news feed using a k-way merge algorithm.
-//
-// Each user's tweets are stored in chronological order (a sorted stream).
-// Instead of collecting ALL tweets and sorting, merge K streams using a heap:
-//
-//   1. Push the most recent tweet from each relevant user into a max-heap
-//   2. Pop the top (most recent overall)
-//   3. Push that user's next tweet into the heap
-//   4. Repeat until you have 10 results or heap is empty
-//
-// Think about:
-//   - What goes into each heap entry? (timestamp, tweetId, userId, index)
-//   - Why is this O(10 * log K) instead of O(N log N)?
-//   - How do you track "the next tweet" for each user in the heap?
-//
-// Entry points (must exist for tests — same as Part 1):
-//   Twitter()
-//   void postTweet(int userId, int tweetId)
-//   vector<int> getNewsFeed(int userId)
-//   void follow(int followerId, int followeeId)
-//   void unfollow(int followerId, int followeeId)
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> twitter_simulate(vector<TwitterOp> ops);
 
-
+vector<string> twitter_simulate(vector<TwitterOp> ops) {
+    // TODO: write your solution
+    return {};
+}

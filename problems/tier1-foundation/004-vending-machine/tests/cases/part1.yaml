@@ -1,0 +1,78 @@
+- name: reset_p1
+  call: reset_service
+  args: []
+
+- name: initial_idle
+  call: getState
+  args: []
+  expect_equals: "Idle"
+
+- name: select_cola
+  call: selectItem
+  args: ["Cola"]
+
+- name: state_payment_pending
+  call: getState
+  args: []
+  expect_equals: "PaymentPending"
+
+- name: insert_25
+  call: insertMoney
+  args: [25.0]
+
+- name: dispense_cola
+  call: dispense
+  args: []
+
+- name: state_idle_after_dispense
+  call: getState
+  args: []
+  expect_equals: "Idle"
+
+- name: reset_p1_b
+  call: reset_service
+  args: []
+
+- name: select_for_cancel
+  call: selectItem
+  args: ["Cola"]
+
+- name: insert_partial
+  call: insertMoney
+  args: [10.0]
+
+- name: cancel_op
+  call: cancel
+  args: []
+
+- name: state_idle_after_cancel
+  call: getState
+  args: []
+  expect_equals: "Idle"
+
+- name: reset_p1_c
+  call: reset_service
+  args: []
+
+- name: pay_before_select
+  call: insertMoney
+  args: [50.0]
+
+- name: state_idle_unchanged
+  call: getState
+  args: []
+  expect_equals: "Idle"
+
+- name: reset_p1_d
+  call: reset_service
+  args: []
+
+- name: select_unavailable
+  comment: "Item not in inventory — selection ignored"
+  call: selectItem
+  args: ["Pizza"]
+
+- name: state_still_idle
+  call: getState
+  args: []
+  expect_equals: "Idle"

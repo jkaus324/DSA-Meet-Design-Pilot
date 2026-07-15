@@ -4,164 +4,74 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class Priority { LOW, MEDIUM, HIGH, CRITICAL };
-enum class IssueState { OPEN, IN_PROGRESS, RESOLVED, CLOSED };
-enum class Category { BILLING, TECHNICAL, GENERAL, ACCOUNT };
+// Data class (given).
 
-struct Issue {
-    int id;
-    string description;
-    Category category;
-    Priority priority;
-    IssueState state;
-    int assignedAgentId;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Agent {
-    int id;
-    string name;
-    int currentLoad;
-    vector<Category> specializations;
-};
-
-// ─── Assignment Interface ───────────────────────────────────────────────────
-
-class AssignmentStrategy {
-public:
-    virtual int selectAgent(vector<Agent>& agents, const Issue& issue) = 0;
-    virtual ~AssignmentStrategy() = default;
-};
-
-// ─── Existing Strategies ────────────────────────────────────────────────────
-// TODO: Copy your Part 1 + Part 2 strategies here
-
-class RoundRobinStrategy : public AssignmentStrategy {
-    int nextIndex = 0;
-public:
-    int selectAgent(vector<Agent>& agents, const Issue& issue) override {
-        return -1; // TODO: implement
-    }
-};
-
-class LeastLoadedStrategy : public AssignmentStrategy {
-public:
-    int selectAgent(vector<Agent>& agents, const Issue& issue) override {
-        return -1; // TODO: implement
-    }
-};
-
-class SpecialistStrategy : public AssignmentStrategy {
-    LeastLoadedStrategy fallback;
-public:
-    int selectAgent(vector<Agent>& agents, const Issue& issue) override {
-        return -1; // TODO: implement
-    }
-};
-
-// ─── NEW: Observer Interface ────────────────────────────────────────────────
-// HINT: An observer receives notification when an issue's state changes.
-// It gets the issue ID, old state, and new state.
-
-class IssueObserver {
-public:
-    virtual void onStateChange(int issueId, IssueState oldState, IssueState newState) = 0;
-    virtual ~IssueObserver() = default;
-};
-
-// ─── NEW: Logging Observer ──────────────────────────────────────────────────
-// HINT: Writes a formatted string to a notifications vector.
-// Format: "Issue <id>: <OLD_STATE> -> <NEW_STATE>"
-
-class LoggingObserver : public IssueObserver {
-    vector<string>& log;
-public:
-    LoggingObserver(vector<string>& logRef) : log(logRef) {}
-    void onStateChange(int issueId, IssueState oldState, IssueState newState) override {
-        // TODO: Format and push notification string to log
-    }
-};
-
-// ─── Resolver ───────────────────────────────────────────────────────────────
-
-class IssueResolver {
-    AssignmentStrategy* strategy;
-    vector<IssueObserver*> observers;
-public:
-    IssueResolver(AssignmentStrategy* s) : strategy(s) {}
-    void setStrategy(AssignmentStrategy* s) { strategy = s; }
-    void addObserver(IssueObserver* obs) { observers.push_back(obs); }
-
-    Issue assign(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-        // TODO: implement (same as Part 1)
-        return issue;
-    }
-
-    vector<Issue> getAgentIssues(const vector<Issue>& issues, int agentId) {
-        // TODO: implement (same as Part 1)
-        return {};
-    }
-
-    // HINT: Valid transitions: OPEN->IN_PROGRESS, IN_PROGRESS->RESOLVED, RESOLVED->CLOSED
-    // Return false for invalid transitions. Notify all observers on success.
-    bool transitionState(vector<Issue>& issues, int issueId, IssueState newState) {
-        // TODO: implement
-        return false;
-    }
-
-    // HINT: Find the highest-priority unassigned (assignedAgentId == -1) OPEN issue.
-    // Priority order: CRITICAL > HIGH > MEDIUM > LOW
-    // Tiebreak: lowest issue ID first.
-    Issue assignNextPriority(vector<Agent>& agents, vector<Issue>& issues) {
-        // TODO: implement
-        return {-1, "", Category::GENERAL, Priority::LOW, IssueState::OPEN, -1};
-    }
-};
-
-// ─── Test Entry Points ──────────────────────────────────────────────────────
-
-static RoundRobinStrategy globalRoundRobin;
-static IssueResolver globalResolver(&globalRoundRobin);
-
-Issue assign_issue(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-    return globalResolver.assign(agents, issues, issue);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
 }
 
-vector<Issue> get_agent_issues(const vector<Issue>& issues, int agentId) {
-    return globalResolver.getAgentIssues(issues, agentId);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+void ir_add_agent(int id, string name, string specialization) {
+    // TODO: write your solution
+    // nothing to return
 }
 
-Issue assign_least_loaded(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-    LeastLoadedStrategy s;
-    IssueResolver resolver(&s);
-    return resolver.assign(agents, issues, issue);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_assign_issue_round_robin(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
 }
 
-Issue assign_by_specialist(vector<Agent>& agents, vector<Issue>& issues, Issue issue) {
-    SpecialistStrategy s;
-    IssueResolver resolver(&s);
-    return resolver.assign(agents, issues, issue);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_agent_issue_count(int agentId) {
+    // TODO: write your solution
+    return {};
 }
 
-bool transition_issue(vector<Issue>& issues, int issueId,
-                      IssueState newState, vector<string>& notifications) {
-    LoggingObserver logger(notifications);
-    RoundRobinStrategy rr;
-    IssueResolver resolver(&rr);
-    resolver.addObserver(&logger);
-    return resolver.transitionState(issues, issueId, newState);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_agent_load(int agentId) {
+    // TODO: write your solution
+    return {};
 }
 
-Issue assign_next_priority(vector<Agent>& agents, vector<Issue>& issues) {
-    RoundRobinStrategy rr;
-    IssueResolver resolver(&rr);
-    return resolver.assignNextPriority(agents, issues);
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_assign_issue_least_loaded(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
 }
 
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "Part 3: State tracking + priority — implement the TODOs above." << endl;
-    return 0;
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_assign_issue_specialist(string description, string category, string priority) {
+    // TODO: write your solution
+    return {};
 }
-#endif
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+bool ir_transition(int issueId, string newState) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string ir_get_issue_state(int issueId) {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+int ir_log_size() {
+    // TODO: write your solution
+    return {};
+}
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+string ir_log_entry(int idx) {
+    // TODO: write your solution
+    return {};
+}

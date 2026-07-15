@@ -1,57 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <set>
-#include <unordered_map>
 #include <algorithm>
-#include <climits>
 using namespace std;
 
-// --- Data Model (given -- do not modify) ------------------------------------
 
-enum class ElevatorState {
-    IDLE,
-    MOVING_UP,
-    MOVING_DOWN,
-    DOOR_OPEN
+// Data class (given).
+struct ElevOp {
+    string kind;
+    string s1;
+    int i1;
+    int i2;
+    ElevOp(const string& kind_, const string& s1_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), i1(i1_), i2(i2_) {}
 };
 
-enum class Direction {
-    UP,
-    DOWN,
-    NONE
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> elevator_simulate(vector<ElevOp> ops);
 
-struct Request {
-    int floor;
-    Direction direction;
-};
-
-// --- Your Design Starts Here ------------------------------------------------
-//
-// Design and implement a single Elevator that:
-//   1. Starts at floor 0 in IDLE state
-//   2. Accepts external requests (floor + direction) and internal requests
-//   3. Processes requests in SCAN order: serve all floors in the current
-//      direction before reversing
-//
-// step() behavior:
-//   - IDLE + requests exist: pick direction, start moving
-//   - MOVING_UP / MOVING_DOWN: move one floor; if current floor has a
-//     pending request, transition to DOOR_OPEN
-//   - DOOR_OPEN: close doors, resume moving or go IDLE if no requests
-//
-// Think about:
-//   - What data structure efficiently tracks pending floors per direction?
-//   - How do you decide when to reverse direction?
-//   - What happens if a request arrives for the current floor while idle?
-//
-// Entry points (must exist for tests):
-//   void addRequest(int floor, Direction direction);
-//   void step();
-//   int getCurrentFloor();
-//   ElevatorState getState();
-//
-// -------------------------------------------------------------------------
-
-
+vector<string> elevator_simulate(vector<ElevOp> ops) {
+    // TODO: write your solution
+    return {};
+}

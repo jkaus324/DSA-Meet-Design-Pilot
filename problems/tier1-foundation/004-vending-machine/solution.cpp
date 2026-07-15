@@ -216,6 +216,15 @@ void   enterMaintenance(const string& pin)     { g_vm.enterMaintenance(pin); }
 void   exitMaintenance(const string& pin)      { g_vm.exitMaintenance(pin); }
 void   restock(const string& item, int qty)    { g_vm.restock(item, qty); }
 
+// Spec-test wrappers
+void   reset_service()                         { g_vm.resetMachine(); }
+int    vm_get_quantity(const string& item)     {
+    auto it = g_vm.inventory.find(item);
+    return (it == g_vm.inventory.end()) ? -1 : it->second.quantity;
+}
+double vm_get_inserted_money()                 { return g_vm.insertedMoney; }
+string vm_get_selected_item()                  { return g_vm.selectedItem; }
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 #ifndef RUNNING_TESTS

@@ -1,0 +1,51 @@
+- name: reset_p1
+  call: reset_service
+  args: []
+
+- name: add_alice
+  call: ir_add_agent
+  args: [0, "Alice", "BILLING"]
+
+- name: add_bob
+  call: ir_add_agent
+  args: [1, "Bob", "TECHNICAL"]
+
+- name: add_carol
+  call: ir_add_agent
+  args: [2, "Carol", "GENERAL"]
+
+- name: assign_first_to_alice
+  comment: "Round-robin: first issue → agent 0"
+  call: ir_assign_issue_round_robin
+  args: ["Issue1", "BILLING", "HIGH"]
+  expect_equals: 0
+
+- name: assign_second_to_bob
+  call: ir_assign_issue_round_robin
+  args: ["Issue2", "TECHNICAL", "HIGH"]
+  expect_equals: 1
+
+- name: assign_third_to_carol
+  call: ir_assign_issue_round_robin
+  args: ["Issue3", "GENERAL", "HIGH"]
+  expect_equals: 2
+
+- name: assign_fourth_wraps_to_alice
+  call: ir_assign_issue_round_robin
+  args: ["Issue4", "BILLING", "HIGH"]
+  expect_equals: 0
+
+- name: alice_has_2
+  call: ir_agent_issue_count
+  args: [0]
+  expect_equals: 2
+
+- name: alice_load_2
+  call: ir_agent_load
+  args: [0]
+  expect_equals: 2
+
+- name: bob_has_1
+  call: ir_agent_issue_count
+  args: [1]
+  expect_equals: 1

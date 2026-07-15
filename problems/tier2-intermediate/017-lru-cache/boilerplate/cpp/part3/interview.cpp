@@ -1,91 +1,26 @@
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    long expiresAt;  // 0 means no TTL
-    Node* prev;
-    Node* next;
-    Node(int k, int v, long exp = 0)
-        : key(k), value(v), expiresAt(exp), prev(nullptr), next(nullptr) {}
+// Data class (given).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-enum class EvictionReason { CAPACITY, TTL_EXPIRED, EXPLICIT_DELETE };
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> lru_simulate(vector<LruOp> ops);
 
-// ─── Eviction Listener Interface ─────────────────────────────────────────────
-
-class EvictionListener {
-public:
-    virtual void onEviction(int key, int value, EvictionReason reason) = 0;
-    virtual ~EvictionListener() = default;
-};
-
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Extend your LRU Cache from Parts 1-2 with eviction listeners:
-//   1. Register callbacks notified on every eviction
-//   2. Each notification includes the key, value, and reason for eviction
-//   3. Support adding and removing listeners
-//
-// Eviction reasons:
-//   CAPACITY       — evicted because cache was full
-//   TTL_EXPIRED    — evicted because the entry's TTL expired
-//   EXPLICIT_DELETE — evicted because deleteKey() was called
-//
-// Think about:
-//   - Should listeners be notified before or after the entry is removed?
-//   - What happens if a listener tries to call put() or get() during notification?
-//   - How do you safely remove a listener while iterating?
-//
-// Entry points (in addition to Parts 1-2):
-//   void addEvictionListener(EvictionListener* listener);
-//   void removeEvictionListener(EvictionListener* listener);
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-class LRUCache {
-public:
-    LRUCache(int capacity) {
-        // TODO: Implement
-    }
-
-    void put(int key, int value, long currentTime, int ttl = 0) {
-        // TODO: Implement
-    }
-
-    int get(int key, long currentTime) {
-        // TODO: Implement
-        return -1;
-    }
-
-    bool deleteKey(int key) {
-        // TODO: Implement
-        return false;
-    }
-
-    int size() {
-        // TODO: Implement
-        return 0;
-    }
-
-    void addEvictionListener(EvictionListener* listener) {
-        // TODO: Implement
-    }
-
-    void removeEvictionListener(EvictionListener* listener) {
-        // TODO: Implement
-    }
-};
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache Part 3 — design and implement the class above." << endl;
-    return 0;
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-#endif
-

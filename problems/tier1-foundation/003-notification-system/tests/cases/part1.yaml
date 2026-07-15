@@ -1,0 +1,26 @@
+- name: reset_p1
+  call: reset_service
+  args: []
+
+- name: notify_three_users
+  comment: "Notify multiple users on multiple channels — no throw"
+  call: notify_event
+  args:
+    - "Order shipped"
+    - ["user1", "user2", "user3"]
+    - ["email", "sms", "push"]
+
+- name: notify_empty_users
+  comment: "Empty user list — no throw"
+  call: notify_event
+  args:
+    - "Event"
+    - []
+    - ["email"]
+
+- name: notify_multi_channel_user
+  call: notify_event
+  args:
+    - "Flash sale"
+    - ["u1"]
+    - ["email", "sms", "push"]

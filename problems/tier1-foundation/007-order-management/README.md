@@ -49,9 +49,7 @@ struct Order {
 
 ---
 
-## Part 1
-
-**Base requirement — Order lifecycle with state transitions**
+## Base Requirement — Order lifecycle with state transitions
 
 Implement an `OrderManager` that creates orders and moves them through valid state transitions.
 
@@ -89,9 +87,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Cancellation + inventory release**
+## Extension 1 — Cancellation + inventory release
 
 The product team now wants orders to be **cancellable** — but only from certain states.
 
@@ -114,9 +110,7 @@ When an order is created, inventory is decremented. When cancelled, inventory is
 
 ---
 
-## Part 3
-
-**Extension 2 — Transition history tracking**
+## Extension 2 — Transition history tracking
 
 The ops team wants to see the **full history** of every state transition an order has gone through, with timestamps.
 

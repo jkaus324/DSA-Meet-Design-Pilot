@@ -1,0 +1,97 @@
+- name: reset_p2
+  call: reset_service
+  args: []
+
+- name: setup_inv
+  call: set_inventory
+  args: ["P1", 10]
+
+- name: create_o
+  call: create_order_simple
+  args: ["P1", 2, 200.0]
+  expect_equals: "ORD-1"
+
+- name: confirm
+  call: confirm_order
+  args: ["ORD-1"]
+  expect_equals: true
+
+- name: state_confirmed
+  call: get_order_state_str
+  args: ["ORD-1"]
+  expect_equals: "Confirmed"
+
+- name: cant_ship_unconfirmed_already
+  comment: "Already confirmed; another confirm fails"
+  call: confirm_order
+  args: ["ORD-1"]
+  expect_equals: false
+
+- name: ship_ok
+  call: ship_order
+  args: ["ORD-1"]
+  expect_equals: true
+
+- name: state_shipped
+  call: get_order_state_str
+  args: ["ORD-1"]
+  expect_equals: "Shipped"
+
+- name: deliver_ok
+  call: deliver_order
+  args: ["ORD-1"]
+  expect_equals: true
+
+- name: state_delivered
+  call: get_order_state_str
+  args: ["ORD-1"]
+  expect_equals: "Delivered"
+
+- name: cancel_after_deliver_fails
+  call: cancel_order
+  args: ["ORD-1"]
+  expect_equals: false
+
+- name: history_size
+  comment: "Created + Confirmed + Shipped + Delivered = 4 entries"
+  call: get_history_size
+  args: ["ORD-1"]
+  expect_equals: 4
+
+- name: reset_p2_b
+  call: reset_service
+  args: []
+
+- name: setup_for_cancel
+  call: set_inventory
+  args: ["P2", 5]
+
+- name: create_for_cancel
+  call: create_order_simple
+  args: ["P2", 2, 100.0]
+
+- name: inv_p2_3
+  call: get_inventory
+  args: ["P2"]
+  expect_equals: 3
+
+- name: cancel_order_op
+  call: cancel_order
+  args: ["ORD-1"]
+  expect_equals: true
+
+- name: state_cancelled
+  call: get_order_state_str
+  args: ["ORD-1"]
+  expect_equals: "Cancelled"
+
+- name: inv_restored_5
+  comment: "Cancellation returns inventory"
+  call: get_inventory
+  args: ["P2"]
+  expect_equals: 5
+
+- name: ship_unknown
+  call: ship_order
+  args: ["UNKNOWN"]
+  expect_equals: false

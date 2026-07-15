@@ -56,7 +56,7 @@ npm run dev
 From the dashboard you can:
 - Browse all problems by tier, pattern, and company
 - Pick your difficulty mode per problem (Learning / Guided / Interview)
-- Write C++ or Go directly in the browser editor
+- Write C++, Go, Java, Python, or JavaScript directly in the browser editor
 - Run tests locally and see pass/fail output inline
 - Read Design Pattern Primers before attempting problems
 - Track your progress across sessions
@@ -115,15 +115,24 @@ Before you attempt a problem, read the primer for its pattern. These aren't Wiki
 
 Primers available: **Strategy · Observer · State · Singleton**
 
-Examples in both C++ and Go.
+Problems are solvable in **C++, Go, Java, Python, and JavaScript** — every language runs
+against the same language-agnostic test cases.
 
 ---
 
 ## Prerequisites
 
-- Node.js 18+
-- g++ with C++17 support (`g++ --version` to verify)
-- Go 1.21+ for Go problems (`go version` to verify)
+Node.js 18+ is required to run the dashboard. Beyond that, install only the language(s)
+you want to solve in — the dashboard auto-detects which runners are available and disables
+submit for the ones that aren't (you can still browse and write code).
+
+- **Node.js 18+** — required (dashboard + JavaScript runner)
+- **g++** with C++17 support (`g++ --version`) — for C++
+- **Go 1.21+** (`go version`) — for Go
+- **JDK 17+** (`javac -version`) — for Java
+- **Python 3** (`python3 --version`) — for Python
+
+All five languages run through a single spec-driven test harness — see the architecture note below.
 
 ---
 
@@ -155,20 +164,46 @@ DSA-Meet-Design-Pilot/
 │   │   ├── 001-payment-ranker/
 │   │   │   ├── README.md              # Problem statement (parts format)
 │   │   │   ├── DESIGN.md              # Why this pattern, what breaks without it
-│   │   │   ├── boilerplate/cpp/       # interview / guided / learning × per part
-│   │   │   ├── boilerplate/go/        # same three modes in Go
-│   │   │   ├── tests/cpp/             # GoogleTest suites per part
-│   │   │   └── tests/go/              # Go test runners per part
+│   │   │   ├── AI_REVIEW_PROMPT.md    # Tailored Claude review prompt
+│   │   │   ├── spec.yaml              # Interface contract: types, functions, parts (drives ALL languages)
+│   │   │   ├── solution.{cpp,go,java,py,js}   # Reference solutions (one per language)
+│   │   │   ├── boilerplate/<lang>/partN/      # interview / guided / learning stubs, per language & part
+│   │   │   └── tests/cases/partN.yaml         # Language-agnostic test cases (run by every runner)
 │   │   └── ...
 │   └── tier2-intermediate/
+├── harness/                           # ONE generic runner per language (spec-driven)
+│   ├── cpp/codegen.py                 # C++ / Go are compiled → codegen a runner per part
+│   ├── go/codegen.py
+│   ├── java/Runner.java               # Java / Python / JS read spec.yaml + cases at runtime
+│   ├── python/runner.py
+│   └── javascript/runner.js
 ├── patterns/                          # Design pattern primers
 ├── docs/_data/problems.yml            # Problem registry
 ├── dashboard/                         # React + Express dashboard
-│   ├── server.js
+│   ├── server.js                      # Detects available language runners; runs submissions
 │   └── src/
+├── scripts/
+│   ├── gen_stubs.py                   # Regenerate boilerplate for any language from spec.yaml
+│   └── stress_test.py                 # Verify every reference solution × language against the cases
 ├── e2e/                               # Plain-English Playwright stories
-├── scripts/                           # e2e-up.{ps1,sh} bootstrap helpers
 └── progress.json                      # Your local progress (gitignored)
+```
+
+### Architecture — one spec, five languages
+
+Every problem is defined once in **`spec.yaml`** (its data types, function signatures, and
+progressive parts) plus **`tests/cases/partN.yaml`** (language-agnostic test cases). Each language
+has a single generic runner under `harness/<lang>/` — there are no per-problem, per-language test
+files to maintain. Interpreted languages (Python, JavaScript, Java) read the spec and cases at
+submit time; compiled languages (C++, Go) generate a small runner that is compiled alongside your
+solution. **Adding a language is harness-only work** — write one runner + one boilerplate emitter,
+and all problems light up in that language.
+
+Verify everything locally:
+
+```bash
+python3 scripts/stress_test.py            # all problems × all languages
+python3 scripts/stress_test.py --lang go  # just one language
 ```
 
 ---

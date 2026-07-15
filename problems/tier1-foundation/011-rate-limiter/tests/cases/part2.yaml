@@ -1,0 +1,66 @@
+- name: reset_p2_a
+  call: reset_service
+  args: []
+
+- name: fixed_a1
+  comment: "Fixed-window via factory: 100 default capacity"
+  call: allow_request_with_strategy_simple
+  args: ["fixed-window", "user_1", 1000, "/api/a"]
+  expect_equals: true
+
+- name: fixed_a2
+  call: allow_request_with_strategy_simple
+  args: ["fixed-window", "user_1", 1001, "/api/a"]
+  expect_equals: true
+
+- name: reset_p2_b
+  call: reset_service
+  args: []
+
+- name: sliding_b1
+  call: allow_request_with_strategy_simple
+  args: ["sliding-window", "user_2", 1000, "/api/b"]
+  expect_equals: true
+
+- name: sliding_b2
+  call: allow_request_with_strategy_simple
+  args: ["sliding-window", "user_2", 1030, "/api/b"]
+  expect_equals: true
+
+- name: reset_p2_c
+  call: reset_service
+  args: []
+
+- name: token_c1
+  call: allow_request_with_strategy_simple
+  args: ["token-bucket", "user_3", 1000, "/api/c"]
+  expect_equals: true
+
+- name: token_c2
+  call: allow_request_with_strategy_simple
+  args: ["token-bucket", "user_3", 1000, "/api/c"]
+  expect_equals: true
+
+- name: reset_p2_d
+  call: reset_service
+  args: []
+
+- name: unknown_algo_returns_false
+  comment: "Unknown algorithm — factory returns null, allow returns false"
+  call: allow_request_with_strategy_simple
+  args: ["unknown-algo", "user_4", 1000, "/api/x"]
+  expect_equals: false
+
+- name: reset_p2_e
+  call: reset_service
+  args: []
+
+- name: strategy_2reqs
+  call: allow_request_with_strategy_simple
+  args: ["fixed-window", "user_4", 2000, "/api/d"]
+  expect_equals: true
+
+- name: strategy_2reqs_b
+  call: allow_request_with_strategy_simple
+  args: ["fixed-window", "user_4", 2001, "/api/d"]
+  expect_equals: true

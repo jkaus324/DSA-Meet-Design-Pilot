@@ -1,0 +1,89 @@
+- name: register_and_create
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "user_id_eq", i1: 0, i2: 1 }
+      - { kind: "register", s1: "Bob", s2: "BUYER", i1: 1 }
+      - { kind: "user_id_eq", i1: 1, i2: 2 }
+      - { kind: "create", i1: 0, s2: "Laptop", i3: 500, i2: 0 }
+  expect: ["ok", "1", "yes", "2", "yes", "1"]
+
+- name: place_valid_bid
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "Bob", s2: "BUYER", i1: 1 }
+      - { kind: "create", i1: 0, s2: "Phone", i3: 100, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 150 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "1", "ok", "150"]
+
+- name: bid_must_exceed
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "Bob", s2: "BUYER", i1: 1 }
+      - { kind: "register", s1: "Charlie", s2: "BUYER", i1: 2 }
+      - { kind: "create", i1: 0, s2: "Watch", i3: 100, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 200 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 150 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 200 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 250 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "3", "1", "ok", "fail", "fail", "ok", "250"]
+
+- name: bid_exceeds_base_price
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "Bob", s2: "BUYER", i1: 1 }
+      - { kind: "create", i1: 0, s2: "Book", i3: 50, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 30 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 50 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 51 }
+  expect: ["ok", "1", "2", "1", "fail", "fail", "ok"]
+
+- name: only_buyers_bid
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "Bob", s2: "SELLER", i1: 1 }
+      - { kind: "create", i1: 0, s2: "Tablet", i3: 200, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 300 }
+  expect: ["ok", "1", "2", "1", "fail"]
+
+- name: only_sellers_create
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Bob", s2: "BUYER", i1: 0 }
+      - { kind: "create", i1: 0, s2: "Camera", i3: 300, i2: 0 }
+  expect: ["ok", "1", "-1"]
+
+- name: no_bids_returns_negative
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "create", i1: 0, s2: "Keyboard", i3: 75, i2: 0 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "1", "-1"]
+
+- name: independent_auctions
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "Alice", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "Bob", s2: "BUYER", i1: 1 }
+      - { kind: "create", i1: 0, s2: "Item1", i3: 100, i2: 0 }
+      - { kind: "create", i1: 0, s2: "Item2", i3: 200, i2: 1 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 150 }
+      - { kind: "bid", i1: 1, i2: 1, i3: 300 }
+      - { kind: "winning", i1: 0 }
+      - { kind: "winning", i1: 1 }
+  expect: ["ok", "1", "2", "1", "2", "ok", "ok", "150", "300"]

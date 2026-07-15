@@ -1,0 +1,74 @@
+problem_id: "008-file-search"
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: fs_build_default_tree
+    params: []
+    returns: void
+
+  - name: fs_build_empty_tree
+    params: []
+    returns: void
+
+  - name: fs_build_single_file_tree
+    params: []
+    returns: void
+
+  - name: fs_count_by_extension
+    params:
+      - { name: ext, type: string }
+    returns: int
+
+  - name: fs_has_by_extension
+    params:
+      - { name: ext, type: string }
+      - { name: name, type: string }
+    returns: bool
+
+  - name: fs_count_by_size
+    params:
+      - { name: minSize, type: int }
+    returns: int
+
+  - name: fs_has_by_size
+    params:
+      - { name: minSize, type: int }
+      - { name: name,    type: string }
+    returns: bool
+
+  - name: fs_count_by_name
+    params:
+      - { name: sub, type: string }
+    returns: int
+
+  - name: fs_has_by_name
+    params:
+      - { name: sub,  type: string }
+      - { name: name, type: string }
+    returns: bool
+
+  - name: fs_count_composite_and
+    params:
+      - { name: ext,     type: string }
+      - { name: minSize, type: int }
+    returns: int
+
+  - name: fs_count_composite_or
+    params:
+      - { name: ext,     type: string }
+      - { name: minSize, type: int }
+    returns: int
+
+  - name: fs_first_sorted_by
+    params:
+      - { name: ext,    type: string }
+      - { name: sortBy, type: string }
+    returns: string
+
+parts:
+  1: { name: "Single criterion search", functions: [reset_service, fs_build_default_tree, fs_build_empty_tree, fs_build_single_file_tree, fs_count_by_extension, fs_has_by_extension, fs_count_by_size, fs_has_by_size, fs_count_by_name, fs_has_by_name] }
+  2: { name: "Composite filters",       functions: [fs_count_composite_and, fs_count_composite_or] }
+  3: { name: "Sort strategies",         functions: [fs_first_sorted_by] }

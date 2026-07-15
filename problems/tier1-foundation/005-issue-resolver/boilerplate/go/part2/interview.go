@@ -1,64 +1,48 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// Data class (given).
 
-type Priority int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func ir_add_agent(id int, name string, specialization string)
+//   func ir_assign_issue_round_robin(description string, category string, priority string) int
+//   func ir_agent_issue_count(agentId int) int
+//   func ir_agent_load(agentId int) int
+//   func ir_assign_issue_least_loaded(description string, category string, priority string) int
+//   func ir_assign_issue_specialist(description string, category string, priority string) int
 
-const (
-	PriorityLow      Priority = iota
-	PriorityMedium
-	PriorityHigh
-	PriorityCritical
-)
-
-type IssueState int
-
-const (
-	IssueStateOpen       IssueState = iota
-	IssueStateInProgress
-	IssueStateResolved
-	IssueStateClosed
-)
-
-type Category int
-
-const (
-	CategoryBilling   Category = iota
-	CategoryTechnical
-	CategoryGeneral
-	CategoryAccount
-)
-
-type Issue struct {
-	ID              int
-	Description     string
-	Cat             Category
-	Prio            Priority
-	State           IssueState
-	AssignedAgentID int
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Agent struct {
-	ID              int
-	Name            string
-	CurrentLoad     int
-	Specializations []Category
+func ir_add_agent(id int, name string, specialization string) {
+	// TODO: write your solution
+	return
 }
 
-// ─── NEW in Extension 1 ─────────────────────────────────────────────────────
-//
-// The ops team now wants PLUGGABLE assignment strategies:
-// round-robin, least-loaded, and category-specialist.
-//
-// Think about:
-//   - How do you add new assignment algorithms without modifying the resolver?
-//   - What if the specialist strategy needs a fallback?
-//   - Can you swap strategies at runtime?
-//
-// Entry points (must exist for tests):
-//   func AssignIssue(agents []Agent, issues *[]Issue, issue Issue) Issue
-//   func GetAgentIssues(issues []Issue, agentID int) []Issue
-//   func AssignLeastLoaded(agents []Agent, issues *[]Issue, issue Issue) Issue
-//   func AssignBySpecialist(agents []Agent, issues *[]Issue, issue Issue) Issue
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func ir_assign_issue_round_robin(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_agent_issue_count(agentId int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_agent_load(agentId int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_assign_issue_least_loaded(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_assign_issue_specialist(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
+}

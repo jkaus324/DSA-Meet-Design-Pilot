@@ -1,0 +1,33 @@
+- name: rewards_ranking
+  comment: "Highest cashback first"
+  call: rank_by_rewards
+  args:
+    - - { name: "UPI",           cashbackRate: 0.01, transactionFee: 0.0, usageCount: 1000 }
+      - { name: "Credit Card A", cashbackRate: 0.05, transactionFee: 5.0, usageCount: 500  }
+      - { name: "Credit Card B", cashbackRate: 0.10, transactionFee: 8.0, usageCount: 300  }
+  expect_size: 3
+  expect_field: name
+  expect: ["Credit Card B", "Credit Card A", "UPI"]
+
+- name: low_fee_ranking
+  comment: "Lowest fee first"
+  call: rank_by_low_fee
+  args:
+    - - { name: "Debit Card",    cashbackRate: 0.0,  transactionFee: 2.0, usageCount: 800  }
+      - { name: "Credit Card A", cashbackRate: 0.05, transactionFee: 5.0, usageCount: 500  }
+      - { name: "Credit Card B", cashbackRate: 0.10, transactionFee: 8.0, usageCount: 300  }
+      - { name: "UPI",           cashbackRate: 0.01, transactionFee: 0.0, usageCount: 1000 }
+  expect_size: 4
+  expect_field: name
+  expect: ["UPI", "Debit Card", "Credit Card A", "Credit Card B"]
+
+- name: trust_ranking
+  comment: "Most-used first"
+  call: rank_by_trust
+  args:
+    - - { name: "UPI",           cashbackRate: 0.01, transactionFee: 0.0, usageCount: 1000 }
+      - { name: "Debit Card",    cashbackRate: 0.0,  transactionFee: 2.0, usageCount: 800  }
+      - { name: "Credit Card A", cashbackRate: 0.05, transactionFee: 5.0, usageCount: 500  }
+  expect_size: 3
+  expect_field: name
+  expect: ["UPI", "Debit Card", "Credit Card A"]

@@ -1,127 +1,58 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered, Cancelled };
+// Data class (given � do not modify).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
-
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
-
-// ─── OrderManager ───────────────────────────────────────────────────────────
-
-class OrderManager {
-    unordered_map<string, Order> orders;
-    unordered_map<string, int> inventory;
-    int nextId = 1;
-
-    bool transition(const string& orderId, OrderState expected, OrderState next) {
-        auto it = orders.find(orderId);
-        if (it == orders.end()) return false;
-        if (it->second.state != expected) return false;
-        it->second.state = next;
-        return true;
-    }
-
-public:
-    void setInventory(const string& productId, int qty) {
-        inventory[productId] = qty;
-    }
-
-    int getInventory(const string& productId) {
-        auto it = inventory.find(productId);
-        return it != inventory.end() ? it->second : 0;
-    }
-
-    string createOrder(vector<OrderItem> items, double totalAmount) {
-        string id = "ORD-" + to_string(nextId++);
-        // TODO: Decrement inventory for each item
-        // TODO: Store the order in the map with state Created
-        orders[id] = {id, items, totalAmount, OrderState::Created};
-        return id;
-    }
-
-    bool confirmOrder(const string& orderId) {
-        return transition(orderId, OrderState::Created, OrderState::Confirmed);
-    }
-
-    bool shipOrder(const string& orderId) {
-        return transition(orderId, OrderState::Confirmed, OrderState::Shipped);
-    }
-
-    bool deliverOrder(const string& orderId) {
-        return transition(orderId, OrderState::Shipped, OrderState::Delivered);
-    }
-
-    bool cancelOrder(const string& orderId) {
-        auto it = orders.find(orderId);
-        if (it == orders.end()) return false;
-        // TODO: Check if state is Created or Confirmed (otherwise return false)
-        // TODO: Iterate through order items and restore inventory
-        // TODO: Set state to Cancelled
-        return false;
-    }
-
-    OrderState getOrderState(const string& orderId) {
-        return orders.at(orderId).state;
-    }
-};
-
-// ─── Test Entry Points ──────────────────────────────────────────────────────
-
-OrderManager manager;
-
-string create_order(vector<OrderItem> items, double totalAmount) {
-    return manager.createOrder(items, totalAmount);
+void reset_service() {
+    // TODO: implement this
+    // nothing to return
 }
 
-bool confirm_order(const string& orderId) {
-    return manager.confirmOrder(orderId);
+void set_inventory(string productId, int qty) {
+    // TODO: implement this
+    // nothing to return
 }
 
-bool ship_order(const string& orderId) {
-    return manager.shipOrder(orderId);
+int get_inventory(string productId) {
+    // TODO: implement this
+    return {};
 }
 
-bool deliver_order(const string& orderId) {
-    return manager.deliverOrder(orderId);
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: implement this
+    return {};
 }
 
-bool cancel_order(const string& orderId) {
-    return manager.cancelOrder(orderId);
+string get_order_state_str(string orderId) {
+    // TODO: implement this
+    return {};
 }
 
-OrderState get_order_state(const string& orderId) {
-    return manager.getOrderState(orderId);
+bool confirm_order(string orderId) {
+    // TODO: implement this
+    return {};
 }
 
-void set_inventory(const string& productId, int qty) {
-    manager.setInventory(productId, qty);
+bool ship_order(string orderId) {
+    // TODO: implement this
+    return {};
 }
 
-int get_inventory(const string& productId) {
-    return manager.getInventory(productId);
+bool deliver_order(string orderId) {
+    // TODO: implement this
+    return {};
 }
 
-void reset_manager() {
-    manager = OrderManager();
+bool cancel_order(string orderId) {
+    // TODO: implement this
+    return {};
 }
 
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "Part 2: Cancellation + Inventory — implement the TODOs above." << endl;
-    return 0;
+int get_history_size(string orderId) {
+    // TODO: implement this
+    return {};
 }
-#endif

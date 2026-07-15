@@ -1,55 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
-#include <climits>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Room {
-    string id;
-    string name;
-    int capacity;
-    bool hasAV;
+// Data class (given).
+struct Op {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    Op(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Meeting {
-    string id;
-    string title;
-    int startTime;
-    int endTime;
-    string roomId;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> meeting_simulate(vector<Op> ops);
 
-struct Attendee {
-    string id;
-    string name;
-    string email;
-};
-
-// ─── NEW in Extension 2 ────────────────────────────────────────────────────
-//
-// Attendees must be notified when a meeting is booked, cancelled, or
-// rescheduled. The scheduler should NOT know about specific notification
-// channels (email, SMS, Slack).
-//
-// Think about:
-//   - What interface lets you decouple the scheduler from notification logic?
-//   - How does the Observer pattern apply here?
-//   - Should every Attendee be an observer, or should there be an adapter?
-//
-// Entry points (must exist for tests):
-//   bool book_meeting(const Meeting& meeting);
-//   vector<Meeting> get_room_schedule(const string& roomId);
-//   bool is_available(const string& roomId, int startTime, int endTime);
-//   string book_with_strategy(const string& meetingId, const string& title,
-//       int startTime, int endTime, int attendeeCount);
-//   void subscribe_attendee(const string& meetingId, MeetingObserver* observer);
-//   bool cancel_meeting(const string& meetingId);
-//   bool reschedule_meeting(const string& meetingId, int newStart, int newEnd);
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> meeting_simulate(vector<Op> ops) {
+    // TODO: write your solution
+    return {};
+}

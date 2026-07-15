@@ -40,9 +40,7 @@ struct CartItem {
 
 ---
 
-## Part 1
-
-**Base requirement — Apply single discount type**
+## Base Requirement — Apply single discount type
 
 Implement a discount engine that accepts any discount strategy and applies it to a list of cart items to compute the final bill amount.
 
@@ -85,9 +83,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Stack multiple discounts**
+## Extension 1 — Stack multiple discounts
 
 The product team now wants **stacked discounts**: apply a coupon discount, then a seasonal discount on top of the result, then a membership discount on top of that.
 
@@ -107,9 +103,7 @@ The function accepts an ordered list of discounts. Each discount applies to the 
 
 ---
 
-## Part 3
-
-**Extension 2 — Discount eligibility rules**
+## Extension 2 — Discount eligibility rules
 
 The compliance team has added eligibility rules. Not every discount can be applied to every cart:
 

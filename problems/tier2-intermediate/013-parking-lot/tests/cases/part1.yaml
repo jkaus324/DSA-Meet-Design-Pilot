@@ -1,0 +1,103 @@
+- name: park_car
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "park", s1: "ABC123", s2: "C", i1: 1000, i2: 0 }
+      - { kind: "ticket_floor", i1: 0 }
+  expect: ["ok", "ok", "T1", "0"]
+
+- name: park_motorcycle
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "S" }
+      - { kind: "park", s1: "MOTO1", s2: "M", i1: 1000, i2: 0 }
+  expect: ["ok", "ok", "T1"]
+
+- name: car_no_small_spot
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "S" }
+      - { kind: "park", s1: "CAR1", s2: "C", i1: 1000, i2: 0 }
+  expect: ["ok", "ok", ""]
+
+- name: motorcycle_in_medium_spot
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "park", s1: "MOTO2", s2: "M", i1: 1000, i2: 0 }
+  expect: ["ok", "ok", "T1"]
+
+- name: truck_large_spot
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "add_spot", i1: 0, s1: "L" }
+      - { kind: "park", s1: "TRUCK1", s2: "T", i1: 1000, i2: 0 }
+  expect: ["ok", "ok", "ok", "T1"]
+
+- name: unpark_frees_spot
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "park", s1: "CAR2", s2: "C", i1: 1000, i2: 0 }
+      - { kind: "available", s1: "M" }
+      - { kind: "unpark", i1: 0, i2: 4600 }
+      - { kind: "available", s1: "M" }
+  expect: ["ok", "ok", "T1", "0", "3600.00", "1"]
+
+- name: invalid_ticket
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "unpark_id", s1: "INVALID", i2: 5000 }
+  expect: ["ok", "-1"]
+
+- name: available_spots_count
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_spot", i1: 0, s1: "S" }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "add_spot", i1: 1, s1: "L" }
+      - { kind: "available", s1: "S" }
+      - { kind: "available", s1: "M" }
+      - { kind: "available", s1: "L" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "2", "1"]
+
+- name: available_spots_by_floor
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "add_spot", i1: 1, s1: "M" }
+      - { kind: "available_floor", i1: 0, s1: "M" }
+      - { kind: "available_floor", i1: 1, s1: "M" }
+  expect: ["ok", "ok", "ok", "ok", "2", "1"]
+
+- name: nearest_floor_allocation
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 3 }
+      - { kind: "add_spot", i1: 0, s1: "S" }
+      - { kind: "add_spot", i1: 1, s1: "M" }
+      - { kind: "add_spot", i1: 2, s1: "M" }
+      - { kind: "park", s1: "CAR3", s2: "C", i1: 1000, i2: 0 }
+      - { kind: "ticket_floor", i1: 0 }
+  expect: ["ok", "ok", "ok", "ok", "T1", "1"]
+
+- name: full_lot
+  call: parking_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "add_spot", i1: 0, s1: "M" }
+      - { kind: "park", s1: "C1", s2: "C", i1: 1000, i2: 0 }
+      - { kind: "park", s1: "C2", s2: "C", i1: 1000, i2: 1 }
+  expect: ["ok", "ok", "T1", ""]

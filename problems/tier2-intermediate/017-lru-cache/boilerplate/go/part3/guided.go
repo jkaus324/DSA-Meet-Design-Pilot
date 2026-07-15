@@ -1,37 +1,18 @@
 package main
 
-// --- LRU Cache with Eviction Listeners ----------------------------------------
-//
-// HINT: Define the EvictionListener interface:
-//         type EvictionListener interface {
-//             OnEviction(key, value int, reason EvictionReason)
-//         }
-//
-// HINT: Add []EvictionListener to LRUCache.
-// HINT: notifyListeners(key, value int, reason EvictionReason) iterates all listeners
-//       and calls OnEviction.
-// HINT: evictNode now calls notifyListeners before (or after) removing the node.
-//
-// HINT: AddEvictionListener appends to the slice.
-// HINT: RemoveEvictionListener scans the slice for the same pointer and removes it:
-//         for i, l := range c.listeners {
-//             if l == target { c.listeners = append(c.listeners[:i], c.listeners[i+1:]...); break }
-//         }
-//
-// HINT: The rest of the implementation is identical to Part 2 — only evictNode
-//       gains the notification side-effect.
+// Data class (given).
+type LruOp struct {
+	kind string
+	i1 int
+	i2 int
+	i3 int
+	i4 int
+}
 
-// type EvictionListener interface {
-//     OnEviction(key, value int, reason EvictionReason)
-// }
+// HINT: introduce an abstraction so new rules don't change existing code.
 
-// type LRUCache struct {
-//     capacity  int
-//     cache     map[int]*Node
-//     head      *Node
-//     tail      *Node
-//     listeners []EvictionListener
-// }
-
-// func (c *LRUCache) AddEvictionListener(l EvictionListener)
-// func (c *LRUCache) RemoveEvictionListener(l EvictionListener)
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func lru_simulate(ops []LruOp) []string {
+	// TODO: write your solution
+	return nil
+}

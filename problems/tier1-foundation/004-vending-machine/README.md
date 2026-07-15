@@ -38,9 +38,7 @@ struct Item {
 
 ---
 
-## Part 1
-
-**Base requirement — State transitions**
+## Base Requirement — State transitions
 
 Implement a vending machine with these states:
 
@@ -87,9 +85,7 @@ class VendingMachine { ... };  // delegates all actions to currentState
 
 ---
 
-## Part 2
-
-**Extension 1 — Maintenance mode**
+## Extension 1 — Maintenance mode
 
 The operations team needs a **Maintenance state** for restocking and price adjustments:
 

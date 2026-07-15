@@ -4,35 +4,86 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct FileNode {
-    string name;          // "main.cpp", "docs", "report.pdf"
-    int size;             // file size in KB (0 for directories)
-    string extension;     // "cpp", "pdf", "" (empty for directories)
-    bool isDirectory;     // true for folders, false for files
-    vector<FileNode*> children;  // non-empty only for directories
-};
+// Data class (given).
 
-// ─── NEW in Extension 2 ──────────────────────────────────────────────────────
-//
-// The product team wants search results SORTED by different strategies:
-// alphabetically by name, by file size (largest first), or by extension.
-//
-// Think about:
-//   - How do you decouple search criteria from sort logic?
-//   - Is the sort strategy independent of the search strategy?
-//   - Can you add a new sort order without touching the search logic?
-//
-// Entry points (must exist for tests):
-//   vector<FileNode*> search_by_extension(FileNode* root, const string& ext);
-//   vector<FileNode*> search_by_size(FileNode* root, int minSize);
-//   vector<FileNode*> search_by_name(FileNode* root, const string& substring);
-//   vector<FileNode*> search_composite(FileNode* root,
-//       const vector<SearchCriteria*>& criteria, const string& mode);
-//   vector<FileNode*> search_and_sort(FileNode* root,
-//       const SearchCriteria& criteria, const string& sortBy);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void fs_build_default_tree();
+//   void fs_build_empty_tree();
+//   void fs_build_single_file_tree();
+//   int fs_count_by_extension(string ext);
+//   bool fs_has_by_extension(string ext, string name);
+//   int fs_count_by_size(int minSize);
+//   bool fs_has_by_size(int minSize, string name);
+//   int fs_count_by_name(string sub);
+//   bool fs_has_by_name(string sub, string name);
+//   int fs_count_composite_and(string ext, int minSize);
+//   int fs_count_composite_or(string ext, int minSize);
+//   string fs_first_sorted_by(string ext, string sortBy);
 
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void fs_build_default_tree() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void fs_build_empty_tree() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void fs_build_single_file_tree() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+int fs_count_by_extension(string ext) {
+    // TODO: write your solution
+    return {};
+}
+
+bool fs_has_by_extension(string ext, string name) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_by_size(int minSize) {
+    // TODO: write your solution
+    return {};
+}
+
+bool fs_has_by_size(int minSize, string name) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_by_name(string sub) {
+    // TODO: write your solution
+    return {};
+}
+
+bool fs_has_by_name(string sub, string name) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_composite_and(string ext, int minSize) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_composite_or(string ext, int minSize) {
+    // TODO: write your solution
+    return {};
+}
+
+string fs_first_sorted_by(string ext, string sortBy) {
+    // TODO: write your solution
+    return {};
+}

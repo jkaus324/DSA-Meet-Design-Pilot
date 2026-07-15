@@ -1,0 +1,71 @@
+problem_id: "007-order-management"
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: set_inventory
+    params:
+      - { name: productId, type: string }
+      - { name: qty,       type: int }
+    returns: void
+
+  - name: get_inventory
+    params:
+      - { name: productId, type: string }
+    returns: int
+
+  - name: create_order_simple
+    params:
+      - { name: productId,   type: string }
+      - { name: quantity,    type: int }
+      - { name: totalAmount, type: float }
+    returns: string
+
+  - name: confirm_order
+    params:
+      - { name: orderId, type: string }
+    returns: bool
+
+  - name: ship_order
+    params:
+      - { name: orderId, type: string }
+    returns: bool
+
+  - name: deliver_order
+    params:
+      - { name: orderId, type: string }
+    returns: bool
+
+  - name: cancel_order
+    params:
+      - { name: orderId, type: string }
+    returns: bool
+
+  - name: get_order_state_str
+    params:
+      - { name: orderId, type: string }
+    returns: string
+
+  - name: get_history_size
+    params:
+      - { name: orderId, type: string }
+    returns: int
+
+  - name: om_attach_observer
+    params: []
+    returns: void
+
+  - name: om_observer_count
+    params: []
+    returns: int
+
+  - name: om_observer_last_to
+    params: []
+    returns: string
+
+parts:
+  1: { name: "Order CRUD",        functions: [reset_service, set_inventory, get_inventory, create_order_simple, get_order_state_str] }
+  2: { name: "State machine",     functions: [confirm_order, ship_order, deliver_order, cancel_order, get_history_size] }
+  3: { name: "Observers",         functions: [om_attach_observer, om_observer_count, om_observer_last_to] }

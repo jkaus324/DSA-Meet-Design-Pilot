@@ -1,49 +1,29 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type Request struct {
-	ClientId  string
-	Timestamp int64
-	Endpoint  string
+// HINT: introduce an abstraction so new rules don't change existing code.
+
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type UserTier int
-
-const (
-	FREE       UserTier = iota
-	PRO        UserTier = iota
-	ENTERPRISE UserTier = iota
-)
-
-// ─── Strategy Interface ───────────────────────────────────────────────────────
-// HINT: This interface lets you swap rate-limiting algorithms at runtime.
-// What methods would a rate limiter need?
-
-type RateLimiter interface {
-	// HINT: what methods does a rate limiter expose?
-	// AllowRequest(req Request) bool
-	// GetRequestCount(clientId string) int
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func init_limiter(maxRequests int, windowSize int) {
+	// TODO: write your solution
+	return
 }
 
-// ─── Concrete Strategy ────────────────────────────────────────────────────────
-// TODO: Implement a fixed-window rate limiter:
-//   - Divide time into windows of windowSizeSeconds
-//   - Track request count per client per window (use map)
-//   - If count >= maxRequests, reject
-//   - When a new window starts, reset the count
-//
-// HINT: windowStart = (timestamp / windowSize) * windowSize
-
-// ─── Global Entry Points ──────────────────────────────────────────────────────
-// TODO: Implement these functions using your rate limiter:
-
-func InitLimiter(maxRequests int, windowSize int) {}
-
-func AllowRequest(req Request) bool {
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func allow_request_simple(clientId string, timestamp int, endpoint string) bool {
+	// TODO: write your solution
 	return false
 }
 
-func GetRequestCount(clientId string) int {
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func get_request_count(clientId string) int {
+	// TODO: write your solution
 	return 0
 }

@@ -183,7 +183,45 @@ void notify(const string& event, const string& priority,
     mgr.notifyAll(event, priority, users);
 }
 
-// ─── Main ───────────────────────────────────────────────────────────────────
+// ─── Spec-test wrappers ────────────────────────────────────────────────────
+
+void reset_service() {}
+
+void notify_event(const string& event, const vector<string>& userIds,
+                  const vector<string>& subscribedChannels) {
+    vector<User> users;
+    for (size_t i = 0; i < userIds.size(); i++) {
+        User u;
+        u.id = userIds[i];
+        u.email = userIds[i] + "@test.com";
+        u.phone = "+1-555-0000";
+        u.subscribedChannels = subscribedChannels;
+        users.push_back(u);
+    }
+    notify(event, users);
+}
+
+void notify_priority(const string& event, const string& priority,
+                     const vector<string>& userIds,
+                     const vector<string>& subscribedChannels,
+                     const string& minPriority) {
+    vector<User> users;
+    for (size_t i = 0; i < userIds.size(); i++) {
+        User u;
+        u.id = userIds[i];
+        u.email = userIds[i] + "@test.com";
+        u.phone = "+1-555-0000";
+        u.subscribedChannels = subscribedChannels;
+        users.push_back(u);
+    }
+    unordered_map<string, string> prefs;
+    if (!minPriority.empty()) prefs["*"] = minPriority;
+    notify(event, priority, users, prefs);
+}
+
+int notify_priority_level(const string& priority) {
+    return priorityLevel(priority);
+}
 
 #ifndef RUNNING_TESTS
 int main() {

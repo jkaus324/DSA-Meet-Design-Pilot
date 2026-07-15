@@ -1,47 +1,41 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+
+// Data class (given).
+struct PricingContext {
+    double baseFare;
+    int availableDrivers;
+    int activeRideRequests;
+    string timeOfDay;
+    string weather;
+    PricingContext(double baseFare_, int availableDrivers_, int activeRideRequests_, const string& timeOfDay_, const string& weather_)
+      : baseFare(baseFare_), availableDrivers(availableDrivers_), activeRideRequests(activeRideRequests_), timeOfDay(timeOfDay_), weather(weather_) {}
+};
 
 struct RideRequest {
     string userId;
     string pickup;
     string dropoff;
-    string rideType;  // "economy", "premium", "pool"
-};
-
-struct Driver {
-    string id;
-    double rating;
     string rideType;
-    bool   available;
+    RideRequest(const string& userId_, const string& pickup_, const string& dropoff_, const string& rideType_)
+      : userId(userId_), pickup(pickup_), dropoff(dropoff_), rideType(rideType_) {}
 };
 
-struct PricingContext {
-    double baseFare;
-    int    availableDrivers;
-    int    activeRideRequests;
-    string timeOfDay;   // "morning", "evening", "night"
-    string weather;     // "clear", "rain", "storm"
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   double calculateSurge(PricingContext ctx);
+//   double calculateFare(RideRequest req, PricingContext ctx);
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement a Surge Pricing Engine that:
-//   1. Calculates surge multiplier based on supply/demand and conditions
-//   2. Lets multiple surge factors (time, weather, demand) combine independently
-//   3. Notifies relevant parties when surge changes significantly
-//
-// Think about:
-//   - How do you combine multiple surge factors without one giant if-else chain?
-//   - How would you add a "special event" surge factor with zero changes to existing code?
-//   - Who needs to be notified when surge changes? How do they subscribe?
-//
-// Entry points:
-//   double calculateSurge(const PricingContext& ctx);
-//   double calculateFare(const RideRequest& req, const PricingContext& ctx);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+double calculateSurge(PricingContext ctx) {
+    // TODO: write your solution
+    return {};
+}
 
+double calculateFare(RideRequest req, PricingContext ctx) {
+    // TODO: write your solution
+    return {};
+}

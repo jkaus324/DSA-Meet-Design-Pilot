@@ -1,0 +1,20 @@
+- name: build_default_p3
+  call: fs_build_default_tree
+  args: []
+
+- name: cpp_sorted_by_size
+  comment: "cpp files sorted by size desc → utils.cpp (120) first"
+  call: fs_first_sorted_by
+  args: ["cpp", "size"]
+  expect_equals: "utils.cpp"
+
+- name: cpp_sorted_by_name
+  comment: "cpp files sorted by name asc → main.cpp first"
+  call: fs_first_sorted_by
+  args: ["cpp", "name"]
+  expect_equals: "main.cpp"
+
+- name: pdf_sorted_size
+  call: fs_first_sorted_by
+  args: ["pdf", "size"]
+  expect_equals: "report.pdf"

@@ -4,32 +4,34 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
+// Data class (given).
 struct CartItem {
     string name;
     double price;
-    int    quantity;
+    int quantity;
     string category;
+    CartItem(const string& name_, double price_, int quantity_, const string& category_ = "")
+      : name(name_), price(price_), quantity(quantity_), category(category_) {}
 };
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The product team now wants STACKED discounts:
-// apply a coupon, then a seasonal discount on top, then membership on top.
-//
-// Think about:
-//   - How do you chain discounts without modifying existing strategies?
-//   - What if the product team adds a 5th discount layer tomorrow?
-//   - Is your Part 1 design extensible enough to handle this?
-//
-// Entry points (must exist for tests):
+// TODO: design and implement your solution.
+// Required free functions:
 //   double apply_percentage_discount(vector<CartItem> cart, double percentage);
 //   double apply_flat_discount(vector<CartItem> cart, double amount);
 //   double apply_bogo(vector<CartItem> cart, int buyCount, int freeCount);
-//   double apply_stacked_discounts(vector<CartItem> cart,
-//       vector<???> discounts);  // you decide the type
-//
-// ─────────────────────────────────────────────────────────────────────────────
 
+double apply_percentage_discount(vector<CartItem> cart, double percentage) {
+    // TODO: write your solution
+    return {};
+}
 
+double apply_flat_discount(vector<CartItem> cart, double amount) {
+    // TODO: write your solution
+    return {};
+}
+
+double apply_bogo(vector<CartItem> cart, int buyCount, int freeCount) {
+    // TODO: write your solution
+    return {};
+}

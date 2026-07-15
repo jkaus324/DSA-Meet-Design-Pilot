@@ -1,0 +1,184 @@
+- name: kway_merge_interleaved
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 10 }
+      - { kind: "post", i1: 2, i2: 20 }
+      - { kind: "post", i1: 1, i2: 11 }
+      - { kind: "post", i1: 2, i2: 21 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+      - { kind: "feed_at", i1: 1, i2: 2 }
+      - { kind: "feed_at", i1: 1, i2: 3 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "4", "21", "11", "20", "10"]
+
+- name: kway_merge_many_users
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 100 }
+      - { kind: "post", i1: 1, i2: 101 }
+      - { kind: "post", i1: 1, i2: 102 }
+      - { kind: "post", i1: 2, i2: 200 }
+      - { kind: "post", i1: 2, i2: 201 }
+      - { kind: "post", i1: 2, i2: 202 }
+      - { kind: "post", i1: 3, i2: 300 }
+      - { kind: "post", i1: 3, i2: 301 }
+      - { kind: "post", i1: 3, i2: 302 }
+      - { kind: "post", i1: 4, i2: 400 }
+      - { kind: "post", i1: 4, i2: 401 }
+      - { kind: "post", i1: 4, i2: 402 }
+      - { kind: "post", i1: 5, i2: 500 }
+      - { kind: "post", i1: 5, i2: 501 }
+      - { kind: "post", i1: 5, i2: 502 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "follow", i1: 1, i2: 3 }
+      - { kind: "follow", i1: 1, i2: 4 }
+      - { kind: "follow", i1: 1, i2: 5 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+      - { kind: "feed_at", i1: 1, i2: 2 }
+      - { kind: "feed_at", i1: 1, i2: 3 }
+      - { kind: "feed_at", i1: 1, i2: 4 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "10", "502", "501", "500", "402", "401"]
+
+- name: kway_after_unfollow
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 10 }
+      - { kind: "post", i1: 2, i2: 20 }
+      - { kind: "post", i1: 3, i2: 30 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "follow", i1: 1, i2: 3 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "unfollow", i1: 1, i2: 3 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "3", "ok", "2", "20", "10"]
+
+- name: own_tweets_only
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 10 }
+      - { kind: "post", i1: 1, i2: 11 }
+      - { kind: "post", i1: 2, i2: 20 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "2", "11", "10"]
+
+- name: exactly_10
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 1 }
+      - { kind: "post", i1: 1, i2: 2 }
+      - { kind: "post", i1: 1, i2: 3 }
+      - { kind: "post", i1: 1, i2: 4 }
+      - { kind: "post", i1: 1, i2: 5 }
+      - { kind: "post", i1: 1, i2: 6 }
+      - { kind: "post", i1: 1, i2: 7 }
+      - { kind: "post", i1: 1, i2: 8 }
+      - { kind: "post", i1: 1, i2: 9 }
+      - { kind: "post", i1: 1, i2: 10 }
+      - { kind: "post", i1: 1, i2: 11 }
+      - { kind: "post", i1: 1, i2: 12 }
+      - { kind: "post", i1: 1, i2: 13 }
+      - { kind: "post", i1: 1, i2: 14 }
+      - { kind: "post", i1: 1, i2: 15 }
+      - { kind: "post", i1: 1, i2: 16 }
+      - { kind: "post", i1: 1, i2: 17 }
+      - { kind: "post", i1: 1, i2: 18 }
+      - { kind: "post", i1: 1, i2: 19 }
+      - { kind: "post", i1: 1, i2: 20 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 9 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "10", "20", "11"]
+
+- name: follow_after_posting
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 2, i2: 200 }
+      - { kind: "post", i1: 2, i2: 201 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 1 }
+  expect: ["ok", "ok", "ok", "0", "ok", "2", "201", "200"]
+
+- name: stress_10_users
+  call: twitter_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "post", i1: 1, i2: 1000 }
+      - { kind: "post", i1: 1, i2: 1001 }
+      - { kind: "post", i1: 1, i2: 1002 }
+      - { kind: "post", i1: 1, i2: 1003 }
+      - { kind: "post", i1: 1, i2: 1004 }
+      - { kind: "post", i1: 2, i2: 2000 }
+      - { kind: "post", i1: 2, i2: 2001 }
+      - { kind: "post", i1: 2, i2: 2002 }
+      - { kind: "post", i1: 2, i2: 2003 }
+      - { kind: "post", i1: 2, i2: 2004 }
+      - { kind: "post", i1: 3, i2: 3000 }
+      - { kind: "post", i1: 3, i2: 3001 }
+      - { kind: "post", i1: 3, i2: 3002 }
+      - { kind: "post", i1: 3, i2: 3003 }
+      - { kind: "post", i1: 3, i2: 3004 }
+      - { kind: "post", i1: 4, i2: 4000 }
+      - { kind: "post", i1: 4, i2: 4001 }
+      - { kind: "post", i1: 4, i2: 4002 }
+      - { kind: "post", i1: 4, i2: 4003 }
+      - { kind: "post", i1: 4, i2: 4004 }
+      - { kind: "post", i1: 5, i2: 5000 }
+      - { kind: "post", i1: 5, i2: 5001 }
+      - { kind: "post", i1: 5, i2: 5002 }
+      - { kind: "post", i1: 5, i2: 5003 }
+      - { kind: "post", i1: 5, i2: 5004 }
+      - { kind: "post", i1: 6, i2: 6000 }
+      - { kind: "post", i1: 6, i2: 6001 }
+      - { kind: "post", i1: 6, i2: 6002 }
+      - { kind: "post", i1: 6, i2: 6003 }
+      - { kind: "post", i1: 6, i2: 6004 }
+      - { kind: "post", i1: 7, i2: 7000 }
+      - { kind: "post", i1: 7, i2: 7001 }
+      - { kind: "post", i1: 7, i2: 7002 }
+      - { kind: "post", i1: 7, i2: 7003 }
+      - { kind: "post", i1: 7, i2: 7004 }
+      - { kind: "post", i1: 8, i2: 8000 }
+      - { kind: "post", i1: 8, i2: 8001 }
+      - { kind: "post", i1: 8, i2: 8002 }
+      - { kind: "post", i1: 8, i2: 8003 }
+      - { kind: "post", i1: 8, i2: 8004 }
+      - { kind: "post", i1: 9, i2: 9000 }
+      - { kind: "post", i1: 9, i2: 9001 }
+      - { kind: "post", i1: 9, i2: 9002 }
+      - { kind: "post", i1: 9, i2: 9003 }
+      - { kind: "post", i1: 9, i2: 9004 }
+      - { kind: "post", i1: 10, i2: 10000 }
+      - { kind: "post", i1: 10, i2: 10001 }
+      - { kind: "post", i1: 10, i2: 10002 }
+      - { kind: "post", i1: 10, i2: 10003 }
+      - { kind: "post", i1: 10, i2: 10004 }
+      - { kind: "follow", i1: 1, i2: 2 }
+      - { kind: "follow", i1: 1, i2: 3 }
+      - { kind: "follow", i1: 1, i2: 4 }
+      - { kind: "follow", i1: 1, i2: 5 }
+      - { kind: "follow", i1: 1, i2: 6 }
+      - { kind: "follow", i1: 1, i2: 7 }
+      - { kind: "follow", i1: 1, i2: 8 }
+      - { kind: "follow", i1: 1, i2: 9 }
+      - { kind: "follow", i1: 1, i2: 10 }
+      - { kind: "feed_size", i1: 1 }
+      - { kind: "feed_at", i1: 1, i2: 0 }
+      - { kind: "feed_at", i1: 1, i2: 9 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "10", "10004", "9000"]

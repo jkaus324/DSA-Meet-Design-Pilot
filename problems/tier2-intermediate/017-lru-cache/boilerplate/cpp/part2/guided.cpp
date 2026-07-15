@@ -1,75 +1,26 @@
 #include <iostream>
-#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    long expiresAt;  // 0 means no TTL
-    Node* prev;
-    Node* next;
-    Node(int k, int v, long exp = 0)
-        : key(k), value(v), expiresAt(exp), prev(nullptr), next(nullptr) {}
+// Data class (given).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-// ─── LRU Cache with TTL ─────────────────────────────────────────────────────
-// HINT: Extend your Part 1 cache with expiration tracking.
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-class LRUCache {
-    // HINT: Same HashMap + Doubly Linked List as Part 1
-    // HINT: Each node now has an expiresAt field
-    // HINT: On get(), check if the node has expired before returning
-
-public:
-    // TODO: Constructor — same as Part 1
-    LRUCache(int capacity) {
-        // TODO: Initialize
-    }
-
-    // TODO: put(key, value, currentTime, ttl)
-    //       HINT: If ttl > 0, set expiresAt = currentTime + ttl
-    //       HINT: If ttl == 0, set expiresAt = 0 (never expires)
-    //       HINT: If key exists but is expired, treat as new insertion
-    void put(int key, int value, long currentTime, int ttl = 0) {
-        // TODO: Implement
-    }
-
-    // TODO: get(key, currentTime)
-    //       HINT: If key exists but expired, remove it and return -1
-    //       HINT: If key exists and valid, move to front and return value
-    int get(int key, long currentTime) {
-        return -1;
-    }
-
-    // TODO: deleteKey(key)
-    //       HINT: Remove from both map and list. Return true if key existed.
-    bool deleteKey(int key) {
-        return false;
-    }
-
-    // TODO: size()
-    //       HINT: Return cache.size() — note this may include expired entries
-    //       that haven't been lazily cleaned up yet. For exact count, you'd
-    //       need to scan. Choose one approach and justify it.
-    int size() {
-        return 0;
-    }
-};
-
-// ─── Test Entry Points ───────────────────────────────────────────────────────
-//   LRUCache(int capacity);
-//   void put(int key, int value, long currentTime, int ttl = 0);
-//   int get(int key, long currentTime);
-//   bool deleteKey(int key);
-//   int size();
-// ─────────────────────────────────────────────────────────────────────────────
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache Part 2 — implement the methods above." << endl;
-    return 0;
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: write your solution
+    return {};
 }
-#endif
-

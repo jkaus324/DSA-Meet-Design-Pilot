@@ -1,0 +1,53 @@
+- name: reset_p2
+  call: reset_service
+  args: []
+
+- name: critical_to_all
+  comment: "Critical event sends regardless of pref"
+  call: notify_priority
+  args:
+    - "CRITICAL: System down"
+    - "critical"
+    - ["u1"]
+    - ["email"]
+    - "critical"
+
+- name: promotional_filtered
+  comment: "Promotional blocked when min=info — no throw"
+  call: notify_priority
+  args:
+    - "50% off sale"
+    - "promotional"
+    - ["u1"]
+    - ["email"]
+    - "info"
+
+- name: empty_pref
+  comment: "Empty min priority defaults — no throw"
+  call: notify_priority
+  args:
+    - "Update available"
+    - "info"
+    - ["u1"]
+    - ["email"]
+    - ""
+
+- name: priority_level_promotional
+  call: notify_priority_level
+  args: ["promotional"]
+  expect_equals: 0
+
+- name: priority_level_info
+  call: notify_priority_level
+  args: ["info"]
+  expect_equals: 1
+
+- name: priority_level_critical
+  call: notify_priority_level
+  args: ["critical"]
+  expect_equals: 2
+
+- name: priority_level_unknown
+  call: notify_priority_level
+  args: ["unknown"]
+  expect_equals: 0

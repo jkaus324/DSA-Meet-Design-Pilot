@@ -1,0 +1,65 @@
+- name: plaintext_format
+  call: logger_simulate
+  args:
+    - - { kind: "fmt_plain", s1: "ERROR", s2: "disk full" }
+  # Format: "[T] [ERROR] disk full"
+  expect: ["[T] [ERROR] disk full"]
+
+- name: json_format
+  call: logger_simulate
+  args:
+    - - { kind: "fmt_json", s1: "WARN", s2: "low memory" }
+  expect: ["{\"timestamp\":\"T\",\"level\":\"WARN\",\"message\":\"low memory\"}"]
+
+- name: csv_format
+  call: logger_simulate
+  args:
+    - - { kind: "fmt_csv", s1: "INFO", s2: "server started" }
+  expect: ["T,INFO,server started"]
+
+- name: default_plaintext_formatter
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "set_formatter", s1: "default" }
+      - { kind: "log", s1: "INFO", s2: "default format" }
+      - { kind: "history_contains", i1: 0, s1: "[INFO]" }
+  expect: ["ok", "ok", "ok", "ok", "yes"]
+
+- name: switch_to_json_formatter
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "set_formatter", s1: "json" }
+      - { kind: "log", s1: "ERROR", s2: "json test" }
+      - { kind: "history_contains", i1: 0, s1: "\"level\"" }
+      - { kind: "history_contains", i1: 0, s1: "json test" }
+      - { kind: "set_formatter", s1: "default" }
+  expect: ["ok", "ok", "ok", "ok", "yes", "yes", "ok"]
+
+- name: switch_to_csv_formatter
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "set_formatter", s1: "csv" }
+      - { kind: "log", s1: "WARN", s2: "csv test" }
+      - { kind: "history_contains", i1: 0, s1: "," }
+      - { kind: "history_contains", i1: 0, s1: "WARN" }
+      - { kind: "set_formatter", s1: "default" }
+  expect: ["ok", "ok", "ok", "ok", "yes", "yes", "ok"]
+
+- name: level_filtering_with_custom_formatter
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "ERROR" }
+      - { kind: "set_formatter", s1: "json" }
+      - { kind: "log", s1: "INFO",  s2: "filtered" }
+      - { kind: "log", s1: "ERROR", s2: "passes" }
+      - { kind: "history_size" }
+      - { kind: "history_contains", i1: 0, s1: "passes" }
+      - { kind: "set_formatter", s1: "default" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "yes", "ok"]

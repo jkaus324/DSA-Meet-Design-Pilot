@@ -44,9 +44,7 @@ struct PaymentMethod {
 
 ---
 
-## Part 1
-
-**Base requirement — Rank by a single criterion**
+## Base Requirement — Rank by a single criterion
 
 Implement a `PaymentRanker` that accepts any ranking strategy at construction time and uses it to sort a list of payment methods.
 
@@ -89,9 +87,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Composite ranking**
+## Extension 1 — Composite ranking
 
 The product team now wants **composite ranking**: rank by cashback first, and use transaction fee as a tiebreaker when two methods have equal cashback.
 
@@ -111,9 +107,7 @@ The function accepts an ordered list of criteria. The first criterion is the pri
 
 ---
 
-## Part 3
-
-**Extension 2 — Easy-refund eligibility**
+## Extension 2 — Easy-refund eligibility
 
 The compliance team has added a new field to `PaymentMethod`:
 

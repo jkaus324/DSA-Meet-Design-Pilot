@@ -1,31 +1,48 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// Data class (given).
 
-type Item struct {
-	Name     string
-	Price    float64
-	Quantity int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func reset()
+//   func getState() string
+//   func selectItem(item string)
+//   func insertMoney(amount float64)
+//   func dispense()
+//   func cancel()
+
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement a VendingMachine that:
-//   1. Has distinct states: Idle, ItemSelected, PaymentPending, Dispensing
-//   2. Handles transitions between states based on user actions
-//   3. Adding a new state requires NO changes to existing state logic
-//
-// Think about:
-//   - What happens if the user tries to pay before selecting an item?
-//   - How do you prevent invalid state transitions?
-//   - What pattern lets each state handle its own logic independently?
-//
-// Entry points:
-//   func SelectItem(itemName string)
-//   func InsertMoney(amount float64)
-//   func Dispense()
-//   func Cancel()
-//   func GetState() string
-//   func Reset()
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func reset() {
+	// TODO: write your solution
+	return
+}
+
+func getState() string {
+	// TODO: write your solution
+	return ""
+}
+
+func selectItem(item string) {
+	// TODO: write your solution
+	return
+}
+
+func insertMoney(amount float64) {
+	// TODO: write your solution
+	return
+}
+
+func dispense() {
+	// TODO: write your solution
+	return
+}
+
+func cancel() {
+	// TODO: write your solution
+	return
+}

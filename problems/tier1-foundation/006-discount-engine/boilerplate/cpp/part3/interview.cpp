@@ -4,35 +4,40 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
+// Data class (given).
 struct CartItem {
     string name;
     double price;
-    int    quantity;
+    int quantity;
     string category;
+    CartItem(const string& name_, double price_, int quantity_, const string& category_ = "")
+      : name(name_), price(price_), quantity(quantity_), category(category_) {}
 };
 
-// ─── NEW in Extension 2 ──────────────────────────────────────────────────────
-//
-// The compliance team wants to add eligibility rules for discounts:
-// - Minimum cart value threshold
-// - First-time user only
-// - Category-specific discounts (only items in a certain category)
-//
-// Think about:
-//   - Are eligibility rules a new discount type, a decorator, or a filter?
-//   - How does your existing design accommodate this without modification?
-//   - What if the eligibility rules themselves need to be composable?
-//
-// Entry points (must exist for tests):
-//   double apply_percentage_discount(vector<CartItem>, double);
-//   double apply_flat_discount(vector<CartItem>, double);
-//   double apply_bogo(vector<CartItem>, int, int);
-//   double apply_stacked_discounts(vector<CartItem>, vector<???> discounts);
-//   double apply_with_eligibility(vector<CartItem>, Discount*, double minCartValue,
-//       bool requireFirstTimeUser, UserContext user, string eligibleCategory);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   double apply_percentage_discount(vector<CartItem> cart, double percentage);
+//   double apply_flat_discount(vector<CartItem> cart, double amount);
+//   double apply_bogo(vector<CartItem> cart, int buyCount, int freeCount);
+//   double apply_percentage_with_eligibility(vector<CartItem> cart, double percentage, double minCartValue, bool requireFirstTimeUser, bool isFirstTimeUser, string eligibleCategory);
 
+double apply_percentage_discount(vector<CartItem> cart, double percentage) {
+    // TODO: write your solution
+    return {};
+}
 
+double apply_flat_discount(vector<CartItem> cart, double amount) {
+    // TODO: write your solution
+    return {};
+}
+
+double apply_bogo(vector<CartItem> cart, int buyCount, int freeCount) {
+    // TODO: write your solution
+    return {};
+}
+
+double apply_percentage_with_eligibility(vector<CartItem> cart, double percentage, double minCartValue, bool requireFirstTimeUser, bool isFirstTimeUser, string eligibleCategory) {
+    // TODO: write your solution
+    return {};
+}

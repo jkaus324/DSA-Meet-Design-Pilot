@@ -1,0 +1,20 @@
+problem_id: "020-logger-system"
+
+types:
+  LogOp:
+    fields:
+      - { name: kind, type: string }
+      - { name: s1,   type: string, default: "" }
+      - { name: s2,   type: string, default: "" }
+      - { name: i1,   type: int,    default: 0 }
+
+functions:
+  - name: logger_simulate
+    params:
+      - { name: ops, type: "list<LogOp>" }
+    returns: "list<string>"
+
+parts:
+  1: { name: "Logger singleton + level filtering",  functions: [logger_simulate] }
+  2: { name: "Pluggable formatters (Strategy)",      functions: [logger_simulate] }
+  3: { name: "Multiple destinations (Observer)",     functions: [logger_simulate] }

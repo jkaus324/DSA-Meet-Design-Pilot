@@ -1,70 +1,72 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
+// Data class (given).
 
-type Priority int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func ir_add_agent(id int, name string, specialization string)
+//   func ir_assign_issue_round_robin(description string, category string, priority string) int
+//   func ir_agent_issue_count(agentId int) int
+//   func ir_agent_load(agentId int) int
+//   func ir_assign_issue_least_loaded(description string, category string, priority string) int
+//   func ir_assign_issue_specialist(description string, category string, priority string) int
+//   func ir_transition(issueId int, newState string) bool
+//   func ir_get_issue_state(issueId int) string
+//   func ir_log_size() int
+//   func ir_log_entry(idx int) string
 
-const (
-	PriorityLow      Priority = iota
-	PriorityMedium
-	PriorityHigh
-	PriorityCritical
-)
-
-type IssueState int
-
-const (
-	IssueStateOpen       IssueState = iota
-	IssueStateInProgress
-	IssueStateResolved
-	IssueStateClosed
-)
-
-type Category int
-
-const (
-	CategoryBilling   Category = iota
-	CategoryTechnical
-	CategoryGeneral
-	CategoryAccount
-)
-
-type Issue struct {
-	ID              int
-	Description     string
-	Cat             Category
-	Prio            Priority
-	State           IssueState
-	AssignedAgentID int
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Agent struct {
-	ID              int
-	Name            string
-	CurrentLoad     int
-	Specializations []Category
+func ir_add_agent(id int, name string, specialization string) {
+	// TODO: write your solution
+	return
 }
 
-// ─── NEW in Extension 2 ─────────────────────────────────────────────────────
-//
-// The product team now requires:
-//   1. State machine: OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED
-//      Invalid transitions must be rejected (return false).
-//   2. Notifications: When state changes, all registered observers are notified.
-//   3. Priority queue: AssignNextPriority() picks the highest-priority
-//      unassigned issue first. Tiebreak by lowest issue ID.
-//
-// Think about:
-//   - How do you decouple notifications from the state machine?
-//   - What interface lets you add new observers without modifying the resolver?
-//   - How do you efficiently find the highest-priority unassigned issue?
-//
-// Entry points (must exist for tests):
-//   func AssignIssue(agents []Agent, issues *[]Issue, issue Issue) Issue
-//   func GetAgentIssues(issues []Issue, agentID int) []Issue
-//   func AssignLeastLoaded(agents []Agent, issues *[]Issue, issue Issue) Issue
-//   func AssignBySpecialist(agents []Agent, issues *[]Issue, issue Issue) Issue
-//   func TransitionIssue(issues *[]Issue, issueID int, newState IssueState, notifications *[]string) bool
-//   func AssignNextPriority(agents []Agent, issues *[]Issue) Issue
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func ir_assign_issue_round_robin(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_agent_issue_count(agentId int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_agent_load(agentId int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_assign_issue_least_loaded(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_assign_issue_specialist(description string, category string, priority string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_transition(issueId int, newState string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func ir_get_issue_state(issueId int) string {
+	// TODO: write your solution
+	return ""
+}
+
+func ir_log_size() int {
+	// TODO: write your solution
+	return 0
+}
+
+func ir_log_entry(idx int) string {
+	// TODO: write your solution
+	return ""
+}

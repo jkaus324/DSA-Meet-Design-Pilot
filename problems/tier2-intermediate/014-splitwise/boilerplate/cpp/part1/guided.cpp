@@ -1,58 +1,27 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
-#include <cmath>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct User {
-    string id;
-    string name;
+// Data class (given).
+struct SplitOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int i1;
+    SplitOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", const string& s4_ = "", int i1_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), s4(s4_), i1(i1_) {}
 };
 
-struct Split {
-    string userId;
-    double amount;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Expense {
-    string id;
-    string paidBy;
-    double totalAmount;
-    vector<Split> splits;
-};
-
-// ─── Expense Manager ───────────────────────────────────────────────────────
-// HINT: Use unordered_map<string, unordered_map<string, double>> for balances.
-// balances[A][B] > 0 means A owes B that amount.
-// HINT: When updating balances, net out mutual debts. If B already owes A,
-// reduce that before adding to A's debt to B.
-
-// class ExpenseManager {
-//     unordered_map<string, User> users;
-//     vector<Expense> expenses;
-//     unordered_map<string, unordered_map<string, double>> balances;
-//
-//     void updateBalance(const string& debtor, const string& creditor, double amount);
-// public:
-//     void addUser(const string& userId, const string& name);
-//     void addExpense(const string& expenseId, const string& paidBy,
-//                     double amount, const vector<string>& participants);
-//     unordered_map<string, unordered_map<string, double>> getBalances() const;
-// };
-
-// ─── Test Entry Points (must exist for tests to compile) ────────────────────
-// Your solution must provide these functions:
-//
-//   void add_user(const string& userId, const string& name);
-//   void add_expense(const string& expenseId, const string& paidBy,
-//                    double amount, const vector<string>& participants);
-//   unordered_map<string, unordered_map<string, double>> get_balances();
-//
-// How you implement them internally is up to you.
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> splitwise_simulate(vector<SplitOp> ops) {
+    // TODO: write your solution
+    return {};
+}

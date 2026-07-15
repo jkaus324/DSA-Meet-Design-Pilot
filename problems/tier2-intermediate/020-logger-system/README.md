@@ -57,9 +57,7 @@ struct LogEntry {
 
 ---
 
-## Part 1
-
-**Base requirement — Singleton logger with level filtering**
+## Base Requirement — Singleton logger with level filtering
 
 Implement a `Logger` class that:
 
@@ -115,9 +113,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Pluggable output formats via Strategy**
+## Extension 1 — Pluggable output formats via Strategy
 
 The ops team needs logs in different formats depending on the consumer:
 - **PlainText**: `[2024-01-15 10:30:00] [ERROR] Something failed`
@@ -148,9 +144,7 @@ class CsvFormatter      : public LogFormatter { ... };
 
 ---
 
-## Part 3
-
-**Extension 2 — Multiple simultaneous output destinations**
+## Extension 2 — Multiple simultaneous output destinations
 
 The system now needs to send logs to **multiple destinations simultaneously**:
 - Console output

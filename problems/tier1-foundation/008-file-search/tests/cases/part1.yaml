@@ -1,0 +1,105 @@
+- name: reset_p1
+  call: reset_service
+  args: []
+
+- name: build_default
+  call: fs_build_default_tree
+  args: []
+
+- name: count_cpp_2
+  call: fs_count_by_extension
+  args: ["cpp"]
+  expect_equals: 2
+
+- name: has_main_cpp
+  call: fs_has_by_extension
+  args: ["cpp", "main.cpp"]
+  expect_equals: true
+
+- name: has_utils_cpp
+  call: fs_has_by_extension
+  args: ["cpp", "utils.cpp"]
+  expect_equals: true
+
+- name: count_pdf_1
+  call: fs_count_by_extension
+  args: ["pdf"]
+  expect_equals: 1
+
+- name: has_report_pdf
+  call: fs_has_by_extension
+  args: ["pdf", "report.pdf"]
+  expect_equals: true
+
+- name: count_java_0
+  call: fs_count_by_extension
+  args: ["java"]
+  expect_equals: 0
+
+- name: count_size_100
+  call: fs_count_by_size
+  args: [100]
+  expect_equals: 2
+
+- name: has_utils_size
+  call: fs_has_by_size
+  args: [100, "utils.cpp"]
+  expect_equals: true
+
+- name: has_report_size
+  call: fs_has_by_size
+  args: [100, "report.pdf"]
+  expect_equals: true
+
+- name: count_size_200
+  call: fs_count_by_size
+  args: [200]
+  expect_equals: 1
+
+- name: count_name_main
+  call: fs_count_by_name
+  args: ["main"]
+  expect_equals: 1
+
+- name: has_main_by_name
+  call: fs_has_by_name
+  args: ["main", "main.cpp"]
+  expect_equals: true
+
+- name: count_name_report
+  call: fs_count_by_name
+  args: ["report"]
+  expect_equals: 1
+
+- name: build_empty
+  call: fs_build_empty_tree
+  args: []
+
+- name: empty_count_cpp
+  call: fs_count_by_extension
+  args: ["cpp"]
+  expect_equals: 0
+
+- name: empty_count_size
+  call: fs_count_by_size
+  args: [10]
+  expect_equals: 0
+
+- name: empty_count_name
+  call: fs_count_by_name
+  args: ["test"]
+  expect_equals: 0
+
+- name: build_single
+  call: fs_build_single_file_tree
+  args: []
+
+- name: single_count_txt
+  call: fs_count_by_extension
+  args: ["txt"]
+  expect_equals: 1
+
+- name: single_has_test_txt
+  call: fs_has_by_extension
+  args: ["txt", "test.txt"]
+  expect_equals: true

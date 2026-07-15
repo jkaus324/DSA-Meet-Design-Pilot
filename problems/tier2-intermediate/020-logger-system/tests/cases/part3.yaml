@@ -1,0 +1,90 @@
+- name: single_destination
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "add_dest", s1: "test:0:plain" }
+      - { kind: "log", s1: "INFO", s2: "hello dest" }
+      - { kind: "dest_size", s1: "test:0" }
+      - { kind: "dest_contains", s1: "test:0", i1: 0, s2: "INFO" }
+      - { kind: "dest_contains", s1: "test:0", i1: 0, s2: "hello dest" }
+      - { kind: "rm_dest", s1: "test:0" }
+  expect: ["ok", "ok", "ok", "ok", "1", "yes", "yes", "ok"]
+
+- name: multiple_destinations
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "add_dest", s1: "test:0:plain" }
+      - { kind: "add_dest", s1: "test:1:json" }
+      - { kind: "log", s1: "ERROR", s2: "multi dest" }
+      - { kind: "dest_size", s1: "test:0" }
+      - { kind: "dest_size", s1: "test:1" }
+      - { kind: "dest_contains", s1: "test:0", i1: 0, s2: "[ERROR]" }
+      - { kind: "dest_contains", s1: "test:1", i1: 0, s2: "\"level\"" }
+      - { kind: "rm_dest", s1: "test:0" }
+      - { kind: "rm_dest", s1: "test:1" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "1", "yes", "yes", "ok", "ok"]
+
+- name: independent_formatters
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "add_dest", s1: "test:0:plain" }
+      - { kind: "add_dest", s1: "test:1:csv" }
+      - { kind: "log", s1: "WARN", s2: "format test" }
+      - { kind: "dest_contains", s1: "test:0", i1: 0, s2: "[WARN]" }
+      - { kind: "dest_contains", s1: "test:1", i1: 0, s2: "," }
+      - { kind: "rm_dest", s1: "test:0" }
+      - { kind: "rm_dest", s1: "test:1" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "yes", "yes", "ok", "ok"]
+
+- name: fault_isolation
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "add_failing" }
+      - { kind: "add_dest", s1: "test:0:plain" }
+      - { kind: "log", s1: "ERROR", s2: "fault isolation" }
+      - { kind: "dest_size", s1: "test:0" }
+      - { kind: "dest_contains", s1: "test:0", i1: 0, s2: "fault isolation" }
+      - { kind: "rm_failing" }
+      - { kind: "rm_dest", s1: "test:0" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "yes", "ok", "ok"]
+
+- name: remove_destination
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "add_dest", s1: "test:0:plain" }
+      - { kind: "log", s1: "INFO", s2: "before remove" }
+      - { kind: "dest_size", s1: "test:0" }
+      - { kind: "rm_dest", s1: "test:0" }
+      - { kind: "log", s1: "INFO", s2: "after remove" }
+      - { kind: "dest_size", s1: "test:0" }
+  expect: ["ok", "ok", "ok", "ok", "1", "ok", "ok", "1"]
+
+- name: level_filtering_before_destinations
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "ERROR" }
+      - { kind: "add_dest", s1: "test:0:plain" }
+      - { kind: "log", s1: "INFO",  s2: "filtered" }
+      - { kind: "log", s1: "ERROR", s2: "passes" }
+      - { kind: "dest_size", s1: "test:0" }
+      - { kind: "dest_contains", s1: "test:0", i1: 0, s2: "passes" }
+      - { kind: "rm_dest", s1: "test:0" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "yes", "ok"]
+
+- name: no_destinations_no_crash
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "log", s1: "INFO", s2: "no destinations" }
+  expect: ["ok", "ok", "ok"]

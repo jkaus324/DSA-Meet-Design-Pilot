@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <string>
 #include <set>
@@ -234,6 +235,114 @@ public:
         }
     }
 };
+
+// --- Ops simulator (used by spec-based tests) -------------------------------
+//
+// Drives a single Elevator (mode "single") OR an ElevatorSystem (mode "sys").
+// Op fields:
+//   "new_elev"               -> spawn fresh single-elevator              -> "ok"
+//   "new_sys"                -> spawn fresh ElevatorSystem                -> "ok"
+//   "add_elev"               -> sys.addElevator(i1)                       -> "ok"
+//   "set_strategy" s1=name   -> "nearest" | "least_loaded"                -> "ok"
+//   "req"  i1=floor s1=dir   -> single elevator addRequest               -> "ok"
+//                              dir = "up"|"down"|"none"
+//   "sys_req" i1=floor s1=dir -> sys.addRequest                            -> "ok"
+//   "elev_req" i1=idx i2=floor s1=dir -> direct on sys.getElevator(idx)
+//   "step"                   -> single elevator step                      -> "ok"
+//   "sys_step"               -> sys.step()                                -> "ok"
+//   "elev_step" i1=idx       -> single step a particular elevator        -> "ok"
+//   "floor"                  -> single elevator currentFloor              -> int as string
+//   "elev_floor" i1=idx      -> sys.getElevator(idx)->getCurrentFloor()   -> int as string
+//   "state"                  -> single elevator state name                 -> "IDLE"|"MOVING_UP"|"MOVING_DOWN"|"DOOR_OPEN"
+//   "elev_state" i1=idx      -> elevator(idx) state                        -> string
+//   "elev_pending" i1=idx    -> getPendingCount                            -> int as string
+//   "count"                  -> sys.getElevatorCount                       -> int as string
+//   "elev_null" i1=idx       -> "yes" if getElevator(idx) is nullptr       -> "yes"/"no"
+
+struct ElevOp {
+    string kind;
+    string s1;
+    int    i1;
+    int    i2;
+};
+
+static const char* state_str(ElevatorState s) {
+    switch (s) {
+        case ElevatorState::IDLE:        return "IDLE";
+        case ElevatorState::MOVING_UP:   return "MOVING_UP";
+        case ElevatorState::MOVING_DOWN: return "MOVING_DOWN";
+        case ElevatorState::DOOR_OPEN:   return "DOOR_OPEN";
+    }
+    return "UNKNOWN";
+}
+
+static Direction dir_from(const string& s) {
+    if (s == "up")   return Direction::UP;
+    if (s == "down") return Direction::DOWN;
+    return Direction::NONE;
+}
+
+vector<string> elevator_simulate(vector<ElevOp> ops) {
+    vector<string> out;
+    unique_ptr<Elevator> single;
+    unique_ptr<ElevatorSystem> sys;
+    NearestFirst nf;
+    LeastLoaded  ll;
+    for (const auto& op : ops) {
+        const string& k = op.kind;
+        if (k == "new_elev") {
+            single.reset(new Elevator());
+            sys.reset();
+            out.push_back("ok");
+        } else if (k == "new_sys") {
+            sys.reset(new ElevatorSystem());
+            single.reset();
+            out.push_back("ok");
+        } else if (k == "add_elev") {
+            sys->addElevator(op.i1);
+            out.push_back("ok");
+        } else if (k == "set_strategy") {
+            if (op.s1 == "nearest")      sys->setDispatchStrategy(&nf);
+            else if (op.s1 == "least_loaded") sys->setDispatchStrategy(&ll);
+            out.push_back("ok");
+        } else if (k == "req") {
+            single->addRequest(op.i1, dir_from(op.s1));
+            out.push_back("ok");
+        } else if (k == "sys_req") {
+            sys->addRequest(op.i1, dir_from(op.s1));
+            out.push_back("ok");
+        } else if (k == "elev_req") {
+            sys->getElevator(op.i1)->addRequest(op.i2, dir_from(op.s1));
+            out.push_back("ok");
+        } else if (k == "step") {
+            single->step();
+            out.push_back("ok");
+        } else if (k == "sys_step") {
+            sys->step();
+            out.push_back("ok");
+        } else if (k == "elev_step") {
+            sys->getElevator(op.i1)->step();
+            out.push_back("ok");
+        } else if (k == "floor") {
+            out.push_back(to_string(single->getCurrentFloor()));
+        } else if (k == "elev_floor") {
+            out.push_back(to_string(sys->getElevator(op.i1)->getCurrentFloor()));
+        } else if (k == "state") {
+            out.push_back(state_str(single->getState()));
+        } else if (k == "elev_state") {
+            out.push_back(state_str(sys->getElevator(op.i1)->getState()));
+        } else if (k == "elev_pending") {
+            out.push_back(to_string(sys->getElevator(op.i1)->getPendingCount()));
+        } else if (k == "count") {
+            out.push_back(to_string(sys->getElevatorCount()));
+        } else if (k == "elev_null") {
+            out.push_back(sys->getElevator(op.i1) == nullptr ? "yes" : "no");
+        } else {
+            out.push_back("unknown:" + k);
+        }
+    }
+    return out;
+}
 
 #ifndef RUNNING_TESTS
 int main() {

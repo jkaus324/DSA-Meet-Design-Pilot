@@ -1,0 +1,84 @@
+- name: reset_p3_a
+  call: reset_service
+  args: []
+
+- name: free_1
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5000, "/api/data"]
+  expect_equals: true
+
+- name: free_2
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5001, "/api/data"]
+  expect_equals: true
+
+- name: free_3
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5002, "/api/data"]
+  expect_equals: true
+
+- name: free_4
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5003, "/api/data"]
+  expect_equals: true
+
+- name: free_5
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5004, "/api/data"]
+  expect_equals: true
+
+- name: free_6
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5005, "/api/data"]
+  expect_equals: true
+
+- name: free_7
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5006, "/api/data"]
+  expect_equals: true
+
+- name: free_8
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5007, "/api/data"]
+  expect_equals: true
+
+- name: free_9
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5008, "/api/data"]
+  expect_equals: true
+
+- name: free_10
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5009, "/api/data"]
+  expect_equals: true
+
+- name: free_11_rejected
+  comment: "FREE tier limit is 10/window"
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user", 5010, "/api/data"]
+  expect_equals: false
+
+- name: reset_p3_b
+  call: reset_service
+  args: []
+
+- name: pro_can_continue_after_free_max
+  comment: "PRO tier independent of FREE"
+  call: allow_request_for_tier_str
+  args: ["PRO", "pro_user", 6000, "/api/data"]
+  expect_equals: true
+
+- name: reset_p3_c
+  call: reset_service
+  args: []
+
+- name: free_user2_fill
+  comment: "Different users on FREE — also independent up to 10"
+  call: allow_request_for_tier_str
+  args: ["FREE", "free_user_2", 9000, "/api/x"]
+  expect_equals: true
+
+- name: pro_user2
+  call: allow_request_for_tier_str
+  args: ["PRO", "pro_user_2", 9010, "/api/x"]
+  expect_equals: true

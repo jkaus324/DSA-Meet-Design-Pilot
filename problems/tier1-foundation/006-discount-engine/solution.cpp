@@ -154,6 +154,20 @@ double apply_with_eligibility(vector<CartItem> cart,
     return discount->apply(cart);
 }
 
+// Spec-test wrappers using string-keyed discounts
+double apply_percentage_with_eligibility(vector<CartItem> cart,
+                                         double percentage,
+                                         double minCartValue,
+                                         bool requireFirstTimeUser,
+                                         bool isFirstTimeUser,
+                                         string eligibleCategory) {
+    PercentageDiscount d(percentage);
+    UserContext u{isFirstTimeUser};
+    return apply_with_eligibility(cart, &d, minCartValue, requireFirstTimeUser, u, eligibleCategory);
+}
+
+void reset_service() {} // no global state, but spec requires it
+
 // ─── Main (test your implementation) ─────────────────────────────────────────
 
 #ifndef RUNNING_TESTS

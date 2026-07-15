@@ -176,7 +176,110 @@ vector<FileNode*> search_and_sort(FileNode* root, const SearchCriteria& criteria
     return results;
 }
 
-// ─── Main ────────────────────────────────────────────────────────────────────
+// ─── Spec-test wrappers ────────────────────────────────────────────────────
+
+// Build a fresh test tree fixture used by the search functions.
+static vector<FileNode*> g_nodes;
+static FileNode* g_root = nullptr;
+
+static FileNode* fs_make_node(const string& name, int size, const string& ext, bool isDir) {
+    FileNode* n = new FileNode{name, size, ext, isDir, {}};
+    g_nodes.push_back(n);
+    return n;
+}
+
+void reset_service() {
+    for (auto* n : g_nodes) delete n;
+    g_nodes.clear();
+    g_root = nullptr;
+}
+
+// Build the standard test fixture:
+//  project/
+//  ├── src/{main.cpp 50, utils.cpp 120, helper.h 10}
+//  ├── docs/{readme.md 5, report.pdf 200}
+//  └── build.sh 2
+void fs_build_default_tree() {
+    reset_service();
+    auto* mainCpp = fs_make_node("main.cpp", 50, "cpp", false);
+    auto* utilsCpp = fs_make_node("utils.cpp", 120, "cpp", false);
+    auto* helperH = fs_make_node("helper.h", 10, "h", false);
+    auto* readmeMd = fs_make_node("readme.md", 5, "md", false);
+    auto* reportPdf = fs_make_node("report.pdf", 200, "pdf", false);
+    auto* buildSh = fs_make_node("build.sh", 2, "sh", false);
+    auto* src = fs_make_node("src", 0, "", true);
+    src->children = {mainCpp, utilsCpp, helperH};
+    auto* docs = fs_make_node("docs", 0, "", true);
+    docs->children = {readmeMd, reportPdf};
+    g_root = fs_make_node("project", 0, "", true);
+    g_root->children = {src, docs, buildSh};
+}
+
+void fs_build_empty_tree() {
+    reset_service();
+    g_root = fs_make_node("empty", 0, "", true);
+}
+
+void fs_build_single_file_tree() {
+    reset_service();
+    g_root = fs_make_node("root", 0, "", true);
+    auto* f = fs_make_node("test.txt", 30, "txt", false);
+    g_root->children = {f};
+}
+
+int fs_count_by_extension(const string& ext) {
+    if (!g_root) return 0;
+    return (int)search_by_extension(g_root, ext).size();
+}
+bool fs_has_by_extension(const string& ext, const string& name) {
+    if (!g_root) return false;
+    auto v = search_by_extension(g_root, ext);
+    for (auto* f : v) if (f->name == name) return true;
+    return false;
+}
+
+int fs_count_by_size(int minSize) {
+    if (!g_root) return 0;
+    return (int)search_by_size(g_root, minSize).size();
+}
+bool fs_has_by_size(int minSize, const string& name) {
+    if (!g_root) return false;
+    auto v = search_by_size(g_root, minSize);
+    for (auto* f : v) if (f->name == name) return true;
+    return false;
+}
+
+int fs_count_by_name(const string& sub) {
+    if (!g_root) return 0;
+    return (int)search_by_name(g_root, sub).size();
+}
+bool fs_has_by_name(const string& sub, const string& name) {
+    if (!g_root) return false;
+    auto v = search_by_name(g_root, sub);
+    for (auto* f : v) if (f->name == name) return true;
+    return false;
+}
+
+int fs_count_composite_and(const string& ext, int minSize) {
+    if (!g_root) return 0;
+    SearchByExtension e(ext);
+    SearchByMinSize s(minSize);
+    return (int)search_composite(g_root, {&e, &s}, "AND").size();
+}
+
+int fs_count_composite_or(const string& ext, int minSize) {
+    if (!g_root) return 0;
+    SearchByExtension e(ext);
+    SearchByMinSize s(minSize);
+    return (int)search_composite(g_root, {&e, &s}, "OR").size();
+}
+
+string fs_first_sorted_by(const string& ext, const string& sortBy) {
+    if (!g_root) return "";
+    SearchByExtension e(ext);
+    auto v = search_and_sort(g_root, e, sortBy);
+    return v.empty() ? "" : v.front()->name;
+}
 
 #ifndef RUNNING_TESTS
 int main() {

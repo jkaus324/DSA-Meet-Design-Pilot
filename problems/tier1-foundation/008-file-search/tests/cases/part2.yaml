@@ -1,0 +1,25 @@
+- name: build_default_p2
+  call: fs_build_default_tree
+  args: []
+
+- name: and_cpp_100
+  comment: ".cpp AND >=100KB → utils.cpp only"
+  call: fs_count_composite_and
+  args: ["cpp", 100]
+  expect_equals: 1
+
+- name: or_cpp_200
+  comment: ".cpp OR >=200KB → main(50) main(50) utils(120) report(200) — but main isn't >=200, so cpp matches main+utils + size matches report = 3"
+  call: fs_count_composite_or
+  args: ["cpp", 200]
+  expect_equals: 3
+
+- name: and_pdf_100
+  call: fs_count_composite_and
+  args: ["pdf", 100]
+  expect_equals: 1
+
+- name: and_pdf_500
+  call: fs_count_composite_and
+  args: ["pdf", 500]
+  expect_equals: 0

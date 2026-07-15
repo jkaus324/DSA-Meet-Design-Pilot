@@ -1,0 +1,92 @@
+- name: reset_p2
+  call: reset_service
+  args: []
+
+- name: enter_valid_pin
+  call: enterMaintenance
+  args: ["1234"]
+
+- name: state_maintenance
+  call: getState
+  args: []
+  expect_equals: "Maintenance"
+
+- name: reset_p2_b
+  call: reset_service
+  args: []
+
+- name: enter_invalid_pin
+  call: enterMaintenance
+  args: ["wrong"]
+
+- name: state_idle_invalid_pin
+  call: getState
+  args: []
+  expect_equals: "Idle"
+
+- name: reset_p2_c
+  call: reset_service
+  args: []
+
+- name: enter_for_block
+  call: enterMaintenance
+  args: ["1234"]
+
+- name: select_blocked_in_maint
+  comment: "Selection blocked in maintenance"
+  call: selectItem
+  args: ["Cola"]
+
+- name: state_still_maintenance
+  call: getState
+  args: []
+  expect_equals: "Maintenance"
+
+- name: reset_p2_d
+  call: reset_service
+  args: []
+
+- name: enter_for_exit
+  call: enterMaintenance
+  args: ["1234"]
+
+- name: exit_back_to_idle
+  call: exitMaintenance
+  args: ["1234"]
+
+- name: state_idle_after_exit
+  call: getState
+  args: []
+  expect_equals: "Idle"
+
+- name: reset_p2_e
+  call: reset_service
+  args: []
+
+- name: cola_initial_quantity
+  call: vm_get_quantity
+  args: ["Cola"]
+  expect_equals: 5
+
+- name: restock_outside_maint
+  comment: "Restock blocked outside maintenance"
+  call: restock
+  args: ["Cola", 10]
+
+- name: cola_qty_unchanged
+  call: vm_get_quantity
+  args: ["Cola"]
+  expect_equals: 5
+
+- name: enter_for_restock
+  call: enterMaintenance
+  args: ["1234"]
+
+- name: restock_now_works
+  call: restock
+  args: ["Cola", 5]
+
+- name: cola_qty_after_restock
+  call: vm_get_quantity
+  args: ["Cola"]
+  expect_equals: 10

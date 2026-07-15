@@ -1,0 +1,98 @@
+- name: search_movies_by_city
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR Phoenix", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "movies_count", s1: "Mumbai" }
+      - { kind: "movies_contains", s1: "Mumbai", s2: "Inception" }
+  expect: ["ok", "ok", "ok", "1", "yes"]
+
+- name: multiple_movies_same_city
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_theater", s1: "T2", s2: "INOX", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception",    s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "add_show", s1: "S2", s2: "T2", s3: "Interstellar", s4: "20:00", i1: 5, i2: 10 }
+      - { kind: "movies_count", s1: "Mumbai" }
+      - { kind: "movies_contains", s1: "Mumbai", s2: "Inception" }
+      - { kind: "movies_contains", s1: "Mumbai", s2: "Interstellar" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "2", "yes", "yes"]
+
+- name: no_movies_in_city
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "movies_count", s1: "Delhi" }
+  expect: ["ok", "ok", "ok", "0"]
+
+- name: all_seats_available
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 3, i2: 4 }
+      - { kind: "available_count", s1: "S1" }
+  expect: ["ok", "ok", "ok", "12"]
+
+- name: book_seats_success
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "book", s1: "B1", s2: "S1", s3: "0,0;0,1;0,2", s4: "user1" }
+      - { kind: "available_count", s1: "S1" }
+  expect: ["ok", "ok", "ok", "ok", "47"]
+
+- name: double_booking_prevention
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "book", s1: "B1", s2: "S1", s3: "0,0;0,1", s4: "user1" }
+      - { kind: "book", s1: "B2", s2: "S1", s3: "0,0;0,2", s4: "user2" }
+  expect: ["ok", "ok", "ok", "ok", "fail"]
+
+- name: atomic_booking
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "book", s1: "B1", s2: "S1", s3: "0,0", s4: "user1" }
+      - { kind: "book", s1: "B2", s2: "S1", s3: "0,0;0,1", s4: "user2" }
+      - { kind: "available_has", s1: "S1", i2: 0, i3: 1 }
+  expect: ["ok", "ok", "ok", "ok", "fail", "yes"]
+
+- name: invalid_seat_coordinates
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "18:00", i1: 3, i2: 4 }
+      - { kind: "book", s1: "B1", s2: "S1", s3: "5,0", s4: "user1" }
+  expect: ["ok", "ok", "ok", "fail"]
+
+- name: nonexistent_show
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "book", s1: "B1", s2: "NONEXISTENT", s3: "0,0", s4: "user1" }
+  expect: ["ok", "fail"]
+
+- name: duplicate_movie_deduplicated
+  call: show_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "add_theater", s1: "T1", s2: "PVR Phoenix", s3: "Mumbai" }
+      - { kind: "add_theater", s1: "T2", s2: "INOX", s3: "Mumbai" }
+      - { kind: "add_show", s1: "S1", s2: "T1", s3: "Inception", s4: "15:00", i1: 5, i2: 10 }
+      - { kind: "add_show", s1: "S2", s2: "T2", s3: "Inception", s4: "18:00", i1: 5, i2: 10 }
+      - { kind: "movies_count", s1: "Mumbai" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1"]

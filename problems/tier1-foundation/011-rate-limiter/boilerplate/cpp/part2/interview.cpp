@@ -1,39 +1,41 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <queue>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Request {
-    string clientId;
-    long timestamp;
-    string endpoint;
-};
+// Data class (given).
 
-enum class UserTier { FREE, PRO, ENTERPRISE };
-
-// ─── NEW in Extension 1 ────────────────────────────────────────────────────
-//
-// The platform team wants different endpoints to use different algorithms:
-//   - fixed-window: simple counter per time window
-//   - sliding-window: rolling window using a queue of timestamps
-//   - token-bucket: tokens replenish at a fixed rate, allows bursts
-//
-// Think about:
-//   - How do you create the right limiter without the caller knowing the algo?
-//   - What pattern encapsulates object creation decisions?
-//   - How would you add a 4th algorithm tomorrow?
-//
-// Entry points (must exist for tests):
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
 //   void init_limiter(int maxRequests, int windowSize);
-//   bool allow_request(const Request& req);
-//   int get_request_count(const string& clientId);
-//   RateLimiter* create_limiter(const string& algorithm, int maxRequests, int windowSize);
-//   bool allow_request_with_strategy(const string& algorithm, const Request& req);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+//   bool allow_request_simple(string clientId, int timestamp, string endpoint);
+//   int get_request_count(string clientId);
+//   bool allow_request_with_strategy_simple(string algorithm, string clientId, int timestamp, string endpoint);
 
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void init_limiter(int maxRequests, int windowSize) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+bool allow_request_simple(string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}
+
+int get_request_count(string clientId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool allow_request_with_strategy_simple(string algorithm, string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}

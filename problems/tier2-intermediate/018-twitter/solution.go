@@ -1,108 +1,106 @@
+// Twitter — post tweets, follow/unfollow, k-way merged news feed (Go port).
 package main
 
-import "container/heap"
+import (
+	"sort"
+	"strconv"
+)
 
-// ─── Data Model ──────────────────────────────────────────────────────────────
-
-type Tweet struct {
-	TweetId   int
-	Timestamp int
+type TwitterOp struct {
+	kind string
+	i1   int
+	i2   int
 }
 
-// heapEntry is one element pushed into the max-heap during k-way merge.
-type heapEntry struct {
-	timestamp int
-	tweetId   int
-	userId    int
-	index     int
+type tweetRec struct {
+	tid int
+	ts  int
 }
 
-type tweetHeap []heapEntry
-
-func (h tweetHeap) Len() int            { return len(h) }
-func (h tweetHeap) Less(i, j int) bool  { return h[i].timestamp > h[j].timestamp }
-func (h tweetHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
-func (h *tweetHeap) Push(x interface{}) { *h = append(*h, x.(heapEntry)) }
-func (h *tweetHeap) Pop() interface{} {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[:n-1]
-	return x
-}
-
-// ─── Twitter ─────────────────────────────────────────────────────────────────
-
-type Twitter struct {
+type twitter struct {
 	time    int
-	tweets  map[int][]Tweet
+	tweets  map[int][]tweetRec
 	follows map[int]map[int]bool
 }
 
-func NewTwitter() *Twitter {
-	return &Twitter{
-		tweets:  make(map[int][]Tweet),
-		follows: make(map[int]map[int]bool),
+func newTwitter() *twitter {
+	return &twitter{
+		time:    0,
+		tweets:  map[int][]tweetRec{},
+		follows: map[int]map[int]bool{},
 	}
 }
 
-func (t *Twitter) PostTweet(userId, tweetId int) {
-	t.tweets[userId] = append(t.tweets[userId], Tweet{TweetId: tweetId, Timestamp: t.time})
+func (t *twitter) postTweet(userID, tweetID int) {
+	t.tweets[userID] = append(t.tweets[userID], tweetRec{tweetID, t.time})
 	t.time++
 }
 
-func (t *Twitter) GetNewsFeed(userId int) []int {
-	relevant := map[int]bool{userId: true}
-	for f := range t.follows[userId] {
-		relevant[f] = true
+func (t *twitter) getNewsFeed(userID int) []int {
+	users := map[int]bool{userID: true}
+	for f := range t.follows[userID] {
+		users[f] = true
 	}
-
-	h := &tweetHeap{}
-	heap.Init(h)
-	for uid := range relevant {
-		feed, ok := t.tweets[uid]
-		if !ok || len(feed) == 0 {
-			continue
-		}
-		idx := len(feed) - 1
-		heap.Push(h, heapEntry{
-			timestamp: feed[idx].Timestamp,
-			tweetId:   feed[idx].TweetId,
-			userId:    uid,
-			index:     idx,
-		})
+	// Collect the candidate tweets. Timestamps are globally unique (time is a
+	// monotonically increasing counter), so a global sort by descending
+	// timestamp reproduces the k-way merge ordering exactly.
+	cand := []tweetRec{}
+	for uid := range users {
+		cand = append(cand, t.tweets[uid]...)
 	}
-
+	sort.Slice(cand, func(i, j int) bool { return cand[i].ts > cand[j].ts })
 	result := []int{}
-	for h.Len() > 0 && len(result) < 10 {
-		top := heap.Pop(h).(heapEntry)
-		result = append(result, top.tweetId)
-		if top.index > 0 {
-			next := top.index - 1
-			feed := t.tweets[top.userId]
-			heap.Push(h, heapEntry{
-				timestamp: feed[next].Timestamp,
-				tweetId:   feed[next].TweetId,
-				userId:    top.userId,
-				index:     next,
-			})
-		}
+	for i := 0; i < len(cand) && len(result) < 10; i++ {
+		result = append(result, cand[i].tid)
 	}
 	return result
 }
 
-func (t *Twitter) Follow(followerId, followeeId int) {
-	if followerId == followeeId {
+func (t *twitter) follow(followerID, followeeID int) {
+	if followerID == followeeID {
 		return
 	}
-	if t.follows[followerId] == nil {
-		t.follows[followerId] = make(map[int]bool)
+	if t.follows[followerID] == nil {
+		t.follows[followerID] = map[int]bool{}
 	}
-	t.follows[followerId][followeeId] = true
+	t.follows[followerID][followeeID] = true
 }
 
-func (t *Twitter) Unfollow(followerId, followeeId int) {
-	if t.follows[followerId] != nil {
-		delete(t.follows[followerId], followeeId)
+func (t *twitter) unfollow(followerID, followeeID int) {
+	if s := t.follows[followerID]; s != nil {
+		delete(s, followeeID)
 	}
+}
+
+func twitter_simulate(ops []TwitterOp) []string {
+	out := []string{}
+	tw := newTwitter()
+	for _, op := range ops {
+		switch op.kind {
+		case "new":
+			tw = newTwitter()
+			out = append(out, "ok")
+		case "post":
+			tw.postTweet(op.i1, op.i2)
+			out = append(out, "ok")
+		case "follow":
+			tw.follow(op.i1, op.i2)
+			out = append(out, "ok")
+		case "unfollow":
+			tw.unfollow(op.i1, op.i2)
+			out = append(out, "ok")
+		case "feed_size":
+			out = append(out, strconv.Itoa(len(tw.getNewsFeed(op.i1))))
+		case "feed_at":
+			f := tw.getNewsFeed(op.i1)
+			if op.i2 >= 0 && op.i2 < len(f) {
+				out = append(out, strconv.Itoa(f[op.i2]))
+			} else {
+				out = append(out, "-1")
+			}
+		default:
+			out = append(out, "unknown:"+op.kind)
+		}
+	}
+	return out
 }

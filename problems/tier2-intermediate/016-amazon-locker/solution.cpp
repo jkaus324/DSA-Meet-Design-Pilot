@@ -202,6 +202,86 @@ void addNotificationChannel(NotificationChannel* channel) {
     g_system->addNotificationChannel(channel);
 }
 
+// ─── Ops simulator (used by spec-based tests) ──────────────────────────────
+
+#include <memory>
+
+static vector<string> g_chan_log;
+
+class CapturingChannel : public NotificationChannel {
+public:
+    void notify(const string& packageId, const string& message) override {
+        g_chan_log.push_back(packageId + ": " + message);
+    }
+};
+
+struct LockerOp {
+    string kind;
+    string s1;
+    string s2;
+    int    i1;
+    int    i2;
+};
+
+static LockerSize lsize_from(const string& s) {
+    if (s == "S") return LockerSize::SMALL;
+    if (s == "M") return LockerSize::MEDIUM;
+    return LockerSize::LARGE;
+}
+
+vector<string> locker_simulate(vector<LockerOp> ops) {
+    vector<string> out;
+    vector<string> codes(32, "");
+    static unique_ptr<CapturingChannel> chan;
+    vector<string> last_expired;
+
+    for (const auto& op : ops) {
+        const string& k = op.kind;
+        if (k == "new") {
+            initLockerSystem();
+            for (auto& c : codes) c.clear();
+            g_chan_log.clear();
+            chan.reset();
+            last_expired.clear();
+            out.push_back("ok");
+        } else if (k == "add_locker") {
+            addLocker(op.s1, lsize_from(op.s2));
+            out.push_back("ok");
+        } else if (k == "deposit") {
+            string code = depositPackage(op.s1, lsize_from(op.s2), (long)op.i1);
+            if (op.i2 >= 0 && op.i2 < (int)codes.size()) codes[op.i2] = code;
+            out.push_back(code);
+        } else if (k == "code_at") {
+            out.push_back(codes[op.i2]);
+        } else if (k == "retrieve") {
+            out.push_back(retrievePackage(codes[op.i2]) ? "ok" : "fail");
+        } else if (k == "retrieve_id") {
+            out.push_back(retrievePackage(op.s1) ? "ok" : "fail");
+        } else if (k == "set_expiry") {
+            setCodeExpiry(op.i1);
+            out.push_back("ok");
+        } else if (k == "check_expired") {
+            last_expired = checkExpired((long)op.i1);
+            out.push_back(to_string((int)last_expired.size()));
+        } else if (k == "expired_at") {
+            out.push_back(op.i2 >= 0 && op.i2 < (int)last_expired.size() ? last_expired[op.i2] : "");
+        } else if (k == "add_chan") {
+            chan.reset(new CapturingChannel());
+            addNotificationChannel(chan.get());
+            out.push_back("ok");
+        } else if (k == "chan_log_size") {
+            out.push_back(to_string((int)g_chan_log.size()));
+        } else if (k == "chan_log_contains") {
+            bool found = false;
+            for (auto& l : g_chan_log) if (l.find(op.s1) != string::npos) { found = true; break; }
+            out.push_back(found ? "yes" : "no");
+        } else {
+            out.push_back("unknown:" + k);
+        }
+    }
+    return out;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 #ifndef RUNNING_TESTS

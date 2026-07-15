@@ -1,94 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
-#include <cmath>
 using namespace std;
 
-// --- Data Model (given -- do not modify) ------------------------------------
 
-enum class VehicleType {
-    MOTORCYCLE,
-    CAR,
-    TRUCK
+// Data class (given).
+struct ParkOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    ParkOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-enum class SpotSize {
-    SMALL,
-    MEDIUM,
-    LARGE
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small — one rule per class.
 
-enum class GateType {
-    ENTRY,
-    EXIT
-};
-
-struct Vehicle {
-    string licensePlate;
-    VehicleType type;
-};
-
-struct ParkingSpot {
-    string spotId;
-    int floor;
-    SpotSize size;
-    bool isOccupied;
-    string vehicleLicensePlate;
-};
-
-struct Ticket {
-    string ticketId;
-    string licensePlate;
-    string spotId;
-    int floor;
-    long entryTime;
-    string entryGateId;
-    string exitGateId;
-};
-
-struct Gate {
-    string gateId;
-    GateType type;
-};
-
-// --- Include your Part 1 ParkingLot logic here ------------------------------
-
-// --- Pricing Strategy Interface ---------------------------------------------
-// HINT: The strategy receives duration in seconds and returns a fee (double).
-//       The parking lot calls strategy->calculateFee(duration) during unpark.
-
-// class PricingStrategy {
-// public:
-//     virtual double calculateFee(long durationSeconds) = 0;
-//     virtual ~PricingStrategy() = default;
-// };
-
-// --- FlatRate ---------------------------------------------------------------
-// HINT: Constructor takes a fixed fee. calculateFee ignores duration.
-
-// --- Hourly -----------------------------------------------------------------
-// HINT: Constructor takes ratePerHour. Use ceil(seconds / 3600.0) for hours.
-
-// --- Tiered -----------------------------------------------------------------
-// HINT: Constructor takes baseRate (first hour), midRate (hours 1-3),
-//       highRate (hours 3+). Calculate: base + mid*(hours-1) for 1-3h,
-//       base + mid*2 + high*(hours-3) for 3+h.
-
-// --- Gate Management --------------------------------------------------------
-// HINT: Store gates in a vector<Gate>. parkVehicle and unparkVehicle
-//       accept a gateId parameter. Record it on the Ticket.
-
-// --- Test Entry Points (must exist for tests to compile) --------------------
-// Your solution must provide:
-//
-//   void setPricingStrategy(PricingStrategy* strategy);
-//   void addGate(const string& gateId, GateType type);
-//   Ticket* parkVehicle(const Vehicle& vehicle, long entryTime, const string& gateId);
-//   double unparkVehicle(const string& ticketId, long exitTime, const string& gateId);
-//   vector<string> getGates(GateType type);
-//
-// -------------------------------------------------------------------------
-
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> parking_simulate(vector<ParkOp> ops) {
+    // TODO: write your solution
+    return {};
+}

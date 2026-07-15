@@ -1,0 +1,45 @@
+problem_id: "011-rate-limiter"
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: init_limiter
+    params:
+      - { name: maxRequests, type: int }
+      - { name: windowSize,  type: int }
+    returns: void
+
+  - name: allow_request_simple
+    params:
+      - { name: clientId,  type: string }
+      - { name: timestamp, type: int }
+      - { name: endpoint,  type: string }
+    returns: bool
+
+  - name: get_request_count
+    params:
+      - { name: clientId, type: string }
+    returns: int
+
+  - name: allow_request_with_strategy_simple
+    params:
+      - { name: algorithm, type: string }
+      - { name: clientId,  type: string }
+      - { name: timestamp, type: int }
+      - { name: endpoint,  type: string }
+    returns: bool
+
+  - name: allow_request_for_tier_str
+    params:
+      - { name: tier,      type: string }
+      - { name: clientId,  type: string }
+      - { name: timestamp, type: int }
+      - { name: endpoint,  type: string }
+    returns: bool
+
+parts:
+  1: { name: "Fixed-window limiter",   functions: [reset_service, init_limiter, allow_request_simple, get_request_count] }
+  2: { name: "Strategy + factory",     functions: [allow_request_with_strategy_simple] }
+  3: { name: "Tier-based limits",      functions: [allow_request_for_tier_str] }

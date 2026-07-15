@@ -1,47 +1,71 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-enum class OrderState { Created, Confirmed, Shipped, Delivered, Cancelled };
+// Data class (given).
 
-struct OrderItem {
-    string productId;
-    int quantity;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void set_inventory(string productId, int qty);
+//   int get_inventory(string productId);
+//   string create_order_simple(string productId, int quantity, double totalAmount);
+//   string get_order_state_str(string orderId);
+//   bool confirm_order(string orderId);
+//   bool ship_order(string orderId);
+//   bool deliver_order(string orderId);
+//   bool cancel_order(string orderId);
+//   int get_history_size(string orderId);
 
-struct Order {
-    string id;
-    vector<OrderItem> items;
-    double totalAmount;
-    OrderState state;
-};
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
-// ─── NEW in Extension 1 ────────────────────────────────────────────────────
-//
-// Orders can now be CANCELLED from Created or Confirmed state.
-// Cancellation from Shipped or Delivered is NOT allowed.
-// When cancelled, inventory must be released (restored).
-//
-// Think about:
-//   - How do you track inventory per product? (HashMap)
-//   - When should inventory be decremented? On order creation.
-//   - When should inventory be restored? On cancellation.
-//   - What if the order has multiple items?
-//
-// Entry points (must exist for tests):
-//   string create_order(vector<OrderItem> items, double totalAmount);
-//   bool confirm_order(const string& orderId);
-//   bool ship_order(const string& orderId);
-//   bool deliver_order(const string& orderId);
-//   bool cancel_order(const string& orderId);
-//   OrderState get_order_state(const string& orderId);
-//   void set_inventory(const string& productId, int quantity);
-//   int get_inventory(const string& productId);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void set_inventory(string productId, int qty) {
+    // TODO: write your solution
+    // nothing to return
+}
 
+int get_inventory(string productId) {
+    // TODO: write your solution
+    return {};
+}
 
+string create_order_simple(string productId, int quantity, double totalAmount) {
+    // TODO: write your solution
+    return {};
+}
+
+string get_order_state_str(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool confirm_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool ship_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool deliver_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool cancel_order(string orderId) {
+    // TODO: write your solution
+    return {};
+}
+
+int get_history_size(string orderId) {
+    // TODO: write your solution
+    return {};
+}

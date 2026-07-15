@@ -1,36 +1,47 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <queue>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Request {
-    string clientId;
-    long timestamp;
-    string endpoint;
-};
+// Data class (given).
 
-enum class UserTier { FREE, PRO, ENTERPRISE };
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void init_limiter(int maxRequests, int windowSize);
+//   bool allow_request_simple(string clientId, int timestamp, string endpoint);
+//   int get_request_count(string clientId);
+//   bool allow_request_with_strategy_simple(string algorithm, string clientId, int timestamp, string endpoint);
+//   bool allow_request_for_tier_str(string tier, string clientId, int timestamp, string endpoint);
 
-// ─── NEW in Extension 2 ────────────────────────────────────────────────────
-//
-// Different user tiers have different rate limits:
-//   FREE       = 10 requests per minute
-//   PRO        = 100 requests per minute
-//   ENTERPRISE = 1000 requests per minute
-//
-// Think about:
-//   - How does the Factory pattern adapt to handle tier-based creation?
-//   - Can you combine tier limits with per-endpoint algorithm selection?
-//   - What changes if a new tier is added (e.g., STARTUP = 50 req/min)?
-//
-// Entry points (must exist for tests — all previous entry points plus):
-//   bool allow_request_for_tier(UserTier tier, const Request& req);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void init_limiter(int maxRequests, int windowSize) {
+    // TODO: write your solution
+    // nothing to return
+}
 
+bool allow_request_simple(string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}
+
+int get_request_count(string clientId) {
+    // TODO: write your solution
+    return {};
+}
+
+bool allow_request_with_strategy_simple(string algorithm, string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}
+
+bool allow_request_for_tier_str(string tier, string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}

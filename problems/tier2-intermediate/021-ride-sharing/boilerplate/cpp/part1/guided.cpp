@@ -1,64 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct User {
-    string id;
-    string name;
-    int ridesOffered;
-    int ridesTaken;
+// Data class (given).
+struct RideOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int i1;
+    int i2;
+    RideOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", const string& s4_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), s4(s4_), i1(i1_), i2(i2_) {}
 };
 
-struct Vehicle {
-    string id;
-    string ownerId;
-    string model;
-    string regNumber;
-};
+// HINT: introduce an abstraction so new ranking rules don't change existing code.
+// HINT: keep the comparator small � one rule per class.
 
-struct Ride {
-    string id;
-    string driverId;
-    string vehicleId;
-    string origin;
-    string destination;
-    int totalSeats;
-    int availableSeats;
-    bool active;
-};
-
-// ─── RideService ─────────────────────────────────────────────────────────────
-// HINT: Use unordered_map for O(1) lookups:
-//   - users keyed by name
-//   - vehicles keyed by regNumber
-//   - rides keyed by rideId
-// HINT: Track active vehicles with a separate map: regNumber → rideId
-//   This makes "is this vehicle in an active ride?" an O(1) check
-
-class RideService {
-    // HINT: Declare your maps here
-    // HINT: Use an int counter for generating ride IDs like "RIDE-1", "RIDE-2"
-
-public:
-    // HINT: addUser creates a User with ridesOffered=0, ridesTaken=0
-    // HINT: Check if user already exists before adding
-    void addUser(const string& name);
-
-    // HINT: addVehicle creates a Vehicle linked to the user
-    // HINT: Validate that the user exists before adding
-    void addVehicle(const string& userName, const string& model, const string& regNumber);
-
-    // HINT: offerRide should:
-    //   1. Validate user exists
-    //   2. Validate vehicle exists and belongs to user
-    //   3. Check vehicle doesn't have an active ride (use activeVehicles map)
-    //   4. Create ride, mark vehicle as active, increment ridesOffered
-    //   5. Return rideId or "" on failure
-    string offerRide(const string& userName, const string& origin,
-                     const string& dest, int seats, const string& vehicleRegNumber);
-};
-
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+vector<string> ride_simulate(vector<RideOp> ops) {
+    // TODO: write your solution
+    return {};
+}

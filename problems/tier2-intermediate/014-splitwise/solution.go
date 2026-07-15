@@ -1,71 +1,59 @@
+// Splitwise — equal/exact/percent splits + debt simplification (Go).
 package main
 
 import (
+	"fmt"
 	"math"
 	"sort"
+	"strconv"
+	"strings"
 )
 
-// ─── Data Model ──────────────────────────────────────────────────────────────
-
-type User struct {
-	ID   string
-	Name string
+type SplitOp struct {
+	kind string
+	s1   string
+	s2   string
+	s3   string
+	s4   string
+	i1   int
 }
 
-type Split struct {
-	UserID string
-	Amount float64
+type splitPair struct {
+	user   string
+	amount float64
 }
 
-type Expense struct {
-	ID          string
-	PaidBy      string
-	TotalAmount float64
-	Splits      []Split
+type splitStrategy interface {
+	split(totalAmount float64, participants []string, params []float64) []splitPair
+	validate(totalAmount float64, participants []string, params []float64) bool
 }
 
-type Transaction struct {
-	Debtor   string
-	Creditor string
-	Amount   float64
-}
+type equalSplit struct{}
 
-// ─── Split Strategy Interface ────────────────────────────────────────────────
-
-type SplitStrategy interface {
-	SplitAmounts(total float64, participants []string, params []float64) []Split
-	Validate(total float64, participants []string, params []float64) bool
-}
-
-type EqualSplit struct{}
-
-func (EqualSplit) SplitAmounts(total float64, participants []string, _ []float64) []Split {
-	if len(participants) == 0 {
-		return nil
-	}
-	share := total / float64(len(participants))
-	out := make([]Split, 0, len(participants))
+func (equalSplit) split(totalAmount float64, participants []string, params []float64) []splitPair {
+	share := totalAmount / float64(len(participants))
+	res := make([]splitPair, 0, len(participants))
 	for _, p := range participants {
-		out = append(out, Split{UserID: p, Amount: share})
+		res = append(res, splitPair{p, share})
 	}
-	return out
+	return res
 }
 
-func (EqualSplit) Validate(_ float64, participants []string, _ []float64) bool {
+func (equalSplit) validate(totalAmount float64, participants []string, params []float64) bool {
 	return len(participants) > 0
 }
 
-type ExactSplit struct{}
+type exactSplit struct{}
 
-func (ExactSplit) SplitAmounts(_ float64, participants []string, params []float64) []Split {
-	out := make([]Split, 0, len(participants))
-	for i, p := range participants {
-		out = append(out, Split{UserID: p, Amount: params[i]})
+func (exactSplit) split(totalAmount float64, participants []string, params []float64) []splitPair {
+	res := make([]splitPair, 0, len(participants))
+	for i := range participants {
+		res = append(res, splitPair{participants[i], params[i]})
 	}
-	return out
+	return res
 }
 
-func (ExactSplit) Validate(total float64, participants []string, params []float64) bool {
+func (exactSplit) validate(totalAmount float64, participants []string, params []float64) bool {
 	if len(params) != len(participants) {
 		return false
 	}
@@ -73,20 +61,20 @@ func (ExactSplit) Validate(total float64, participants []string, params []float6
 	for _, v := range params {
 		sum += v
 	}
-	return math.Abs(sum-total) < 1e-9
+	return math.Abs(sum-totalAmount) < 1e-9
 }
 
-type PercentSplit struct{}
+type percentSplit struct{}
 
-func (PercentSplit) SplitAmounts(total float64, participants []string, params []float64) []Split {
-	out := make([]Split, 0, len(participants))
-	for i, p := range participants {
-		out = append(out, Split{UserID: p, Amount: total * params[i] / 100.0})
+func (percentSplit) split(totalAmount float64, participants []string, params []float64) []splitPair {
+	res := make([]splitPair, 0, len(participants))
+	for i := range participants {
+		res = append(res, splitPair{participants[i], totalAmount * params[i] / 100.0})
 	}
-	return out
+	return res
 }
 
-func (PercentSplit) Validate(_ float64, participants []string, params []float64) bool {
+func (percentSplit) validate(totalAmount float64, participants []string, params []float64) bool {
 	if len(params) != len(participants) {
 		return false
 	}
@@ -97,119 +85,138 @@ func (PercentSplit) Validate(_ float64, participants []string, params []float64)
 	return math.Abs(sum-100.0) < 1e-9
 }
 
-// ─── Expense Manager ─────────────────────────────────────────────────────────
-
-type ExpenseManager struct {
-	users    map[string]User
-	expenses []Expense
-	balances map[string]map[string]float64
+// orderedFloat preserves key insertion order (like a Python dict).
+type orderedFloat struct {
+	keys []string
+	m    map[string]float64
 }
 
-func NewExpenseManager() *ExpenseManager {
-	return &ExpenseManager{
-		users:    make(map[string]User),
-		expenses: nil,
-		balances: make(map[string]map[string]float64),
+func newOrderedFloat() *orderedFloat {
+	return &orderedFloat{keys: []string{}, m: map[string]float64{}}
+}
+
+func (o *orderedFloat) get(k string) (float64, bool) {
+	v, ok := o.m[k]
+	return v, ok
+}
+
+func (o *orderedFloat) set(k string, v float64) {
+	if _, ok := o.m[k]; !ok {
+		o.keys = append(o.keys, k)
 	}
+	o.m[k] = v
 }
 
-// updateBalance: debtor owes creditor `amount`. Net out an existing
-// reciprocal debt (creditor→debtor) before recording the remainder.
-func (m *ExpenseManager) updateBalance(debtor, creditor string, amount float64) {
-	if debtor == creditor || amount <= 0 {
+func (o *orderedFloat) del(k string) {
+	if _, ok := o.m[k]; !ok {
 		return
 	}
-	if reciprocal, ok := m.balances[creditor][debtor]; ok && reciprocal > 0 {
-		offset := math.Min(reciprocal, amount)
-		m.balances[creditor][debtor] -= offset
-		amount -= offset
-		if m.balances[creditor][debtor] < 1e-9 {
-			delete(m.balances[creditor], debtor)
+	delete(o.m, k)
+	for i, kk := range o.keys {
+		if kk == k {
+			o.keys = append(o.keys[:i], o.keys[i+1:]...)
+			break
+		}
+	}
+}
+
+type expenseManager struct {
+	balanceKeys []string                 // debtor insertion order
+	balances    map[string]*orderedFloat // debtor -> (creditor -> amount)
+}
+
+func newExpenseManager() *expenseManager {
+	return &expenseManager{balanceKeys: []string{}, balances: map[string]*orderedFloat{}}
+}
+
+func (e *expenseManager) addUser(userId, name string) {}
+
+func (e *expenseManager) updateBalance(debtor, creditor string, amount float64) {
+	if debtor == creditor {
+		return
+	}
+	if inner, ok := e.balances[creditor]; ok {
+		if cur, ok2 := inner.get(debtor); ok2 && cur > 0 {
+			offset := math.Min(cur, amount)
+			newVal := cur - offset
+			inner.set(debtor, newVal)
+			amount -= offset
+			if newVal < 1e-9 {
+				inner.del(debtor)
+			}
 		}
 	}
 	if amount > 1e-9 {
-		if m.balances[debtor] == nil {
-			m.balances[debtor] = make(map[string]float64)
+		inner, ok := e.balances[debtor]
+		if !ok {
+			inner = newOrderedFloat()
+			e.balances[debtor] = inner
+			e.balanceKeys = append(e.balanceKeys, debtor)
 		}
-		m.balances[debtor][creditor] += amount
+		prev, _ := inner.get(creditor)
+		inner.set(creditor, prev+amount)
 	}
 }
 
-func (m *ExpenseManager) AddUser(userID, name string) {
-	m.users[userID] = User{ID: userID, Name: name}
+func (e *expenseManager) addExpense(paidBy string, amount float64, participants []string) {
+	splits := equalSplit{}.split(amount, participants, []float64{})
+	for _, sp := range splits {
+		e.updateBalance(sp.user, paidBy, sp.amount)
+	}
 }
 
-func (m *ExpenseManager) AddExpense(expenseID, paidBy string, amount float64, participants []string) {
-	if len(participants) == 0 {
+func (e *expenseManager) addExpenseWithStrategy(paidBy string, amount float64, participants []string, strategy splitStrategy, params []float64) {
+	if !strategy.validate(amount, participants, params) {
 		return
 	}
-	splits := EqualSplit{}.SplitAmounts(amount, participants, nil)
-	m.expenses = append(m.expenses, Expense{ID: expenseID, PaidBy: paidBy, TotalAmount: amount, Splits: splits})
-	for _, s := range splits {
-		m.updateBalance(s.UserID, paidBy, s.Amount)
+	splits := strategy.split(amount, participants, params)
+	for _, sp := range splits {
+		e.updateBalance(sp.user, paidBy, sp.amount)
 	}
 }
 
-func (m *ExpenseManager) AddExpenseWithStrategy(expenseID, paidBy string, amount float64,
-	participants []string, strategy SplitStrategy, params []float64) {
-	if !strategy.Validate(amount, participants, params) {
-		return
-	}
-	splits := strategy.SplitAmounts(amount, participants, params)
-	m.expenses = append(m.expenses, Expense{ID: expenseID, PaidBy: paidBy, TotalAmount: amount, Splits: splits})
-	for _, s := range splits {
-		m.updateBalance(s.UserID, paidBy, s.Amount)
-	}
+type simplifyTxn struct {
+	from   string
+	to     string
+	amount float64
 }
 
-func (m *ExpenseManager) GetBalances() map[string]map[string]float64 {
-	return m.balances
-}
-
-func (m *ExpenseManager) SimplifyDebts() []Transaction {
-	// Step 1: net balance per user (positive = creditor, negative = debtor)
-	net := make(map[string]float64)
-	for debtor, creditors := range m.balances {
-		for creditor, amount := range creditors {
-			net[debtor] -= amount
-			net[creditor] += amount
+func (e *expenseManager) simplifyDebts() []simplifyTxn {
+	net := newOrderedFloat()
+	for _, debtor := range e.balanceKeys {
+		inner := e.balances[debtor]
+		for _, creditor := range inner.keys {
+			amount := inner.m[creditor]
+			dv, _ := net.get(debtor)
+			net.set(debtor, dv-amount)
+			cv, _ := net.get(creditor)
+			net.set(creditor, cv+amount)
 		}
 	}
 
-	// Step 2: split into creditors and debtors (use absolute amounts for debtors)
-	type userAmount struct {
+	type entry struct {
 		user   string
 		amount float64
 	}
-	var creditors, debtors []userAmount
-	for user, amount := range net {
+	creditors := []entry{}
+	debtors := []entry{}
+	for _, user := range net.keys {
+		amount := net.m[user]
 		if amount > 1e-9 {
-			creditors = append(creditors, userAmount{user, amount})
+			creditors = append(creditors, entry{user, amount})
 		} else if amount < -1e-9 {
-			debtors = append(debtors, userAmount{user, -amount})
+			debtors = append(debtors, entry{user, -amount})
 		}
 	}
 
-	// Step 3: sort descending by amount (deterministic tiebreak by name keeps output stable)
-	sort.Slice(creditors, func(i, j int) bool {
-		if creditors[i].amount != creditors[j].amount {
-			return creditors[i].amount > creditors[j].amount
-		}
-		return creditors[i].user < creditors[j].user
-	})
-	sort.Slice(debtors, func(i, j int) bool {
-		if debtors[i].amount != debtors[j].amount {
-			return debtors[i].amount > debtors[j].amount
-		}
-		return debtors[i].user < debtors[j].user
-	})
+	sort.SliceStable(creditors, func(i, j int) bool { return creditors[i].amount > creditors[j].amount })
+	sort.SliceStable(debtors, func(i, j int) bool { return debtors[i].amount > debtors[j].amount })
 
-	// Step 4: greedy two-pointer matching
-	var txns []Transaction
+	txns := []simplifyTxn{}
 	i, j := 0, 0
 	for i < len(creditors) && j < len(debtors) {
 		settle := math.Min(creditors[i].amount, debtors[j].amount)
-		txns = append(txns, Transaction{Debtor: debtors[j].user, Creditor: creditors[i].user, Amount: settle})
+		txns = append(txns, simplifyTxn{from: debtors[j].user, to: creditors[i].user, amount: settle})
 		creditors[i].amount -= settle
 		debtors[j].amount -= settle
 		if creditors[i].amount < 1e-9 {
@@ -222,46 +229,107 @@ func (m *ExpenseManager) SimplifyDebts() []Transaction {
 	return txns
 }
 
-// ─── Global Entry Points ─────────────────────────────────────────────────────
-
-var manager *ExpenseManager
-
-func ResetManager() {
-	manager = NewExpenseManager()
+func splitCsv(s string) []string {
+	if s == "" {
+		return []string{}
+	}
+	return strings.Split(s, ",")
 }
 
-func AddUser(userID, name string) {
-	if manager == nil {
-		ResetManager()
+func splitCsvDouble(s string) []float64 {
+	if s == "" {
+		return []float64{}
 	}
-	manager.AddUser(userID, name)
+	parts := strings.Split(s, ",")
+	res := make([]float64, 0, len(parts))
+	for _, p := range parts {
+		v, _ := strconv.ParseFloat(p, 64)
+		res = append(res, v)
+	}
+	return res
 }
 
-func AddExpense(expenseID, paidBy string, amount float64, participants []string) {
-	if manager == nil {
-		ResetManager()
-	}
-	manager.AddExpense(expenseID, paidBy, amount, participants)
+func num2(v float64) string {
+	return fmt.Sprintf("%.2f", v)
 }
 
-func AddExpenseWithStrategy(expenseID, paidBy string, amount float64,
-	participants []string, strategy SplitStrategy, params []float64) {
-	if manager == nil {
-		ResetManager()
+func splitwise_simulate(ops []SplitOp) []string {
+	out := []string{}
+	mgr := newExpenseManager()
+	for _, op := range ops {
+		k := op.kind
+		switch k {
+		case "new":
+			mgr = newExpenseManager()
+			out = append(out, "ok")
+		case "add_user":
+			mgr.addUser(op.s1, op.s2)
+			out = append(out, "ok")
+		case "add_expense":
+			mgr.addExpense(op.s2, float64(op.i1), splitCsv(op.s3))
+			out = append(out, "ok")
+		case "add_eq_strat":
+			mgr.addExpenseWithStrategy(op.s2, float64(op.i1), splitCsv(op.s3), equalSplit{}, []float64{})
+			out = append(out, "ok")
+		case "add_exact":
+			mgr.addExpenseWithStrategy(op.s2, float64(op.i1), splitCsv(op.s3), exactSplit{}, splitCsvDouble(op.s4))
+			out = append(out, "ok")
+		case "add_pct":
+			mgr.addExpenseWithStrategy(op.s2, float64(op.i1), splitCsv(op.s3), percentSplit{}, splitCsvDouble(op.s4))
+			out = append(out, "ok")
+		case "balance":
+			v := 0.0
+			if inner, ok := mgr.balances[op.s1]; ok {
+				if val, ok2 := inner.get(op.s2); ok2 {
+					v = val
+				}
+			}
+			out = append(out, num2(v))
+		case "validate_exact":
+			ok := exactSplit{}.validate(float64(op.i1), splitCsv(op.s3), splitCsvDouble(op.s4))
+			out = append(out, yesNo(ok))
+		case "validate_pct":
+			ok := percentSplit{}.validate(float64(op.i1), splitCsv(op.s3), splitCsvDouble(op.s4))
+			out = append(out, yesNo(ok))
+		case "simplify_count":
+			out = append(out, fmt.Sprintf("%d", len(mgr.simplifyDebts())))
+		case "simplify_total_to":
+			txns := mgr.simplifyDebts()
+			tot := 0.0
+			for _, t := range txns {
+				if t.to == op.s1 {
+					tot += t.amount
+				}
+			}
+			out = append(out, num2(tot))
+		case "simplify_total_from":
+			txns := mgr.simplifyDebts()
+			tot := 0.0
+			for _, t := range txns {
+				if t.from == op.s1 {
+					tot += t.amount
+				}
+			}
+			out = append(out, num2(tot))
+		case "simplify_unique_pair":
+			txns := mgr.simplifyDebts()
+			tot := 0.0
+			for _, t := range txns {
+				if t.from == op.s1 && t.to == op.s2 {
+					tot += t.amount
+				}
+			}
+			out = append(out, num2(tot))
+		default:
+			out = append(out, "unknown:"+k)
+		}
 	}
-	manager.AddExpenseWithStrategy(expenseID, paidBy, amount, participants, strategy, params)
+	return out
 }
 
-func GetBalances() map[string]map[string]float64 {
-	if manager == nil {
-		return nil
+func yesNo(b bool) string {
+	if b {
+		return "yes"
 	}
-	return manager.GetBalances()
-}
-
-func SimplifyDebts() []Transaction {
-	if manager == nil {
-		return nil
-	}
-	return manager.SimplifyDebts()
+	return "no"
 }

@@ -1,41 +1,24 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Tweet {
-    int tweetId;
-    int timestamp;
+// Data class (given).
+struct TwitterOp {
+    string kind;
+    int i1;
+    int i2;
+    TwitterOp(const string& kind_, int i1_ = 0, int i2_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_) {}
 };
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement a Twitter class that:
-//   1. Lets users post tweets (postTweet)
-//   2. Lets users follow/unfollow others (follow, unfollow)
-//   3. Returns the 10 most recent tweets in a user's feed (getNewsFeed)
-//
-// The feed includes the user's own tweets AND tweets from users they follow,
-// ordered by most recent first. Return at most 10 tweet IDs.
-//
-// Think about:
-//   - How do you store user-to-tweets and user-to-following relationships?
-//   - How do you order tweets by recency?
-//   - What happens when a user unfollows someone?
-//   - Can a user follow themselves?
-//
-// Entry points (must exist for tests):
-//   Twitter()
-//   void postTweet(int userId, int tweetId)
-//   vector<int> getNewsFeed(int userId)
-//   void follow(int followerId, int followeeId)
-//   void unfollow(int followerId, int followeeId)
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> twitter_simulate(vector<TwitterOp> ops);
 
-
+vector<string> twitter_simulate(vector<TwitterOp> ops) {
+    // TODO: write your solution
+    return {};
+}

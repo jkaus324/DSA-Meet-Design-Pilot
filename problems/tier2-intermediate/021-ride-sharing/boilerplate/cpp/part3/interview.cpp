@@ -1,54 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct User {
-    string id;
-    string name;
-    int ridesOffered;
-    int ridesTaken;
+// Data class (given).
+struct RideOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    string s4;
+    int i1;
+    int i2;
+    RideOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", const string& s4_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), s4(s4_), i1(i1_), i2(i2_) {}
 };
 
-struct Vehicle {
-    string id;
-    string ownerId;
-    string model;
-    string regNumber;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> ride_simulate(vector<RideOp> ops);
 
-struct Ride {
-    string id;
-    string driverId;
-    string vehicleId;
-    string origin;
-    string destination;
-    int totalSeats;
-    int availableSeats;
-    bool active;
-};
-
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Extend your RideService to support ending rides and printing statistics.
-//
-// Think about:
-//   - How does ending a ride free the vehicle for future rides?
-//   - What if someone tries to end a ride that's already ended?
-//   - How do you track per-user statistics efficiently?
-//
-// Entry points (must exist for tests):
-//   All Part 1 and Part 2 entry points PLUS:
-//   void RideService::endRide(const string& rideId);
-//   vector<pair<string, pair<int, int>>> RideService::getRideStats() const;
-//   void RideService::printRideStats() const;
-//
-// You also need:
-//   RideSelectionStrategy interface + concrete strategies from Part 2
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> ride_simulate(vector<RideOp> ops) {
+    // TODO: write your solution
+    return {};
+}

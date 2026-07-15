@@ -1,104 +1,77 @@
 package main
 
-import "strings"
+// Data class (given).
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// HINT: introduce an abstraction so new rules don't change existing code.
 
-type FileNode struct {
-	Name        string
-	Size        int
-	Extension   string
-	IsDirectory bool
-	Children    []*FileNode
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-// ─── Search Criteria Interface ────────────────────────────────────────────────
-
-type SearchCriteria interface {
-	Matches(file *FileNode) bool
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_build_default_tree() {
+	// TODO: write your solution
+	return
 }
 
-// ─── Existing Criteria ────────────────────────────────────────────────────────
-// TODO: Copy your Part 1 criteria here (or extend them)
-
-type SearchByExtensionCriteria struct{ Ext string }
-
-func (c *SearchByExtensionCriteria) Matches(file *FileNode) bool {
-	return false // TODO: implement
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_build_empty_tree() {
+	// TODO: write your solution
+	return
 }
 
-type SearchByMinSizeCriteria struct{ MinSize int }
-
-func (c *SearchByMinSizeCriteria) Matches(file *FileNode) bool {
-	return false // TODO: implement
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_build_single_file_tree() {
+	// TODO: write your solution
+	return
 }
 
-type SearchByNameCriteria struct{ Substring string }
-
-func (c *SearchByNameCriteria) Matches(file *FileNode) bool {
-	_ = strings.Contains
-	return false // TODO: implement
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_count_by_extension(ext string) int {
+	// TODO: write your solution
+	return 0
 }
 
-// ─── NEW: Composite Filters ───────────────────────────────────────────────────
-// HINT: An AndFilter holds a slice of other criteria.
-// It returns true only if ALL criteria match.
-// An OrFilter returns true if ANY criterion matches.
-// Both implement SearchCriteria — this is the Composite pattern.
-
-type AndFilter struct {
-	Criteria []SearchCriteria
-}
-
-func (f *AndFilter) Matches(file *FileNode) bool {
-	// TODO: return true only if ALL criteria match
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_has_by_extension(ext string, name string) bool {
+	// TODO: write your solution
 	return false
 }
 
-type OrFilter struct {
-	Criteria []SearchCriteria
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_count_by_size(minSize int) int {
+	// TODO: write your solution
+	return 0
 }
 
-func (f *OrFilter) Matches(file *FileNode) bool {
-	// TODO: return true if ANY criterion matches
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_has_by_size(minSize int, name string) bool {
+	// TODO: write your solution
 	return false
 }
 
-// ─── Search Engine ────────────────────────────────────────────────────────────
-
-type FileSearchEngine struct{}
-
-func (e *FileSearchEngine) dfs(node *FileNode, criteria SearchCriteria, results *[]*FileNode) {
-	if node == nil {
-		return
-	}
-	// TODO: if node is a file and matches criteria, add to results
-	// TODO: recurse into all children
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_count_by_name(sub string) int {
+	// TODO: write your solution
+	return 0
 }
 
-func (e *FileSearchEngine) Search(root *FileNode, criteria SearchCriteria) []*FileNode {
-	var results []*FileNode
-	e.dfs(root, criteria, &results)
-	return results
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_has_by_name(sub string, name string) bool {
+	// TODO: write your solution
+	return false
 }
 
-// ─── Test Entry Points ────────────────────────────────────────────────────────
-
-func SearchByExtension(root *FileNode, ext string) []*FileNode {
-	return (&FileSearchEngine{}).Search(root, &SearchByExtensionCriteria{Ext: ext})
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_count_composite_and(ext string, minSize int) int {
+	// TODO: write your solution
+	return 0
 }
 
-func SearchBySize(root *FileNode, minSize int) []*FileNode {
-	return (&FileSearchEngine{}).Search(root, &SearchByMinSizeCriteria{MinSize: minSize})
-}
-
-func SearchByName(root *FileNode, substring string) []*FileNode {
-	return (&FileSearchEngine{}).Search(root, &SearchByNameCriteria{Substring: substring})
-}
-
-func SearchComposite(root *FileNode, criteria []SearchCriteria, mode string) []*FileNode {
-	if mode == "AND" {
-		return (&FileSearchEngine{}).Search(root, &AndFilter{Criteria: criteria})
-	}
-	return (&FileSearchEngine{}).Search(root, &OrFilter{Criteria: criteria})
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func fs_count_composite_or(ext string, minSize int) int {
+	// TODO: write your solution
+	return 0
 }

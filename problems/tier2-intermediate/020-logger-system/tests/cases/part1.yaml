@@ -1,0 +1,89 @@
+- name: singleton_same_instance
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "singleton_check" }
+  expect: ["ok", "yes"]
+
+- name: debug_filtered_at_info_level
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "INFO" }
+      - { kind: "log", s1: "DEBUG", s2: "debug msg" }
+      - { kind: "history_size" }
+  expect: ["ok", "ok", "ok", "0"]
+
+- name: info_passes_at_info_level
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "INFO" }
+      - { kind: "log", s1: "INFO", s2: "info msg" }
+      - { kind: "history_size" }
+      - { kind: "history_contains", i1: 0, s1: "INFO" }
+      - { kind: "history_contains", i1: 0, s1: "info msg" }
+  expect: ["ok", "ok", "ok", "1", "yes", "yes"]
+
+- name: error_fatal_pass_at_info_level
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "INFO" }
+      - { kind: "log", s1: "ERROR", s2: "error msg" }
+      - { kind: "log", s1: "FATAL", s2: "fatal msg" }
+      - { kind: "history_size" }
+      - { kind: "history_contains", i1: 0, s1: "ERROR" }
+      - { kind: "history_contains", i1: 1, s1: "FATAL" }
+  expect: ["ok", "ok", "ok", "ok", "2", "yes", "yes"]
+
+- name: warn_level_filters_info
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "WARN" }
+      - { kind: "log", s1: "INFO",  s2: "filt" }
+      - { kind: "log", s1: "WARN",  s2: "pass" }
+      - { kind: "log", s1: "ERROR", s2: "pass2" }
+      - { kind: "history_size" }
+      - { kind: "history_contains", i1: 0, s1: "WARN" }
+      - { kind: "history_contains", i1: 1, s1: "ERROR" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "2", "yes", "yes"]
+
+- name: debug_level_allows_all
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "DEBUG" }
+      - { kind: "log", s1: "DEBUG", s2: "d" }
+      - { kind: "log", s1: "INFO",  s2: "i" }
+      - { kind: "log", s1: "WARN",  s2: "w" }
+      - { kind: "log", s1: "ERROR", s2: "e" }
+      - { kind: "log", s1: "FATAL", s2: "f" }
+      - { kind: "history_size" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "5"]
+
+- name: fatal_level_only_fatal
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "FATAL" }
+      - { kind: "log", s1: "DEBUG", s2: "d" }
+      - { kind: "log", s1: "INFO",  s2: "i" }
+      - { kind: "log", s1: "WARN",  s2: "w" }
+      - { kind: "log", s1: "ERROR", s2: "e" }
+      - { kind: "log", s1: "FATAL", s2: "f" }
+      - { kind: "history_size" }
+      - { kind: "history_contains", i1: 0, s1: "FATAL" }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "1", "yes"]
+
+- name: log_format_has_brackets
+  call: logger_simulate
+  args:
+    - - { kind: "reset" }
+      - { kind: "set_level", s1: "INFO" }
+      - { kind: "log", s1: "INFO", s2: "check format" }
+      - { kind: "history_contains", i1: 0, s1: "[" }
+      - { kind: "history_contains", i1: 0, s1: "]" }
+      - { kind: "history_contains", i1: 0, s1: "check format" }
+  expect: ["ok", "ok", "ok", "yes", "yes", "yes"]

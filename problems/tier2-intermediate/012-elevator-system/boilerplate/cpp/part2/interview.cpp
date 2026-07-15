@@ -1,56 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <set>
-#include <unordered_map>
 #include <algorithm>
-#include <climits>
 using namespace std;
 
-// --- Data Model (given -- do not modify) ------------------------------------
 
-enum class ElevatorState {
-    IDLE,
-    MOVING_UP,
-    MOVING_DOWN,
-    DOOR_OPEN
+// Data class (given).
+struct ElevOp {
+    string kind;
+    string s1;
+    int i1;
+    int i2;
+    ElevOp(const string& kind_, const string& s1_ = "", int i1_ = 0, int i2_ = 0)
+      : kind(kind_), s1(s1_), i1(i1_), i2(i2_) {}
 };
 
-enum class Direction {
-    UP,
-    DOWN,
-    NONE
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> elevator_simulate(vector<ElevOp> ops);
 
-struct Request {
-    int floor;
-    Direction direction;
-};
-
-// --- Your Design Starts Here ------------------------------------------------
-//
-// Extend your Part 1 Elevator to support:
-//   1. Multiple elevators managed by an ElevatorSystem
-//   2. Pluggable dispatch strategies that decide which elevator handles
-//      a new request
-//   3. Two strategies: NearestFirst (nearest elevator in compatible
-//      direction) and LeastLoaded (fewest pending requests)
-//
-// Think about:
-//   - How do you define a strategy interface so new strategies can be
-//     added without modifying the system?
-//   - What information does a strategy need about each elevator to
-//     make a decision?
-//   - How does step() work when there are multiple elevators?
-//
-// Entry points (must exist for tests):
-//   void addElevator(int id);
-//   void setDispatchStrategy(DispatchStrategy* strategy);
-//   void addRequest(int floor, Direction direction);
-//   void step();
-//   Elevator* getElevator(int index);
-//   int getElevatorCount();
-//
-// -------------------------------------------------------------------------
-
-
+vector<string> elevator_simulate(vector<ElevOp> ops) {
+    // TODO: write your solution
+    return {};
+}

@@ -1,63 +1,84 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type OrderState int
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func set_inventory(productId string, qty int)
+//   func get_inventory(productId string) int
+//   func create_order_simple(productId string, quantity int, totalAmount float64) string
+//   func get_order_state_str(orderId string) string
+//   func confirm_order(orderId string) bool
+//   func ship_order(orderId string) bool
+//   func deliver_order(orderId string) bool
+//   func cancel_order(orderId string) bool
+//   func get_history_size(orderId string) int
+//   func om_attach_observer()
+//   func om_observer_count() int
+//   func om_observer_last_to() string
 
-const (
-	Created   OrderState = iota
-	Confirmed OrderState = iota
-	Shipped   OrderState = iota
-	Delivered OrderState = iota
-	Cancelled OrderState = iota
-)
-
-type OrderItem struct {
-	ProductId string
-	Quantity  int
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Order struct {
-	Id          string
-	Items       []OrderItem
-	TotalAmount float64
-	State       OrderState
+func set_inventory(productId string, qty int) {
+	// TODO: write your solution
+	return
 }
 
-type StateTransition struct {
-	FromState OrderState
-	ToState   OrderState
-	Timestamp int64
+func get_inventory(productId string) int {
+	// TODO: write your solution
+	return 0
 }
 
-type OrderObserver interface {
-	OnStateChange(orderId string, from, to OrderState)
+func create_order_simple(productId string, quantity int, totalAmount float64) string {
+	// TODO: write your solution
+	return ""
 }
 
-// ─── NEW in Extension 2 ───────────────────────────────────────────────────────
-//
-// Track the full transition history for every order.
-// Notify registered observers on every successful state change.
-//
-// Think about:
-//   - Where do you store per-order history? (map of slices)
-//   - How do you decouple notification logic from the state machine?
-//   - What if you want logging, analytics, AND alerts — all independently?
-//
-// Entry points (must exist for tests — all previous plus):
-//   func GetOrderHistory(orderId string) []StateTransition
-//   func AddObserver(obs OrderObserver)
-//
-// ─────────────────────────────────────────────────────────────────────────────
+func get_order_state_str(orderId string) string {
+	// TODO: write your solution
+	return ""
+}
 
-func CreateOrder(items []OrderItem, totalAmount float64) string { return "" }
-func ConfirmOrder(orderId string) bool                          { return false }
-func ShipOrder(orderId string) bool                             { return false }
-func DeliverOrder(orderId string) bool                          { return false }
-func CancelOrder(orderId string) bool                           { return false }
-func GetOrderState(orderId string) OrderState                   { return Created }
-func SetInventory(productId string, quantity int)               {}
-func GetInventory(productId string) int                         { return 0 }
-func GetOrderHistory(orderId string) []StateTransition          { return nil }
-func AddObserver(obs OrderObserver)                             {}
-func ResetManager()                                             {}
+func confirm_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func ship_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func deliver_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func cancel_order(orderId string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func get_history_size(orderId string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func om_attach_observer() {
+	// TODO: write your solution
+	return
+}
+
+func om_observer_count() int {
+	// TODO: write your solution
+	return 0
+}
+
+func om_observer_last_to() string {
+	// TODO: write your solution
+	return ""
+}

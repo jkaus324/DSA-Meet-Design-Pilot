@@ -1,162 +1,83 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+// Data class (given).
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// HINT: introduce an abstraction so new rules don't change existing code.
 
-type OrderState int
-
-const (
-	Created   OrderState = iota
-	Confirmed OrderState = iota
-	Shipped   OrderState = iota
-	Delivered OrderState = iota
-	Cancelled OrderState = iota
-)
-
-type OrderItem struct {
-	ProductId string
-	Quantity  int
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type Order struct {
-	Id          string
-	Items       []OrderItem
-	TotalAmount float64
-	State       OrderState
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func set_inventory(productId string, qty int) {
+	// TODO: write your solution
+	return
 }
 
-type StateTransition struct {
-	FromState OrderState
-	ToState   OrderState
-	Timestamp int64
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func get_inventory(productId string) int {
+	// TODO: write your solution
+	return 0
 }
 
-// ─── Observer Interface ───────────────────────────────────────────────────────
-// HINT: This is the Observer pattern. OrderManager is the subject.
-// Observers register themselves and get notified on state changes.
-
-type OrderObserver interface {
-	OnStateChange(orderId string, from, to OrderState)
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func create_order_simple(productId string, quantity int, totalAmount float64) string {
+	// TODO: write your solution
+	return ""
 }
 
-// ─── OrderManager ─────────────────────────────────────────────────────────────
-// HINT: You now need THREE maps:
-//   - orders: map[string]*Order
-//   - inventory: map[string]int
-//   - history: map[string][]StateTransition
-//
-// Plus a []OrderObserver for registered observers.
-//
-// On every successful transition:
-//   1. Record a StateTransition with timestamp
-//   2. Notify all observers
-
-type OrderManager struct {
-	orders    map[string]*Order
-	inventory map[string]int
-	history   map[string][]StateTransition
-	observers []OrderObserver
-	nextId    int
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func get_order_state_str(orderId string) string {
+	// TODO: write your solution
+	return ""
 }
 
-func NewOrderManager() *OrderManager {
-	return &OrderManager{
-		orders:    make(map[string]*Order),
-		inventory: make(map[string]int),
-		history:   make(map[string][]StateTransition),
-		nextId:    1,
-	}
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func confirm_order(orderId string) bool {
+	// TODO: write your solution
+	return false
 }
 
-func nowMs() int64 {
-	return time.Now().UnixMilli()
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func ship_order(orderId string) bool {
+	// TODO: write your solution
+	return false
 }
 
-func (m *OrderManager) transition(orderId string, expected, next OrderState) bool {
-	o, ok := m.orders[orderId]
-	if !ok || o.State != expected {
-		return false
-	}
-	from := o.State
-	o.State = next
-	// TODO: Record transition in history with timestamp
-	// TODO: Notify all observers
-	_ = from
-	return true
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func deliver_order(orderId string) bool {
+	// TODO: write your solution
+	return false
 }
 
-func (m *OrderManager) SetInventory(productId string, qty int) {
-	m.inventory[productId] = qty
-}
-func (m *OrderManager) GetInventory(productId string) int { return m.inventory[productId] }
-
-func (m *OrderManager) CreateOrder(items []OrderItem, totalAmount float64) string {
-	id := fmt.Sprintf("ORD-%d", m.nextId)
-	m.nextId++
-	for _, item := range items {
-		m.inventory[item.ProductId] -= item.Quantity
-	}
-	m.orders[id] = &Order{Id: id, Items: items, TotalAmount: totalAmount, State: Created}
-	// TODO: Record initial history entry for creation
-	return id
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func cancel_order(orderId string) bool {
+	// TODO: write your solution
+	return false
 }
 
-func (m *OrderManager) ConfirmOrder(orderId string) bool {
-	return m.transition(orderId, Created, Confirmed)
-}
-func (m *OrderManager) ShipOrder(orderId string) bool {
-	return m.transition(orderId, Confirmed, Shipped)
-}
-func (m *OrderManager) DeliverOrder(orderId string) bool {
-	return m.transition(orderId, Shipped, Delivered)
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func get_history_size(orderId string) int {
+	// TODO: write your solution
+	return 0
 }
 
-func (m *OrderManager) CancelOrder(orderId string) bool {
-	o, ok := m.orders[orderId]
-	if !ok {
-		return false
-	}
-	if o.State != Created && o.State != Confirmed {
-		return false
-	}
-	for _, item := range o.Items {
-		m.inventory[item.ProductId] += item.Quantity
-	}
-	o.State = Cancelled
-	// TODO: Record cancellation in history
-	// TODO: Notify observers
-	return true
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func om_attach_observer() {
+	// TODO: write your solution
+	return
 }
 
-func (m *OrderManager) GetOrderState(orderId string) OrderState { return m.orders[orderId].State }
-
-func (m *OrderManager) GetOrderHistory(orderId string) []StateTransition {
-	// TODO: Return history for this order (empty slice if not found)
-	return nil
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func om_observer_count() int {
+	// TODO: write your solution
+	return 0
 }
 
-func (m *OrderManager) AddObserver(obs OrderObserver) {
-	m.observers = append(m.observers, obs)
+// HINT: pick the field that defines 'better' for this ranking and compare the two.
+func om_observer_last_to() string {
+	// TODO: write your solution
+	return ""
 }
-
-// ─── Global Instance + Entry Points ──────────────────────────────────────────
-
-var manager = NewOrderManager()
-
-func CreateOrder(items []OrderItem, totalAmount float64) string {
-	return manager.CreateOrder(items, totalAmount)
-}
-func ConfirmOrder(orderId string) bool                 { return manager.ConfirmOrder(orderId) }
-func ShipOrder(orderId string) bool                    { return manager.ShipOrder(orderId) }
-func DeliverOrder(orderId string) bool                 { return manager.DeliverOrder(orderId) }
-func CancelOrder(orderId string) bool                  { return manager.CancelOrder(orderId) }
-func GetOrderState(orderId string) OrderState          { return manager.GetOrderState(orderId) }
-func SetInventory(productId string, qty int)           { manager.SetInventory(productId, qty) }
-func GetInventory(productId string) int                { return manager.GetInventory(productId) }
-func GetOrderHistory(orderId string) []StateTransition { return manager.GetOrderHistory(orderId) }
-func AddObserver(obs OrderObserver)                    { manager.AddObserver(obs) }
-func ResetManager()                                    { manager = NewOrderManager() }

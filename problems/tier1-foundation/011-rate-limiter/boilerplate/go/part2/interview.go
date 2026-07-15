@@ -1,49 +1,36 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type Request struct {
-	ClientId  string
-	Timestamp int64
-	Endpoint  string
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func init_limiter(maxRequests int, windowSize int)
+//   func allow_request_simple(clientId string, timestamp int, endpoint string) bool
+//   func get_request_count(clientId string) int
+//   func allow_request_with_strategy_simple(algorithm string, clientId string, timestamp int, endpoint string) bool
+
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-type UserTier int
-
-const (
-	FREE       UserTier = iota
-	PRO        UserTier = iota
-	ENTERPRISE UserTier = iota
-)
-
-// ─── NEW in Extension 1 ───────────────────────────────────────────────────────
-//
-// The platform team wants different endpoints to use different algorithms:
-//   - fixed-window: simple counter per time window
-//   - sliding-window: rolling window using a queue of timestamps
-//   - token-bucket: tokens replenish at a fixed rate, allows bursts
-//
-// Think about:
-//   - How do you create the right limiter without the caller knowing the algo?
-//   - What pattern encapsulates object creation decisions?
-//   - How would you add a 4th algorithm tomorrow?
-//
-// Entry points (must exist for tests):
-//   func InitLimiter(maxRequests int, windowSize int)
-//   func AllowRequest(req Request) bool
-//   func GetRequestCount(clientId string) int
-//   func CreateLimiter(algorithm string, maxRequests int, windowSize int) RateLimiter
-//   func AllowRequestWithStrategy(algorithm string, req Request) bool
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-type RateLimiter interface {
-	AllowRequest(req Request) bool
-	GetRequestCount(clientId string) int
+func init_limiter(maxRequests int, windowSize int) {
+	// TODO: write your solution
+	return
 }
 
-func InitLimiter(maxRequests int, windowSize int)                            {}
-func AllowRequest(req Request) bool                                          { return false }
-func GetRequestCount(clientId string) int                                    { return 0 }
-func CreateLimiter(algorithm string, maxRequests int, windowSize int) RateLimiter { return nil }
-func AllowRequestWithStrategy(algorithm string, req Request) bool            { return false }
+func allow_request_simple(clientId string, timestamp int, endpoint string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func get_request_count(clientId string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func allow_request_with_strategy_simple(algorithm string, clientId string, timestamp int, endpoint string) bool {
+	// TODO: write your solution
+	return false
+}

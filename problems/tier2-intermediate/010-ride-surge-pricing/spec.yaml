@@ -1,0 +1,33 @@
+problem_id: "010-ride-surge-pricing"
+
+types:
+  PricingContext:
+    fields:
+      - { name: baseFare,           type: float }
+      - { name: availableDrivers,   type: int }
+      - { name: activeRideRequests, type: int }
+      - { name: timeOfDay,          type: string }
+      - { name: weather,            type: string }
+
+  RideRequest:
+    fields:
+      - { name: userId,   type: string }
+      - { name: pickup,   type: string }
+      - { name: dropoff,  type: string }
+      - { name: rideType, type: string }
+
+functions:
+  - name: calculateSurge
+    params:
+      - { name: ctx, type: PricingContext }
+    returns: float
+
+  - name: calculateFare
+    params:
+      - { name: req, type: RideRequest }
+      - { name: ctx, type: PricingContext }
+    returns: float
+
+parts:
+  1: { name: "Strategy-based surge calculation", functions: [calculateSurge, calculateFare] }
+  2: { name: "Observer notifications",            functions: [calculateFare] }

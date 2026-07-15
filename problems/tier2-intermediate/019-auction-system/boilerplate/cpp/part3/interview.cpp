@@ -1,49 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Models (given — do not modify) ────────────────────────────────────
 
-enum class UserType { BUYER, SELLER };
-enum class AuctionStatus { OPEN, CLOSED, NO_SALE };
-
-struct User {
-    int userId;
-    string name;
-    UserType type;
+// Data class (given).
+struct AuctionOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    AuctionOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Bid {
-    int bidderId;
-    double amount;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> auction_simulate(vector<AuctionOp> ops);
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Extend the auction system with multiple auction strategies:
-//
-//   ASCENDING (default):
-//     - Bids must exceed current highest. Winner = highest bidder at close.
-//
-//   SEALED:
-//     - Any bid above base price is accepted (even below previous bids).
-//     - getWinningBid returns -1 while OPEN (bids are hidden).
-//     - Winner revealed only after close.
-//
-//   BUYNOW:
-//     - First bid >= basePrice * 1.5 instantly wins and auto-closes.
-//     - Bids below the buy-now threshold are rejected.
-//
-// Think about:
-//   - What abstraction lets each auction type have its own bid rules?
-//   - How do you create the right strategy from a string type name?
-//   - How do you add a 4th strategy without modifying the system class?
-//
-// Modified entry point:
-//   int createAuction(int sellerId, string item, double basePrice, string strategyType)
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> auction_simulate(vector<AuctionOp> ops) {
+    // TODO: write your solution
+    return {};
+}

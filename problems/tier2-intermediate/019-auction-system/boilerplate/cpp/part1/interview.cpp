@@ -1,46 +1,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Models (given — do not modify) ────────────────────────────────────
 
-enum class UserType { BUYER, SELLER };
-enum class AuctionStatus { OPEN, CLOSED, NO_SALE };
-
-struct User {
-    int userId;
-    string name;
-    UserType type;
+// Data class (given).
+struct AuctionOp {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    AuctionOp(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Bid {
-    int bidderId;
-    double amount;
-};
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<string> auction_simulate(vector<AuctionOp> ops);
 
-// ─── Your Design Starts Here ─────────────────────────────────────────────────
-//
-// Design and implement an AuctionSystem that:
-//   1. Registers users as BUYER or SELLER (registerUser)
-//   2. Lets sellers create auctions with a base price (createAuction)
-//   3. Lets buyers place bids that must exceed the current highest (placeBid)
-//   4. Returns the current highest bid for an auction (getWinningBid)
-//
-// Think about:
-//   - How do you store users and auctions for fast lookup?
-//   - How do you validate that only buyers bid and only sellers create?
-//   - How do you track the current highest bid efficiently?
-//   - What happens if a seller tries to bid on their own auction?
-//
-// Entry points (must exist for tests):
-//   AuctionSystem()
-//   int registerUser(string name, string type)
-//   int createAuction(int sellerId, string item, double basePrice)
-//   bool placeBid(int auctionId, int buyerId, double amount)
-//   double getWinningBid(int auctionId)
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-
+vector<string> auction_simulate(vector<AuctionOp> ops) {
+    // TODO: write your solution
+    return {};
+}

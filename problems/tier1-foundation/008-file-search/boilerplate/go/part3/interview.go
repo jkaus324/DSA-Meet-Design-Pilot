@@ -1,44 +1,84 @@
 package main
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
+// Data class (given).
 
-type FileNode struct {
-	Name        string
-	Size        int
-	Extension   string
-	IsDirectory bool
-	Children    []*FileNode
+// TODO: design and implement your solution.
+// Required free functions:
+//   func reset_service()
+//   func fs_build_default_tree()
+//   func fs_build_empty_tree()
+//   func fs_build_single_file_tree()
+//   func fs_count_by_extension(ext string) int
+//   func fs_has_by_extension(ext string, name string) bool
+//   func fs_count_by_size(minSize int) int
+//   func fs_has_by_size(minSize int, name string) bool
+//   func fs_count_by_name(sub string) int
+//   func fs_has_by_name(sub string, name string) bool
+//   func fs_count_composite_and(ext string, minSize int) int
+//   func fs_count_composite_or(ext string, minSize int) int
+//   func fs_first_sorted_by(ext string, sortBy string) string
+
+func reset_service() {
+	// TODO: write your solution
+	return
 }
 
-// ─── NEW in Extension 2 ───────────────────────────────────────────────────────
-//
-// The product team wants search results SORTED by different strategies:
-// alphabetically by name, by file size (largest first), or by extension.
-//
-// Think about:
-//   - How do you decouple search criteria from sort logic?
-//   - Is the sort strategy independent of the search strategy?
-//   - Can you add a new sort order without touching the search logic?
-//
-// Entry points (must exist for tests):
-//   func SearchByExtension(root *FileNode, ext string) []*FileNode
-//   func SearchBySize(root *FileNode, minSize int) []*FileNode
-//   func SearchByName(root *FileNode, substring string) []*FileNode
-//   func SearchComposite(root *FileNode, criteria []SearchCriteria, mode string) []*FileNode
-//   func SearchAndSort(root *FileNode, criteria SearchCriteria, sortBy string) []*FileNode
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
-type SearchCriteria interface {
-	Matches(file *FileNode) bool
+func fs_build_default_tree() {
+	// TODO: write your solution
+	return
 }
 
-func SearchByExtension(root *FileNode, ext string) []*FileNode  { return nil }
-func SearchBySize(root *FileNode, minSize int) []*FileNode      { return nil }
-func SearchByName(root *FileNode, substring string) []*FileNode { return nil }
-func SearchComposite(root *FileNode, criteria []SearchCriteria, mode string) []*FileNode {
-	return nil
+func fs_build_empty_tree() {
+	// TODO: write your solution
+	return
 }
-func SearchAndSort(root *FileNode, criteria SearchCriteria, sortBy string) []*FileNode {
-	return nil
+
+func fs_build_single_file_tree() {
+	// TODO: write your solution
+	return
+}
+
+func fs_count_by_extension(ext string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_has_by_extension(ext string, name string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func fs_count_by_size(minSize int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_has_by_size(minSize int, name string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func fs_count_by_name(sub string) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_has_by_name(sub string, name string) bool {
+	// TODO: write your solution
+	return false
+}
+
+func fs_count_composite_and(ext string, minSize int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_count_composite_or(ext string, minSize int) int {
+	// TODO: write your solution
+	return 0
+}
+
+func fs_first_sorted_by(ext string, sortBy string) string {
+	// TODO: write your solution
+	return ""
 }

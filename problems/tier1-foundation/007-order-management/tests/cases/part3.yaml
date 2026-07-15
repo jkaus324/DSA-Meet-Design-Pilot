@@ -1,0 +1,52 @@
+- name: reset_p3
+  call: reset_service
+  args: []
+
+- name: setup_inv_p3
+  call: set_inventory
+  args: ["P1", 10]
+
+- name: create_o_p3
+  call: create_order_simple
+  args: ["P1", 2, 200.0]
+
+- name: attach
+  call: om_attach_observer
+  args: []
+
+- name: confirm_p3
+  call: confirm_order
+  args: ["ORD-1"]
+
+- name: count_one
+  call: om_observer_count
+  args: []
+  expect_equals: 1
+
+- name: last_confirmed
+  call: om_observer_last_to
+  args: []
+  expect_equals: "Confirmed"
+
+- name: ship_p3
+  call: ship_order
+  args: ["ORD-1"]
+
+- name: count_two
+  call: om_observer_count
+  args: []
+  expect_equals: 2
+
+- name: last_shipped
+  call: om_observer_last_to
+  args: []
+  expect_equals: "Shipped"
+
+- name: reset_p3_b
+  call: reset_service
+  args: []
+
+- name: count_zero_after_reset
+  call: om_observer_count
+  args: []
+  expect_equals: 0

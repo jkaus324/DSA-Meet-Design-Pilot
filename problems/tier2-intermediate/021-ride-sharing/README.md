@@ -73,9 +73,7 @@ struct Ride {
 
 ---
 
-## Part 1
-
-**Base requirement — User, vehicle, and ride onboarding**
+## Base Requirement — User, vehicle, and ride onboarding
 
 Implement a `RideService` that supports user registration, vehicle registration, and ride offering.
 
@@ -114,9 +112,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Pluggable ride selection strategies**
+## Extension 1 — Pluggable ride selection strategies
 
 Passengers can now search for rides between an origin and destination. The system must support multiple selection strategies:
 
@@ -158,9 +154,7 @@ class PreferredVehicleStrategy : public RideSelectionStrategy { ... };
 
 ---
 
-## Part 3
-
-**Extension 2 — End rides and print statistics**
+## Extension 2 — End rides and print statistics
 
 The system now needs to track ride lifecycle and provide per-user statistics.
 

@@ -47,9 +47,7 @@ enum class UserTier {
 
 ---
 
-## Part 1
-
-**Base requirement — Fixed-window rate limiting**
+## Base Requirement — Fixed-window rate limiting
 
 Implement a fixed-window rate limiter that tracks how many requests each client has made in the current time window. If a client exceeds the limit, reject the request.
 
@@ -87,9 +85,7 @@ public:
 
 ---
 
-## Part 2
-
-**Extension 1 — Multiple algorithms per endpoint**
+## Extension 1 — Multiple algorithms per endpoint
 
 The platform team wants different endpoints to use different rate-limiting algorithms:
 - `/api/search` uses **sliding-window** (smoother traffic shaping)
@@ -117,9 +113,7 @@ bool allow_request_with_strategy(const std::string& algorithm, const Request& re
 
 ---
 
-## Part 3
-
-**Extension 2 — User tier-based rate limits**
+## Extension 2 — User tier-based rate limits
 
 Different user tiers get different rate limits:
 

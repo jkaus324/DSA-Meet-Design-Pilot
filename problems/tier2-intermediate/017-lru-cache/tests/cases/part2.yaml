@@ -1,0 +1,76 @@
+- name: ttl_expiry
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 60 }
+      - { kind: "get_t", i1: 1, i2: 1030 }
+      - { kind: "get_t", i1: 1, i2: 1061 }
+  expect: ["ok", "ok", "10", "-1"]
+
+- name: no_ttl_never_expires
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "get_t", i1: 1, i2: 999999 }
+  expect: ["ok", "ok", "10"]
+
+- name: delete_existing
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "delete", i1: 1 }
+      - { kind: "get_t", i1: 1, i2: 1001 }
+  expect: ["ok", "ok", "ok", "-1"]
+
+- name: delete_nonexistent
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "delete", i1: 99 }
+  expect: ["ok", "fail"]
+
+- name: size_tracking
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "size" }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 0 }
+      - { kind: "size" }
+      - { kind: "delete", i1: 1 }
+      - { kind: "size" }
+  expect: ["ok", "0", "ok", "ok", "2", "ok", "1"]
+
+- name: lazy_expiry_on_get
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 30 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 60 }
+      - { kind: "get_t", i1: 1, i2: 1035 }
+      - { kind: "get_t", i1: 2, i2: 1035 }
+  expect: ["ok", "ok", "ok", "-1", "20"]
+
+- name: put_refreshes_ttl
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 30 }
+      - { kind: "put_t", i1: 1, i2: 20, i3: 1020, i4: 30 }
+      - { kind: "get_t", i1: 1, i2: 1035 }
+      - { kind: "get_t", i1: 1, i2: 1051 }
+  expect: ["ok", "ok", "ok", "20", "-1"]
+
+- name: capacity_with_expired
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 10 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 10 }
+      - { kind: "put_t", i1: 3, i2: 30, i3: 1020, i4: 0 }
+      - { kind: "put_t", i1: 4, i2: 40, i3: 1020, i4: 0 }
+      - { kind: "get_t", i1: 3, i2: 1020 }
+      - { kind: "get_t", i1: 4, i2: 1020 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "30", "40"]

@@ -1,31 +1,48 @@
 package main
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
-
+// Data class (given).
 type PaymentMethod struct {
-	Name                string
-	CashbackRate        float64 // e.g. 0.05 = 5%
-	TransactionFee      float64 // in rupees
-	UsageCount          int
-	EasyRefundEligible  bool // NEW in Part 3
+	name string
+	cashbackRate float64
+	transactionFee float64
+	usageCount int
+	easyRefundEligible bool
 }
 
-// ─── NEW in Extension 2 ──────────────────────────────────────────────────────
-//
-// The compliance team wants to add "easy-refund eligibility" as a filter.
-// Some payment methods don't support easy refunds — these should be ranked
-// lower regardless of cashback or fee, unless the user explicitly opts in.
-//
-// Think about:
-//   - Is this a ranking criterion, a filter, or both?
-//   - How does your existing CompositeStrategy handle a boolean filter?
-//   - What if the "opt-in" flag is per-user, not per-session?
-//
-// Entry points (must exist for tests):
-//   func RankByRewards(methods []PaymentMethod) []PaymentMethod
-//   func RankByLowFee(methods []PaymentMethod) []PaymentMethod
-//   func RankByTrust(methods []PaymentMethod) []PaymentMethod
-//   func RankComposite(methods []PaymentMethod, criteria []RankingStrategy) []PaymentMethod
-//   func RankWithRefundFilter(methods []PaymentMethod, preferEasyRefund bool) []PaymentMethod
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// RankingStrategy � implement this interface with your own strategy types.
+type RankingStrategy interface {
+	// TODO: define the method(s) your strategies share.
+}
+
+// TODO: design and implement your solution.
+// Required free functions:
+//   func rank_by_rewards(methods []PaymentMethod) []PaymentMethod
+//   func rank_by_low_fee(methods []PaymentMethod) []PaymentMethod
+//   func rank_by_trust(methods []PaymentMethod) []PaymentMethod
+//   func rank_composite(methods []PaymentMethod, criteria []RankingStrategy) []PaymentMethod
+//   func rank_with_refund_filter(methods []PaymentMethod, preferEasyRefund bool) []PaymentMethod
+
+func rank_by_rewards(methods []PaymentMethod) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_by_low_fee(methods []PaymentMethod) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_by_trust(methods []PaymentMethod) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_composite(methods []PaymentMethod, criteria []RankingStrategy) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}
+
+func rank_with_refund_filter(methods []PaymentMethod, preferEasyRefund bool) []PaymentMethod {
+	// TODO: write your solution
+	return methods
+}

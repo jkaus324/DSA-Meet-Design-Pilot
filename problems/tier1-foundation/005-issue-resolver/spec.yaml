@@ -1,0 +1,69 @@
+problem_id: "005-issue-resolver"
+
+functions:
+  - name: reset_service
+    params: []
+    returns: void
+
+  - name: ir_add_agent
+    params:
+      - { name: id,             type: int }
+      - { name: name,           type: string }
+      - { name: specialization, type: string }
+    returns: void
+
+  - name: ir_assign_issue_round_robin
+    params:
+      - { name: description, type: string }
+      - { name: category,    type: string }
+      - { name: priority,    type: string }
+    returns: int
+
+  - name: ir_assign_issue_least_loaded
+    params:
+      - { name: description, type: string }
+      - { name: category,    type: string }
+      - { name: priority,    type: string }
+    returns: int
+
+  - name: ir_assign_issue_specialist
+    params:
+      - { name: description, type: string }
+      - { name: category,    type: string }
+      - { name: priority,    type: string }
+    returns: int
+
+  - name: ir_agent_issue_count
+    params:
+      - { name: agentId, type: int }
+    returns: int
+
+  - name: ir_agent_load
+    params:
+      - { name: agentId, type: int }
+    returns: int
+
+  - name: ir_transition
+    params:
+      - { name: issueId,  type: int }
+      - { name: newState, type: string }
+    returns: bool
+
+  - name: ir_get_issue_state
+    params:
+      - { name: issueId, type: int }
+    returns: string
+
+  - name: ir_log_size
+    params: []
+    returns: int
+
+  - name: ir_log_entry
+    params:
+      - { name: idx, type: int }
+    returns: string
+
+parts:
+  1: { name: "Round-robin assignment",  functions: [reset_service, ir_add_agent, ir_assign_issue_round_robin, ir_agent_issue_count, ir_agent_load] }
+  2: { name: "Strategy variants",       functions: [ir_assign_issue_least_loaded, ir_assign_issue_specialist] }
+  3: { name: "State transitions + observer", functions: [ir_transition, ir_get_issue_state, ir_log_size, ir_log_entry] }

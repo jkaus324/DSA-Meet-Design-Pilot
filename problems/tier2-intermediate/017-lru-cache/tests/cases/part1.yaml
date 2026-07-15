@@ -1,0 +1,92 @@
+- name: basic_put_get
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "put", i1: 2, i2: 20 }
+      - { kind: "get", i1: 1 }
+      - { kind: "get", i1: 2 }
+  expect: ["ok", "ok", "ok", "10", "20"]
+
+- name: get_nonexistent
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "get", i1: 99 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "get", i1: 2 }
+  expect: ["ok", "-1", "ok", "-1"]
+
+- name: eviction_on_capacity
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "put", i1: 2, i2: 20 }
+      - { kind: "put", i1: 3, i2: 30 }
+      - { kind: "get", i1: 1 }
+      - { kind: "get", i1: 2 }
+      - { kind: "get", i1: 3 }
+  expect: ["ok", "ok", "ok", "ok", "-1", "20", "30"]
+
+- name: get_updates_recency
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "put", i1: 2, i2: 20 }
+      - { kind: "get", i1: 1 }
+      - { kind: "put", i1: 3, i2: 30 }
+      - { kind: "get", i1: 1 }
+      - { kind: "get", i1: 2 }
+      - { kind: "get", i1: 3 }
+  expect: ["ok", "ok", "ok", "10", "ok", "10", "-1", "30"]
+
+- name: put_updates_value
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "put", i1: 1, i2: 100 }
+      - { kind: "get", i1: 1 }
+  expect: ["ok", "ok", "ok", "100"]
+
+- name: put_updates_recency
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "put", i1: 2, i2: 20 }
+      - { kind: "put", i1: 1, i2: 100 }
+      - { kind: "put", i1: 3, i2: 30 }
+      - { kind: "get", i1: 1 }
+      - { kind: "get", i1: 2 }
+      - { kind: "get", i1: 3 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "100", "-1", "30"]
+
+- name: capacity_one
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "get", i1: 1 }
+      - { kind: "put", i1: 2, i2: 20 }
+      - { kind: "get", i1: 1 }
+      - { kind: "get", i1: 2 }
+  expect: ["ok", "ok", "10", "ok", "-1", "20"]
+
+- name: multiple_evictions
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 3 }
+      - { kind: "put", i1: 1, i2: 10 }
+      - { kind: "put", i1: 2, i2: 20 }
+      - { kind: "put", i1: 3, i2: 30 }
+      - { kind: "put", i1: 4, i2: 40 }
+      - { kind: "put", i1: 5, i2: 50 }
+      - { kind: "get", i1: 1 }
+      - { kind: "get", i1: 2 }
+      - { kind: "get", i1: 3 }
+      - { kind: "get", i1: 4 }
+      - { kind: "get", i1: 5 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "-1", "-1", "30", "40", "50"]

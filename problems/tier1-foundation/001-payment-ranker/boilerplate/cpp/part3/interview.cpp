@@ -4,34 +4,50 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
+// Data class (given).
 struct PaymentMethod {
     string name;
-    double cashbackRate;    // e.g. 0.05 = 5%
-    double transactionFee;  // in rupees
-    int    usageCount;
-    bool   easyRefundEligible;  // NEW in Part 3
+    double cashbackRate;
+    double transactionFee;
+    int usageCount;
+    bool easyRefundEligible;
+    PaymentMethod(const string& name_, double cashbackRate_, double transactionFee_, int usageCount_, bool easyRefundEligible_ = false)
+      : name(name_), cashbackRate(cashbackRate_), transactionFee(transactionFee_), usageCount(usageCount_), easyRefundEligible(easyRefundEligible_) {}
 };
 
-// ─── NEW in Extension 2 ──────────────────────────────────────────────────────
-//
-// The compliance team wants to add "easy-refund eligibility" as a filter.
-// Some payment methods don't support easy refunds — these should be ranked
-// lower regardless of cashback or fee, unless the user explicitly opts in.
-//
-// Think about:
-//   - Is this a ranking criterion, a filter, or both?
-//   - How does your existing Composite strategy handle a boolean filter?
-//   - What if the "opt-in" flag is per-user, not per-session?
-//
-// Entry points (must exist for tests):
-//   vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod>);
-//   vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod>);
-//   vector<PaymentMethod> rank_by_trust(vector<PaymentMethod>);
-//   vector<PaymentMethod> rank_composite(vector<PaymentMethod>, vector<???> criteria);
-//   vector<PaymentMethod> rank_with_refund_filter(vector<PaymentMethod>, bool preferEasyRefund);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// Forward declaration so signatures compile; design and implement your own.
+class RankingStrategy;
 
+// TODO: design and implement your solution.
+// Required free functions:
+//   vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod> methods);
+//   vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod> methods);
+//   vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods);
+//   vector<PaymentMethod> rank_composite(vector<PaymentMethod> methods, vector<RankingStrategy*> criteria);
+//   vector<PaymentMethod> rank_with_refund_filter(vector<PaymentMethod> methods, bool preferEasyRefund);
 
+vector<PaymentMethod> rank_by_rewards(vector<PaymentMethod> methods) {
+    // TODO: write your solution
+    return methods;
+}
+
+vector<PaymentMethod> rank_by_low_fee(vector<PaymentMethod> methods) {
+    // TODO: write your solution
+    return methods;
+}
+
+vector<PaymentMethod> rank_by_trust(vector<PaymentMethod> methods) {
+    // TODO: write your solution
+    return methods;
+}
+
+vector<PaymentMethod> rank_composite(vector<PaymentMethod> methods, vector<RankingStrategy*> criteria) {
+    // TODO: write your solution
+    return methods;
+}
+
+vector<PaymentMethod> rank_with_refund_filter(vector<PaymentMethod> methods, bool preferEasyRefund) {
+    // TODO: write your solution
+    return methods;
+}

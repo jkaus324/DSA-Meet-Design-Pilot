@@ -1,0 +1,81 @@
+- name: close_with_bids
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Laptop", i3: 500, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 600 }
+      - { kind: "close", i1: 0 }
+      - { kind: "status", i1: 0 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "2", "1", "ok", "ok", "CLOSED", "600"]
+
+- name: close_no_bids
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "create", i1: 0, s2: "Phone", i3: 300, i2: 0 }
+      - { kind: "close", i1: 0 }
+      - { kind: "status", i1: 0 }
+      - { kind: "winning", i1: 0 }
+  expect: ["ok", "1", "1", "ok", "NO_SALE", "-1"]
+
+- name: double_close
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Watch", i3: 100, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 150 }
+      - { kind: "close", i1: 0 }
+      - { kind: "close", i1: 0 }
+  expect: ["ok", "1", "2", "1", "ok", "ok", "fail"]
+
+- name: bid_on_closed
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "create", i1: 0, s2: "Tablet", i3: 200, i2: 0 }
+      - { kind: "close", i1: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 300 }
+  expect: ["ok", "1", "2", "1", "ok", "fail"]
+
+- name: initial_status_open
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "create", i1: 0, s2: "Camera", i3: 400, i2: 0 }
+      - { kind: "status", i1: 0 }
+  expect: ["ok", "1", "1", "OPEN"]
+
+- name: close_nosale_again
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "create", i1: 0, s2: "Book", i3: 25, i2: 0 }
+      - { kind: "close", i1: 0 }
+      - { kind: "close", i1: 0 }
+      - { kind: "status", i1: 0 }
+  expect: ["ok", "1", "1", "ok", "fail", "NO_SALE"]
+
+- name: winning_bid_after_close
+  call: auction_simulate
+  args:
+    - - { kind: "new" }
+      - { kind: "register", s1: "A", s2: "SELLER", i1: 0 }
+      - { kind: "register", s1: "B", s2: "BUYER",  i1: 1 }
+      - { kind: "register", s1: "C", s2: "BUYER",  i1: 2 }
+      - { kind: "create", i1: 0, s2: "Painting", i3: 1000, i2: 0 }
+      - { kind: "bid", i1: 0, i2: 1, i3: 1500 }
+      - { kind: "bid", i1: 0, i2: 2, i3: 2000 }
+      - { kind: "close", i1: 0 }
+      - { kind: "winning", i1: 0 }
+      - { kind: "status", i1: 0 }
+  expect: ["ok", "1", "2", "3", "1", "ok", "ok", "ok", "2000", "CLOSED"]

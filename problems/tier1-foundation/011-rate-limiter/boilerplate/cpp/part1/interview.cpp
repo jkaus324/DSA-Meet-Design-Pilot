@@ -1,38 +1,35 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <queue>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Request {
-    string clientId;    // e.g. "user_123"
-    long timestamp;     // epoch seconds
-    string endpoint;    // e.g. "/api/payments"
-};
+// Data class (given).
 
-enum class UserTier { FREE, PRO, ENTERPRISE };
-
-// ─── Your Design Starts Here ────────────────────────────────────────────────
-//
-// Design and implement a Rate Limiter that:
-//   1. Tracks requests per client in a fixed time window
-//   2. Rejects requests that exceed the limit
-//   3. Allows new rate-limiting algorithms to be added WITHOUT modifying
-//      existing code
-//
-// Think about:
-//   - What abstraction lets you swap rate-limiting logic at runtime?
-//   - How would you track per-client request counts efficiently?
-//   - What happens when the time window rolls over?
-//
-// Entry points (must exist for tests):
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
 //   void init_limiter(int maxRequests, int windowSize);
-//   bool allow_request(const Request& req);
-//   int get_request_count(const string& clientId);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+//   bool allow_request_simple(string clientId, int timestamp, string endpoint);
+//   int get_request_count(string clientId);
 
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void init_limiter(int maxRequests, int windowSize) {
+    // TODO: write your solution
+    // nothing to return
+}
+
+bool allow_request_simple(string clientId, int timestamp, string endpoint) {
+    // TODO: write your solution
+    return {};
+}
+
+int get_request_count(string clientId) {
+    // TODO: write your solution
+    return {};
+}

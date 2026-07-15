@@ -1,0 +1,92 @@
+- name: capacity_eviction_listener
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_listener", i1: 0 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 3, i2: 30, i3: 1000, i4: 0 }
+      - { kind: "events_count", i1: 0 }
+      - { kind: "event_key",    i1: 0, i2: 0 }
+      - { kind: "event_value",  i1: 0, i2: 0 }
+      - { kind: "event_reason", i1: 0, i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "1", "10", "CAPACITY"]
+
+- name: ttl_eviction_listener
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "add_listener", i1: 0 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 30 }
+      - { kind: "get_t", i1: 1, i2: 1035 }
+      - { kind: "events_count", i1: 0 }
+      - { kind: "event_key",    i1: 0, i2: 0 }
+      - { kind: "event_reason", i1: 0, i2: 0 }
+  expect: ["ok", "ok", "ok", "-1", "1", "1", "TTL_EXPIRED"]
+
+- name: explicit_delete_listener
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 5 }
+      - { kind: "add_listener", i1: 0 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "delete", i1: 1 }
+      - { kind: "events_count", i1: 0 }
+      - { kind: "event_key",    i1: 0, i2: 0 }
+      - { kind: "event_value",  i1: 0, i2: 0 }
+      - { kind: "event_reason", i1: 0, i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "1", "1", "10", "EXPLICIT_DELETE"]
+
+- name: multiple_listeners
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_listener", i1: 0 }
+      - { kind: "add_listener", i1: 1 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 3, i2: 30, i3: 1000, i4: 0 }
+      - { kind: "events_count", i1: 0 }
+      - { kind: "events_count", i1: 1 }
+      - { kind: "event_key", i1: 0, i2: 0 }
+      - { kind: "event_key", i1: 1, i2: 0 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "1", "1", "1", "1"]
+
+- name: remove_listener
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_listener", i1: 0 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 3, i2: 30, i3: 1000, i4: 0 }
+      - { kind: "events_count", i1: 0 }
+      - { kind: "remove_listener", i1: 0 }
+      - { kind: "put_t", i1: 4, i2: 40, i3: 1000, i4: 0 }
+      - { kind: "events_count", i1: 0 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "1", "ok", "ok", "1"]
+
+- name: no_listeners_no_crash
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 1 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 0 }
+      - { kind: "get_t", i1: 2, i2: 1000 }
+  expect: ["ok", "ok", "ok", "20"]
+
+- name: sequential_evictions
+  call: lru_simulate
+  args:
+    - - { kind: "new", i1: 2 }
+      - { kind: "add_listener", i1: 0 }
+      - { kind: "put_t", i1: 1, i2: 10, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 2, i2: 20, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 3, i2: 30, i3: 1000, i4: 0 }
+      - { kind: "put_t", i1: 4, i2: 40, i3: 1000, i4: 0 }
+      - { kind: "events_count", i1: 0 }
+      - { kind: "event_key",    i1: 0, i2: 0 }
+      - { kind: "event_value",  i1: 0, i2: 0 }
+      - { kind: "event_key",    i1: 0, i2: 1 }
+      - { kind: "event_value",  i1: 0, i2: 1 }
+  expect: ["ok", "ok", "ok", "ok", "ok", "ok", "2", "1", "10", "2", "20"]

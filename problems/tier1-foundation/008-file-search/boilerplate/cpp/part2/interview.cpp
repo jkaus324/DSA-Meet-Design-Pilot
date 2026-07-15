@@ -4,34 +4,80 @@
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct FileNode {
-    string name;          // "main.cpp", "docs", "report.pdf"
-    int size;             // file size in KB (0 for directories)
-    string extension;     // "cpp", "pdf", "" (empty for directories)
-    bool isDirectory;     // true for folders, false for files
-    vector<FileNode*> children;  // non-empty only for directories
-};
+// Data class (given).
 
-// ─── NEW in Extension 1 ──────────────────────────────────────────────────────
-//
-// The product team now wants COMPOSITE filters:
-// find files that are .cpp AND larger than 100KB, or files that are
-// .pdf OR named "report".
-//
-// Think about:
-//   - How do you combine criteria without modifying existing strategies?
-//   - What if the product team adds a 4th criterion tomorrow?
-//   - Is your Part 1 design extensible enough to handle this?
-//
-// Entry points (must exist for tests):
-//   vector<FileNode*> search_by_extension(FileNode* root, const string& ext);
-//   vector<FileNode*> search_by_size(FileNode* root, int minSize);
-//   vector<FileNode*> search_by_name(FileNode* root, const string& substring);
-//   vector<FileNode*> search_composite(FileNode* root,
-//       const vector<SearchCriteria*>& criteria, const string& mode);
-//
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO: design and implement your solution.
+// Required free functions:
+//   void reset_service();
+//   void fs_build_default_tree();
+//   void fs_build_empty_tree();
+//   void fs_build_single_file_tree();
+//   int fs_count_by_extension(string ext);
+//   bool fs_has_by_extension(string ext, string name);
+//   int fs_count_by_size(int minSize);
+//   bool fs_has_by_size(int minSize, string name);
+//   int fs_count_by_name(string sub);
+//   bool fs_has_by_name(string sub, string name);
+//   int fs_count_composite_and(string ext, int minSize);
+//   int fs_count_composite_or(string ext, int minSize);
 
+void reset_service() {
+    // TODO: write your solution
+    // nothing to return
+}
 
+void fs_build_default_tree() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void fs_build_empty_tree() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+void fs_build_single_file_tree() {
+    // TODO: write your solution
+    // nothing to return
+}
+
+int fs_count_by_extension(string ext) {
+    // TODO: write your solution
+    return {};
+}
+
+bool fs_has_by_extension(string ext, string name) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_by_size(int minSize) {
+    // TODO: write your solution
+    return {};
+}
+
+bool fs_has_by_size(int minSize, string name) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_by_name(string sub) {
+    // TODO: write your solution
+    return {};
+}
+
+bool fs_has_by_name(string sub, string name) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_composite_and(string ext, int minSize) {
+    // TODO: write your solution
+    return {};
+}
+
+int fs_count_composite_or(string ext, int minSize) {
+    // TODO: write your solution
+    return {};
+}

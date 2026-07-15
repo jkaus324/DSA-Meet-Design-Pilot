@@ -1,84 +1,22 @@
 #include <iostream>
-#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Node {
-    int key;
-    int value;
-    Node* prev;
-    Node* next;
-    Node(int k, int v) : key(k), value(v), prev(nullptr), next(nullptr) {}
+// Data class (given � do not modify).
+struct LruOp {
+    string kind;
+    int i1;
+    int i2;
+    int i3;
+    int i4;
+    LruOp(const string& kind_, int i1_ = 0, int i2_ = 0, int i3_ = 0, int i4_ = 0)
+      : kind(kind_), i1(i1_), i2(i2_), i3(i3_), i4(i4_) {}
 };
 
-// ─── LRU Cache ──────────────────────────────────────────────────────────────
-
-class LRUCache {
-private:
-    int capacity;
-    unordered_map<int, Node*> cache;  // key → Node*
-    Node* head;  // sentinel — most recently used side
-    Node* tail;  // sentinel — least recently used side
-
-    void addToFront(Node* node) {
-        // TODO: Insert node right after head sentinel
-        //       node->next = head->next
-        //       node->prev = head
-        //       head->next->prev = node
-        //       head->next = node
-    }
-
-    void removeNode(Node* node) {
-        // TODO: Unlink node from its current position
-        //       node->prev->next = node->next
-        //       node->next->prev = node->prev
-    }
-
-    void moveToFront(Node* node) {
-        // TODO: Remove from current position, then add to front
-    }
-
-    void evictLRU() {
-        // TODO: The LRU node is tail->prev (just before the tail sentinel)
-        //       Remove it from the list
-        //       Remove it from the cache map
-        //       Delete the node
-    }
-
-public:
-    LRUCache(int cap) : capacity(cap) {
-        head = new Node(0, 0);
-        tail = new Node(0, 0);
-        head->next = tail;
-        tail->prev = head;
-    }
-
-    ~LRUCache() {
-        Node* curr = head;
-        while (curr) {
-            Node* next = curr->next;
-            delete curr;
-            curr = next;
-        }
-    }
-
-    int get(int key) {
-        // TODO: If key not in cache, return -1
-        //       Otherwise, move node to front and return its value
-        return -1;
-    }
-
-    void put(int key, int value) {
-        // TODO: If key already in cache, update value and move to front
-        //       If at capacity, evict LRU entry
-        //       Create new node, add to front, insert into cache map
-    }
-};
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "LRU Cache — implement the TODO methods above." << endl;
-    return 0;
+vector<string> lru_simulate(vector<LruOp> ops) {
+    // TODO: implement this
+    return {};
 }
-#endif

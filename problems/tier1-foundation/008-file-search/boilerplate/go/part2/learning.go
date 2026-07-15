@@ -1,104 +1,63 @@
 package main
 
-import "strings"
+// Data class (given � do not modify).
 
-// ─── Data Model (given — do not modify) ──────────────────────────────────────
-
-type FileNode struct {
-	Name        string
-	Size        int
-	Extension   string
-	IsDirectory bool
-	Children    []*FileNode
+func reset_service() {
+	// TODO: implement this
+	return
 }
 
-// ─── Search Criteria Interface ────────────────────────────────────────────────
-
-type SearchCriteria interface {
-	Matches(file *FileNode) bool
+func fs_build_default_tree() {
+	// TODO: implement this
+	return
 }
 
-// ─── Existing Criteria (provided — already implemented) ──────────────────────
-
-type SearchByExtensionCriteria struct{ Ext string }
-
-func (c *SearchByExtensionCriteria) Matches(file *FileNode) bool {
-	return !file.IsDirectory && file.Extension == c.Ext
+func fs_build_empty_tree() {
+	// TODO: implement this
+	return
 }
 
-type SearchByMinSizeCriteria struct{ MinSize int }
-
-func (c *SearchByMinSizeCriteria) Matches(file *FileNode) bool {
-	return !file.IsDirectory && file.Size >= c.MinSize
+func fs_build_single_file_tree() {
+	// TODO: implement this
+	return
 }
 
-type SearchByNameCriteria struct{ Substring string }
-
-func (c *SearchByNameCriteria) Matches(file *FileNode) bool {
-	return strings.Contains(file.Name, c.Substring)
+func fs_count_by_extension(ext string) int {
+	// TODO: implement this
+	return 0
 }
 
-// ─── NEW: Composite Filters ───────────────────────────────────────────────────
-
-type AndFilter struct {
-	Criteria []SearchCriteria
-}
-
-func (f *AndFilter) Matches(file *FileNode) bool {
-	// TODO: return true only if ALL criteria match the file
-	// HINT: iterate through criteria, return false if any doesn't match
+func fs_has_by_extension(ext string, name string) bool {
+	// TODO: implement this
 	return false
 }
 
-type OrFilter struct {
-	Criteria []SearchCriteria
+func fs_count_by_size(minSize int) int {
+	// TODO: implement this
+	return 0
 }
 
-func (f *OrFilter) Matches(file *FileNode) bool {
-	// TODO: return true if ANY criterion matches the file
-	// HINT: iterate through criteria, return true if any matches
+func fs_has_by_size(minSize int, name string) bool {
+	// TODO: implement this
 	return false
 }
 
-// ─── Search Engine (provided — already implemented) ───────────────────────────
-
-type FileSearchEngine struct{}
-
-func (e *FileSearchEngine) dfs(node *FileNode, criteria SearchCriteria, results *[]*FileNode) {
-	if node == nil {
-		return
-	}
-	if !node.IsDirectory && criteria.Matches(node) {
-		*results = append(*results, node)
-	}
-	for _, child := range node.Children {
-		e.dfs(child, criteria, results)
-	}
+func fs_count_by_name(sub string) int {
+	// TODO: implement this
+	return 0
 }
 
-func (e *FileSearchEngine) Search(root *FileNode, criteria SearchCriteria) []*FileNode {
-	var results []*FileNode
-	e.dfs(root, criteria, &results)
-	return results
+func fs_has_by_name(sub string, name string) bool {
+	// TODO: implement this
+	return false
 }
 
-// ─── Test Entry Points ────────────────────────────────────────────────────────
-
-func SearchByExtension(root *FileNode, ext string) []*FileNode {
-	return (&FileSearchEngine{}).Search(root, &SearchByExtensionCriteria{Ext: ext})
+func fs_count_composite_and(ext string, minSize int) int {
+	// TODO: implement this
+	return 0
 }
 
-func SearchBySize(root *FileNode, minSize int) []*FileNode {
-	return (&FileSearchEngine{}).Search(root, &SearchByMinSizeCriteria{MinSize: minSize})
-}
-
-func SearchByName(root *FileNode, substring string) []*FileNode {
-	return (&FileSearchEngine{}).Search(root, &SearchByNameCriteria{Substring: substring})
-}
-
-func SearchComposite(root *FileNode, criteria []SearchCriteria, mode string) []*FileNode {
-	if mode == "AND" {
-		return (&FileSearchEngine{}).Search(root, &AndFilter{Criteria: criteria})
-	}
-	return (&FileSearchEngine{}).Search(root, &OrFilter{Criteria: criteria})
+func fs_count_composite_or(ext string, minSize int) int {
+	// TODO: implement this
+	return 0
 }

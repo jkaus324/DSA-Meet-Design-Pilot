@@ -1,83 +1,24 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
 using namespace std;
 
-// ─── Data Model (given — do not modify) ─────────────────────────────────────
 
-struct Room {
-    string id;
-    string name;
-    int capacity;
-    bool hasAV;
+// Data class (given � do not modify).
+struct Op {
+    string kind;
+    string s1;
+    string s2;
+    string s3;
+    int i1;
+    int i2;
+    int i3;
+    Op(const string& kind_, const string& s1_ = "", const string& s2_ = "", const string& s3_ = "", int i1_ = 0, int i2_ = 0, int i3_ = 0)
+      : kind(kind_), s1(s1_), s2(s2_), s3(s3_), i1(i1_), i2(i2_), i3(i3_) {}
 };
 
-struct Meeting {
-    string id;
-    string title;
-    int startTime;  // minutes since midnight
-    int endTime;
-    string roomId;
-};
-
-// ─── Scheduler ──────────────────────────────────────────────────────────────
-
-class MeetingScheduler {
-    unordered_map<string, Room> rooms;
-    unordered_map<string, vector<Meeting>> schedule; // roomId -> meetings
-
-public:
-    void addRoom(const Room& room) {
-        rooms[room.id] = room;
-    }
-
-    bool isAvailable(const string& roomId, int startTime, int endTime) const {
-        auto it = schedule.find(roomId);
-        if (it == schedule.end()) return true;
-        for (auto& m : it->second) {
-            // TODO: return false if [startTime, endTime) overlaps [m.startTime, m.endTime)
-            // HINT: overlap condition is startTime < m.endTime && m.startTime < endTime
-        }
-        return true;
-    }
-
-    bool bookMeeting(const Meeting& meeting) {
-        if (rooms.find(meeting.roomId) == rooms.end()) return false;
-        // TODO: check availability, then add meeting to schedule
-        // HINT: if (!isAvailable(...)) return false; then push_back
-        return false;
-    }
-
-    vector<Meeting> getRoomSchedule(const string& roomId) const {
-        auto it = schedule.find(roomId);
-        if (it == schedule.end()) return {};
-        auto result = it->second;
-        // TODO: sort result by startTime
-        return result;
-    }
-};
-
-// ─── Test Entry Points ──────────────────────────────────────────────────────
-
-MeetingScheduler scheduler;
-
-bool book_meeting(const Meeting& meeting) {
-    return scheduler.bookMeeting(meeting);
+vector<string> meeting_simulate(vector<Op> ops) {
+    // TODO: implement this
+    return {};
 }
-
-vector<Meeting> get_room_schedule(const string& roomId) {
-    return scheduler.getRoomSchedule(roomId);
-}
-
-bool is_available(const string& roomId, int startTime, int endTime) {
-    return scheduler.isAvailable(roomId, startTime, endTime);
-}
-
-#ifndef RUNNING_TESTS
-int main() {
-    cout << "Meeting Scheduler — implement the TODO methods above, then run tests." << endl;
-    return 0;
-}
-#endif

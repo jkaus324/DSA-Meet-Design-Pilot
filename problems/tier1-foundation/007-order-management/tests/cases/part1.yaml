@@ -1,0 +1,42 @@
+- name: reset_p1
+  call: reset_service
+  args: []
+
+- name: set_inv_p1
+  call: set_inventory
+  args: ["P1", 10]
+
+- name: inv_10
+  call: get_inventory
+  args: ["P1"]
+  expect_equals: 10
+
+- name: create_o1
+  call: create_order_simple
+  args: ["P1", 2, 200.0]
+  expect_equals: "ORD-1"
+
+- name: inv_after_create_8
+  call: get_inventory
+  args: ["P1"]
+  expect_equals: 8
+
+- name: state_created
+  call: get_order_state_str
+  args: ["ORD-1"]
+  expect_equals: "Created"
+
+- name: create_second
+  call: create_order_simple
+  args: ["P1", 3, 300.0]
+  expect_equals: "ORD-2"
+
+- name: inv_after_second_5
+  call: get_inventory
+  args: ["P1"]
+  expect_equals: 5
+
+- name: state_unknown
+  call: get_order_state_str
+  args: ["UNKNOWN"]
+  expect_equals: ""

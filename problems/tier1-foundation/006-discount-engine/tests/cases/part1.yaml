@@ -1,0 +1,60 @@
+- name: percentage_basic
+  comment: "10% off Rs.1000 = Rs.900"
+  call: apply_percentage_discount
+  args:
+    - - { name: "A", price: 1000.0, quantity: 1 }
+    - 10.0
+  expect_close: 900.0
+
+- name: percentage_multiple_items
+  comment: "10% off (50000 + 1500 + 4000 = 55500) = 49950"
+  call: apply_percentage_discount
+  args:
+    - - { name: "Laptop", price: 50000.0, quantity: 1 }
+      - { name: "Case",   price:   500.0, quantity: 3 }
+      - { name: "Phones", price:  2000.0, quantity: 2 }
+    - 10.0
+  expect_close: 49950.0
+
+- name: flat_basic
+  call: apply_flat_discount
+  args:
+    - - { name: "A", price: 1000.0, quantity: 1 }
+    - 200.0
+  expect_close: 800.0
+
+- name: flat_caps_at_zero
+  comment: "Flat > total: bottoms out at 0"
+  call: apply_flat_discount
+  args:
+    - - { name: "A", price: 100.0, quantity: 1 }
+    - 200.0
+  expect_close: 0.0
+
+- name: bogo_2_get_1
+  comment: "buy 2 get 1: 3 items, pay for 2 (item 200): 400"
+  call: apply_bogo
+  args:
+    - - { name: "Item", price: 200.0, quantity: 3 }
+    - 2
+    - 1
+
+  expect_close: 400.0
+
+- name: bogo_below_threshold
+  comment: "Quantity 1 with buy=2: pay for 1 (200)"
+  call: apply_bogo
+  args:
+    - - { name: "Item", price: 200.0, quantity: 1 }
+    - 2
+    - 1
+  expect_close: 200.0
+
+- name: bogo_multi_groups
+  comment: "Quantity 6 with buy=2 get=1: 4 paid * 200 = 800"
+  call: apply_bogo
+  args:
+    - - { name: "Item", price: 200.0, quantity: 6 }
+    - 2
+    - 1
+  expect_close: 800.0
