@@ -748,7 +748,7 @@ app.post('/api/problems/:id/status', (req, res) => {
     entry.notes = notes;
   }
 
-  const totalParts = (problem.parts || []).length || 1;
+  const totalParts = normalizePartDefs(problem).length;
   ensurePartsInitialized(entry, totalParts);
   progress.problems[id] = entry;
   saveProgress(progress);
@@ -1396,7 +1396,7 @@ app.post('/api/problems/:id/parts/:part/carry-forward', (req, res) => {
 
   const progress = loadProgress();
   const entry    = progress.problems[id] || {};
-  const totalParts = (problem.parts || []).length || 1;
+  const totalParts = normalizePartDefs(problem).length;
   ensurePartsInitialized(entry, totalParts);
 
   if (!entry.parts[String(partNum)]) {
@@ -1426,7 +1426,7 @@ app.post('/api/problems/:id/parts/:part/skip', (req, res) => {
 
   const progress = loadProgress();
   const entry    = progress.problems[id] || {};
-  const totalParts = (problem.parts || []).length || 1;
+  const totalParts = normalizePartDefs(problem).length;
   ensurePartsInitialized(entry, totalParts);
 
   entry.parts[String(partNum)] = {
